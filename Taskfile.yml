@@ -1,0 +1,71 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  DIR_TASKFILES: "Taskfile.d"
+  FILE_TASK_START: "task-start-{{.TASK}}.txt"
+  MAT_GIT_REPO: "https://gitlab.com/jfxs-multipass/multipass-ansible-toolkit/-/raw/main"
+
+includes:
+  git:
+    taskfile: "./Taskfile.d/git.yml"
+  lint:
+    taskfile: "./Taskfile.d/lint.yml"
+  mp:
+    taskfile: "./Taskfile.d/multipass.yml"
+  yarn:
+    taskfile: "./Taskfile.d/yarn.yml"
+
+tasks:
+
+  01-pre-commit:
+    desc: "[CORE] Pre-commit checks."
+    cmds:
+      - date > {{.FILE_TASK_START}}
+      - defer: rm -f {{.FILE_TASK_START}}
+      - mkdir -p "{{.DIR_TASKFILES}}"
+      - task lint:yaml-lint
+      - task lint:file-lint
+      - echo "Checks Start $(cat {{.FILE_TASK_START}}) - End $(date)"
+    silent: true
+
+  usage:
+    desc: "[CORE] Show the usage of a task. Arguments: TSK|T=task-name (*)"
+    summary: |
+      [CORE] Show the usage of a task.
+      Usage: task usage TSK|T=<task-name>
+
+      Arguments:
+       TSK | T Name of the task (required)
+    vars:
+      TSK: '{{default .T .TSK}}'
+    cmds:
+      - task --summary "{{.TSK}}" | sed '/^dependencies:$/,$d' | sed '/^commands:$/,$d'
+    preconditions:
+      - sh: test -n "{{.TSK}}" || test -n "{{.T}}"
+        msg: "TSK|T argument is required"
+    silent: true
+
+  default:
+    desc: "[CORE] List of available tasks."
+    vars:
+      TASKS_LIST:
+        sh: task --list
+    cmds:
+      - |
+        {{ range $i, $line := .TASKS_LIST | splitLines -}}
+          first_char="$(printf '%s' "{{ $line }}" | cut -c1)"
+          if [ "$first_char" = "*" ]; then
+             task=$(echo "{{ $line }}" | cut -d ' ' -f2)
+             desc=$(echo "{{ $line }}" | sed -e "s/^\* $task//" | sed 's/^[[:space:]]*//g')
+             printf "\e[32m%-25s \033[0m %s\n" "* $task" "$desc"
+          else
+            echo "{{ $line }}"
+          fi
+        {{ end -}}
+      - echo ""
+      - echo " (*) <task usage TSK=task-name> will show the usage of the task."
+      - echo ""
+    silent: true

@@ -1,0 +1,263 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+
+tasks:
+  list:
+    desc: "[MULTIPASS] List instances."
+    vars:
+      MULTIPASS_HOSTS:
+        sh: multipass list
+    cmds:
+      - |
+        printf "%-21s %-21s %-21s %s\n" "Name" "State" "IP" "Mounts"
+        {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
+          {{ if $line }}
+            {{ $name := ($line | mustFromJson).name }}
+            {{ if contains $name $.MULTIPASS_HOSTS }}
+              {{ range $j, $line_host := $.MULTIPASS_HOSTS | splitLines -}}
+                {{ if contains $name $line_host }}
+                  {{ $state := (split " " (regexReplaceAll " +" $line_host " "))._1 }}
+                  {{if eq $state "Running"}}
+                    {{ $ip := (split " " (regexReplaceAll " +" $line_host " "))._2 }}
+                    printf "\e[32m%-21s %-21s %-21s %s\n" {{$name}} {{$state}} {{$ip}} $(task mp:get-mounts H={{$name}})
+                  {{ else }}
+                    printf "\e[33m%-21s %-21s %-21s %s\n" {{$name}} {{$state}} "-" $(task mp:get-mounts H={{$name}})
+                  {{ end }}
+                {{ end }}
+              {{ end -}}
+            {{ else }}
+              printf "\e[31m%-21s %s\n" {{$name}} "Missing"
+            {{ end }}
+          {{ end }}
+        {{ end -}}
+    preconditions:
+      - sh: command -v multipass
+        msg: "multipass is not installed"
+    silent: true
+
+# TODO: Add a task list-all to list all instances and mount points.
+
+  create:
+    desc: "[MULTIPASS] Create instances."
+    cmds:
+      - |
+        {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
+          {{ if $line }} task mp:create-instance "IMAGE={{ ($line | mustFromJson).image }}" "NAME={{ ($line | mustFromJson).name }}" "CPU={{ ($line | mustFromJson).cpu }}" "MEM={{ ($line | mustFromJson).mem }}" "DISK={{ ($line | mustFromJson).disk }}" "KEY={{ ($line | mustFromJson).ansible_ssh_private_key_file }}" "MOUNT={{ ($line | fromJson).mount_point }}" {{ end }}
+        {{ end -}}
+    silent: true
+
+  start:
+    desc: "[MULTIPASS] Start instances."
+    cmds:
+      - |
+        {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
+          {{ if $line }} multipass start "{{ ($line | mustFromJson).name }}" {{ end }}
+        {{ end -}}
+    preconditions:
+      - sh: command -v multipass
+        msg: "multipass is not installed"
+    silent: true
+
+  stop:
+    desc: "[MULTIPASS] Stop instances."
+    cmds:
+      - |
+        {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
+          {{ if $line }} multipass stop "{{ ($line | mustFromJson).name }}" {{ end }}
+        {{ end -}}
+    preconditions:
+      - sh: command -v multipass
+        msg: "multipass is not installed"
+    silent: true
+
+  del:
+    desc: "[MULTIPASS] Delete instances. Arguments: [FORCE|F=y|Y] (*)"
+    summary: |
+      [MULTIPASS] Delete instances.
+      Usage: task mp:del [FORCE|F=<y|Y>]
+
+      Arguments:
+       FORCE | F Delete instances without confirmation (optionnal)
+    vars:
+      FORCE: '{{default .F .FORCE}}'
+    cmds:
+      - cmd: |
+             if [ "{{.FORCE}}" == "y" ] || [ "{{.FORCE}}" == "Y" ]; then
+               {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
+                 {{ if $line }} ( multipass delete "{{ ($line | mustFromJson).name }}" && echo "Instance {{ ($line | mustFromJson).name }} deleted." ) || true {{ end }}
+               {{ end -}}
+             else
+               read -p "Are you sure to delete instances? (y/[n]) " -r
+               echo
+               if [[ $REPLY =~ ^[Yy]$ ]]
+               then
+                 {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
+                   {{ if $line }} ( multipass delete "{{ ($line | mustFromJson).name }}" && echo "Instance {{ ($line | mustFromJson).name }} deleted." ) || true {{ end }}
+                 {{ end -}}
+               fi
+             fi
+        ignore_error: true
+      - multipass purge
+    preconditions:
+      - sh: command -v multipass
+        msg: "multipass is not installed"
+    interactive: true
+    silent: true
+
+  mount:
+    desc: "[MULTIPASS] Mount a local directory inside the instance. Arguments: HOST|H=docker [SOURCE|S=<path>] (*)"
+    summary: |
+      [MULTIPASS] Mount a local directory inside the instance.
+      Usage: task mp:mount HOST|H=<hostname> [SOURCE|S=<path>]
+
+      Arguments:
+       HOST | H Hostname (required)
+       SOURCE | S Path of the local directory to mount (optional, by default current directory)
+    vars:
+      HOST: '{{default .H .HOST}}'
+      SOURCE: '{{default .S .SOURCE}}'
+      D_SOURCE: '{{default "." .SOURCE}}'
+    cmds:
+      - |
+        full_path=$(readlink -f "{{.D_SOURCE}}")
+        if [ -z "${full_path}" ]; then echo "Error: directory \"{{.D_SOURCE}}\" not found" && exit 1; fi
+        mounts=$(task mp:get-mounts HOST="{{.HOST}}")
+        if echo "${mounts}" | grep -q "${full_path}" 2>/dev/null; then
+          echo "${full_path} is already mounted."
+        else
+          multipass mount "${full_path}" "{{.HOST}}"
+          echo "${full_path} is now mounted."
+        fi
+    preconditions:
+      - sh: command -v multipass
+        msg: "multipass is not installed"
+      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
+        msg: "HOST|H argument is required"
+    silent: true
+
+  umount:
+    desc: "[MULTIPASS] Unmount a directory from an instance. Arguments: HOST|H=docker [SOURCE|S=<path>] (*)"
+    summary: |
+      [MULTIPASS] Unmount a directory from an instance.
+      Usage: task mp:umount HOST|H=<hostname> [SOURCE|S=<path>]
+
+      Arguments:
+       HOST | H Hostname (required)
+       SOURCE | S Path of the local directory to umount (optional, by default current directory)
+    vars:
+      HOST: '{{default .H .HOST}}'
+      SOURCE: '{{default .S .SOURCE}}'
+      D_SOURCE: '{{default "." .SOURCE}}'
+    cmds:
+      - |
+        full_path=$(readlink -f "{{.D_SOURCE}}")
+        if [ -z "${full_path}" ]; then echo "Error: directory \"{{.D_SOURCE}}\" not found" && exit 1; fi
+        multipass umount "{{.HOST}}:${full_path}"
+        echo "${full_path} is now unmounted."
+    preconditions:
+      - sh: command -v multipass
+        msg: "multipass is not installed"
+      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
+        msg: "HOST|H argument is required"
+    silent: true
+
+  mount-all:
+    desc: "[MULTIPASS] Mount all local directories declared in the multipass config file. Arguments: HOST|H=docker (*)"
+    summary: |
+      [MULTIPASS] Mount all local directories declared in the multipass config file.
+      Usage: task mp:mount-all HOST|H=<hostname>
+
+      Arguments:
+       HOST | H Hostname (optional, by default mount declared directories for all declared hosts)
+    vars:
+      HOST: '{{default .H .HOST}}'
+      REGEX_HOST: "{.*\"name\": \"{{.HOST}}\".*}"
+      LINE_HOST: '{{ mustRegexFind .REGEX_HOST .MULTIPASS_CONFIG }}'
+      MOUNTS: "{{ (.LINE_HOST | mustFromJson).mounts }}"
+    cmds:
+      - |
+        for mount in $(echo "{{.MOUNTS}}" | tr "," " "); do
+          task mp:mount HOST="{{.HOST}}" S="$mount"
+        done
+    preconditions:
+      - sh: command -v multipass
+        msg: "multipass is not installed"
+      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
+        msg: "HOST|H argument is required"
+    silent: true
+
+  umount-all:
+    desc: "[MULTIPASS] Unmount all directories from an instance. Arguments: HOST|H=docker (*)"
+    summary: |
+      [MULTIPASS] Unmount all directories from an instance.
+      Usage: task mp:umount-all HOST|H=<hostname>
+
+      Arguments:
+       HOST | H Hostname (required)
+    vars:
+      HOST: '{{default .H .HOST}}'
+      MOUNTS:
+        sh: task mp:get-mounts HOST="{{.HOST}}"
+    cmds:
+      - |
+        for mount in $(echo "{{.MOUNTS}}" | tr "," " "); do
+          task mp:umount HOST="{{.HOST}}" S="$mount"
+        done
+    preconditions:
+      - sh: command -v multipass
+        msg: "multipass is not installed"
+      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
+        msg: "HOST|H argument is required"
+    silent: true
+
+  reset:
+    desc: "[MULTIPASS] Restart multipass daemon and kill all hyperkit instances"
+    cmds:
+      - sudo launchctl stop com.canonical.multipassd
+      - sudo pkill hyperkit && sleep 2
+      - sudo pkill -9 hyperkit
+      - sudo launchctl start com.canonical.multipassd
+    preconditions:
+      - sh: command -v multipass
+        msg: "multipass is not installed"
+    interactive: true
+    silent: true
+
+  create-instance:
+    vars:
+      PUB_KEY:
+        sh: cat "{{.KEY}}.pub"
+      FILE_REF_CLOUD_INIT_PREFIX: "{{.DIR_FILES}}/cloud-init"
+      FILE_CLOUD_INIT: "{{.DIR_SSH}}/cloud-init.yml"
+    cmds:
+      - if test -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}-{{.NAME}}.yml"; then cp -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}-{{.NAME}}.yml" "{{.FILE_CLOUD_INIT}}"; else cp -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}.yml" "{{.FILE_CLOUD_INIT}}"; fi
+      - sed -i.bu "s#__SSH_KEY__#{{.PUB_KEY}}#g" "{{.FILE_CLOUD_INIT}}"
+      - rm -f "{{.FILE_CLOUD_INIT}}.bu"
+      - multipass launch "{{.IMAGE}}" --name "{{.NAME}}" --cpus "{{.CPU}}" --mem "{{.MEM}}" --disk "{{.DISK}}" --cloud-init "{{.FILE_CLOUD_INIT}}"
+      - rm "{{.FILE_CLOUD_INIT}}"
+      - multipass stop "{{.NAME}}"
+      - sleep 5 && multipass start "{{.NAME}}"
+      - task mp:mount-all HOST="{{.HOST}}"
+    status:
+      - if multipass list | grep -q "{{.NAME}}"; then exit 0; else exit 1; fi
+    preconditions:
+      - sh: command -v multipass
+        msg: "multipass is not installed"
+    silent: true
+
+  get-mounts:
+    vars:
+      HOST: '{{default .H .HOST}}'
+    cmds:
+      - |
+        multipass info "{{.HOST}}" | grep "=>" | awk '{ print $NF }' | tr '\n' ',' | sed 's/,$//'
+    preconditions:
+      - sh: command -v multipass
+        msg: "multipass is not installed"
+      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
+        msg: "HOST|H argument is required"
+    silent: true

@@ -1,0 +1,50 @@
+{
+  "name": "task-templates",
+  "version": "0.0.0-semantic-release",
+  "description": "Reusable Task templates",
+  "engines": {
+    "node": ">=12.0",
+    "yarn": ">=1.17"
+  },
+  "devDependencies": {
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/gitlab": "^9.3.2",
+    "commitizen": "^4.2.4",
+    "cz-conventional-changelog": "^3.3.0",
+    "semantic-release": "^19.0.2"
+  },
+  "scripts": {
+    "commit": "cz"
+  },
+  "release": {
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      [
+        "@semantic-release/gitlab",
+        {
+          "assets": [
+            {
+              "path": "Taskfile.d/*.yml"
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ttps://gitlab.com/op_so/task/task-templates.git"
+  },
+  "author": "FX Soubirou",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://gitlab.com/op_so/task/task-templates/issues"
+  },
+  "homepage": "https://gitlab.com/op_so/task/task-templates"
+}

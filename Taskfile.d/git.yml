@@ -1,0 +1,49 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  IMAGE_NODE: node:lts-bullseye
+
+tasks:
+  commit:
+    desc: "[GIT] Signed commit with Commitizen: HOST|H=docker KEY_PATH|K=key_full_path [PULL|P=n|N] (*)"
+    summary: |
+      [GIT] Signed commit with Commitizen.
+      Usage: task git:commit KEY_PATH|K=<key_full_path> [PULL|P=<n|N>]
+
+      Prerequistes:
+        - Run command: git config user.signingkey XXXX
+        - Run command: git config commit.gpgsign true
+
+      Arguments:
+       HOST | H Hostname (required)
+       KEY_PATH | K Absolute path to the private key file (required)
+       PULL | P Pull docker image by default (optional, by default yes)
+    vars:
+      KEY_MOUNT_POINT: /Private
+      SRC_MOUNT_POINT: /data
+      HOST: '{{default .H .HOST}}'
+      KEY_PATH: '{{default .K .KEY_PATH}}'
+      PULL: '{{default .P .PULL}}'
+      KEY_PATH_DIR:
+        sh: dirname "{{.KEY_PATH}}"
+      KEY_NAME:
+        sh: basename "{{.KEY_PATH}}"
+    cmds:
+      - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_NODE}}"; fi
+      - task mp:mount HOST="{{.HOST}}"
+      - defer: echo "Unmounting KEY_PATH directory..." && task mp:umount HOST="{{.HOST}}" SOURCE="{{.KEY_PATH_DIR}}"
+      - docker run -d --name node-commit -v "{{.KEY_PATH_DIR}}:{{.KEY_MOUNT_POINT}}" -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" node:lts-bullseye sleep infinity
+      - defer: echo "Waiting for the container to stop..." && docker stop node-commit && docker rm node-commit
+      - docker exec -it node-commit /bin/sh -c 'gpg --import "{{.KEY_MOUNT_POINT}}/{{.KEY_NAME}}"'
+      - docker exec -it node-commit /bin/sh -c 'export GPG_TTY=$(tty); yarn commit'
+      - echo "Signed commit succeeded!"
+    preconditions:
+      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
+        msg: "HOST|H argument is required"
+      - sh: test -n "{{.KEY_PATH}}" || test -n "{{.K}}"
+        msg: "KEY_PATH|K argument is required"
+    interactive: true
+    silent: true

@@ -1,0 +1,45 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  IMAGE_YAMLINT: cytopia/yamllint
+  IMAGE_FILELINT: cytopia/file-lint
+  # TODO: Generate from .gitignore
+  FL_IGNORE_PATHS: .git/,.node_cache/,node_modules/,*.log
+
+tasks:
+  yaml-lint:
+    desc: "[QA] Linter for YAML files. Arguments: [PULL|P=n|N] (*)"
+    summary: |
+      [QA] Linter for YAML files.
+      Usage: task lint:yaml-lint [PULL|P=<n|N>]
+
+      Arguments:
+       PULL | P Pull docker image by default (optional)
+    vars:
+      PULL: '{{default .P .PULL}}'
+    cmds:
+      - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_YAMLINT}}"; fi
+      - docker run --rm -t -v $(pwd):/data "{{.IMAGE_YAMLINT}}" .
+    silent: true
+
+  file-lint:
+    desc: "[QA] Linter for files. Arguments: [PULL|P=n|N] (*)"
+    summary: |
+      [QA] Linter for files.
+      Usage: task lint:file-lint [PULL|P=<n|N>]
+
+      Arguments:
+       PULL | P Pull docker image by default (optional)
+    vars:
+      PULL: '{{default .P .PULL}}'
+    cmds:
+      - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_FILELINT}}"; fi
+      - docker run --rm -t -v $(pwd):/data "{{.IMAGE_FILELINT}}" file-cr --text --ignore "{{.FL_IGNORE_PATHS}}" --path .
+      - docker run --rm -t -v $(pwd):/data "{{.IMAGE_FILELINT}}" file-crlf --text --ignore "{{.FL_IGNORE_PATHS}}" --path .
+      - docker run --rm -t -v $(pwd):/data "{{.IMAGE_FILELINT}}" file-trailing-space --fix --text --ignore "{{.FL_IGNORE_PATHS}}" --path .
+      - docker run --rm -t -v $(pwd):/data "{{.IMAGE_FILELINT}}" file-trailing-single-newline --fix --text --ignore "{{.FL_IGNORE_PATHS}}" --path .
+      - docker run --rm -t -v $(pwd):/data "{{.IMAGE_FILELINT}}" file-utf8 --text --ignore "{{.FL_IGNORE_PATHS}}" --path .
+    silent: true
