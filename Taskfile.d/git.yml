@@ -7,6 +7,7 @@ vars:
   IMAGE_NODE: node:lts-bullseye
 
 tasks:
+
   commit:
     desc: "[GIT] Signed commit with Commitizen: HOST|H=docker KEY_PATH|K=key_full_path [PULL|P=n|N] (*)"
     summary: |

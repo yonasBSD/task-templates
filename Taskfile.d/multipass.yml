@@ -6,6 +6,7 @@ version: '3'
 vars:
 
 tasks:
+
   list:
     desc: "[MULTIPASS] List instances."
     vars:
@@ -39,7 +40,7 @@ tasks:
         msg: "multipass is not installed"
     silent: true
 
-# TODO: Add a task list-all to list all instances and mount points.
+  # TODO: Add a task list-all to list all instances and mount points.
 
   create:
     desc: "[MULTIPASS] Create instances."

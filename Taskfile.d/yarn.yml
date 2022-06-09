@@ -8,6 +8,7 @@ vars:
   SRC_MOUNT_POINT: /data
 
 tasks:
+
   install:
     desc: "[YARN] Install nodejs modules with yarn. Arguments: [PULL|P=n|N] (*)"
     summary: |

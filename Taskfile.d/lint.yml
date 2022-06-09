@@ -10,6 +10,7 @@ vars:
   FL_IGNORE_PATHS: .git/,.node_cache/,node_modules/,*.log
 
 tasks:
+
   yaml-lint:
     desc: "[QA] Linter for YAML files. Arguments: [PULL|P=n|N] (*)"
     summary: |
