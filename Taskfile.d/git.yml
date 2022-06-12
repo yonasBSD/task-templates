@@ -9,7 +9,7 @@ vars:
 tasks:
 
   commit:
-    desc: "[GIT] Signed commit with Commitizen: HOST|H=docker KEY_PATH|K=key_full_path [PULL|P=n|N] (*)"
+    desc: "[GIT] Signed commit with Commitizen: KEY_PATH|K=key_full_path [PULL|P=n|N] (*)"
     summary: |
       [GIT] Signed commit with Commitizen.
       Usage: task git:commit KEY_PATH|K=<key_full_path> [PULL|P=<n|N>]
@@ -19,13 +19,11 @@ tasks:
         - Run command: git config commit.gpgsign true
 
       Arguments:
-       HOST | H Hostname (required)
        KEY_PATH | K Absolute path to the private key file (required)
        PULL | P Pull docker image by default (optional, by default yes)
     vars:
       KEY_MOUNT_POINT: /Private
       SRC_MOUNT_POINT: /data
-      HOST: '{{default .H .HOST}}'
       KEY_PATH: '{{default .K .KEY_PATH}}'
       PULL: '{{default .P .PULL}}'
       KEY_PATH_DIR:
@@ -40,8 +38,6 @@ tasks:
       - docker exec -it node-commit /bin/sh -c 'export GPG_TTY=$(tty); yarn commit'
       - echo "Signed commit succeeded!"
     preconditions:
-      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
-        msg: "HOST|H argument is required"
       - sh: test -n "{{.KEY_PATH}}" || test -n "{{.K}}"
         msg: "KEY_PATH|K argument is required"
     interactive: true

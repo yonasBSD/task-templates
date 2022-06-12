@@ -1,0 +1,46 @@
+---
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - when: always
+
+variables:
+  IMAGE_DOCKER: docker:latest
+  IMAGE_NODE: node:lts-bullseye
+  IMAGE_YAMLLINT: cytopia/yamllint
+  SERVICE_DOCKER_TAG: stable-dind
+
+stages:
+  - checks
+  - gitlab-release
+
+lint-yaml:
+  image:
+    name: $IMAGE_YAMLLINT
+    entrypoint: ["/bin/ash", "-c"]
+  stage: checks
+  script:
+    - yamllint -f colored .
+
+lint-file:
+  image: $IMAGE_DOCKER
+  stage: checks
+  services:
+    - docker:$SERVICE_DOCKER_TAG
+  before_script:
+    - docker info
+    - apk --no-cache add go-task
+  script:
+    - task lint:file-lint
+
+gitlab-release:
+  only:
+    refs:
+      - main
+  image: $IMAGE_NODE
+  stage: gitlab-release
+  before_script:
+    - yarn install
+  script:
+    - npx semantic-release
