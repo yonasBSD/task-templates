@@ -30,7 +30,8 @@ lint-file:
     - docker:$SERVICE_DOCKER_TAG
   before_script:
     - docker info
-    - apk --no-cache add go-task
+    - apk --no-cache add curl
+    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
   script:
     - task lint:file-lint
 
