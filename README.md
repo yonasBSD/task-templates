@@ -21,16 +21,33 @@ In order to use:
 * Download the main Taskfile.yml:
 
 ```shell
-curl --progress-bar -o Taskfile.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile-ref.yml
+curl --progress-bar -o Taskfile.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.dist.yml
 ```
 
-* Edit the Taskfile.yml file and uncomment in the `include:` section the template(s) to use and the `01-download:` section of the template(s) to download.
+* Select your template(s)
+
+```shell
+t 01-t-activate T=lint,yarn
+```
+
+Or manual installation: edit the Taskfile.yml file and uncomment in the `include:` section the template(s) to use and the `01-download:` section of the template(s) to download.
 
 * Download resources:
 
 ```shell
 task 01-download
 ```
+
+* [Optional] Create a dedicated taskfile for your project:
+
+** Uncomment the two lines in the `Taskfile.yml`
+
+```shell
+# 00:
+#   taskfile: "./Taskfile.project.yml"
+```
+
+** Create a file `Taskfile.project.yml`
 
 ## Authors
 

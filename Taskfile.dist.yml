@@ -1,0 +1,138 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  DIR_TASKFILES: "Taskfile.d"
+  FILE_TASK_START: "task-start-{{.TASK}}.txt"
+  TT_GIT_REPO: "https://gitlab.com/op_so/task/task-templates/-/raw/main"
+
+includes:
+# 00:
+#   taskfile: "./Taskfile.project.yml"
+# docker:
+#   taskfile: "./Taskfile.d/docker.yml"
+#   optional: true
+# git:
+#   taskfile: "./Taskfile.d/git.yml"
+#   optional: true
+# lint:
+#   taskfile: "./Taskfile.d/lint.yml"
+#   optional: true
+# mp:
+#   taskfile: "./Taskfile.d/multipass.yml"
+#   optional: true
+# sys:
+#   taskfile: "./Taskfile.d/system.yml"
+#   optional: true
+# yarn:
+#   taskfile: "./Taskfile.d/yarn.yml"
+#   optional: true
+
+tasks:
+
+  10-t-activate:
+    desc: "[CORE] Activate Tasks templates. Arguments: TEMPLATE|T=docker,git [FILE|F=Taskfile.dist.yml] (*)"
+    summary: |
+      [CORE] Activate Tasks templates.
+      Usage: task [-t Taskfile.dist.yml] 01-t-activate TEMPLATE|T=<template1-name>,<template2-name> [FILE|F=Taskfile.dist.yml]
+
+      Arguments:
+       TEMPLATE | T List of the templates to activate separated by comma (required)
+       FILE | F     Taskfile path (optional, by default Taskfile.yml)
+    vars:
+      TEMPLATE: '{{default .T .TEMPLATE}}'
+      FILE: '{{default .F .FILE}}'
+      FILE_DEFAULT: "Taskfile.yml"
+      FILE_PATH: '{{default .FILE_DEFAULT .FILE}}'
+    cmds:
+      - mkdir -p "{{.DIR_TASKFILES}}"
+      - |
+        for t in $(echo "{{.TEMPLATE}}" | tr "," " "); do
+          sed -i.bu "/${t}:$/s/^#/ /" "{{.FILE_PATH}}"
+          sed -i.bu "/${t}:$/{n;s/^#/ /;}" "{{.FILE_PATH}}"
+          sed -i.bu "/${t}:$/{n;n;s/^#/ /;}" "{{.FILE_PATH}}"
+          sed -i.bu "/}}\/${t}\.yml/s/# - curl/- curl/" "{{.FILE_PATH}}"
+        done
+      - defer: rm -f "{{.FILE_PATH}}".bu
+    preconditions:
+      - sh: test -n "{{.TEMPLATE}}" || test -n "{{.T}}"
+        msg: "TEMPLATE|T argument is required"
+    silent: true
+
+  20-t-download:
+    # TODO: Add optional proxy arguments
+    desc: "[CORE] Download necessary resources."
+    cmds:
+      - date > {{.FILE_TASK_START}}
+      - defer: rm -f {{.FILE_TASK_START}}
+      - mkdir -p "{{.DIR_TASKFILES}}"
+      # - curl --progress-bar -o "{{.DIR_TASKFILES}}/docker.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/docker.yml"
+      # - curl --progress-bar -o "{{.DIR_TASKFILES}}/git.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/git.yml"
+      # - curl --progress-bar -o "{{.DIR_TASKFILES}}/lint.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/lint.yml"
+      # - curl --progress-bar -o "{{.DIR_TASKFILES}}/multipass.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/multipass.yml"
+      # - curl --progress-bar -o "{{.DIR_TASKFILES}}/system.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/system.yml"
+      # - curl --progress-bar -o "{{.DIR_TASKFILES}}/yarn.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/yarn.yml"
+      - echo "Download Start $(cat {{.FILE_TASK_START}}) - End $(date)"
+    preconditions:
+      - sh: command -v curl
+        msg: "curl is not installed"
+    silent: true
+
+  usage:
+    desc: "[CORE] Show the usage of a task. Arguments: TSK|T=task-name [FILE|F=Taskfile.dist.yml] (*)"
+    summary: |
+      [CORE] Show the usage of a task.
+      Usage: task [-t Taskfile.dist.yml] usage TSK|T=<task-name> [FILE|F=Taskfile.dist.yml]
+
+      Arguments:
+       TSK | T  Name of the task (required)
+       FILE | F Taskfile path (optional, by default Taskfile.yml)
+    vars:
+      TSK: '{{default .T .TSK}}'
+      FILE: '{{default .F .FILE}}'
+      FILE_DEFAULT: "Taskfile.yml"
+      FILE_PATH: '{{default .FILE_DEFAULT .FILE}}'
+    cmds:
+      - |
+        if [ ! -f "{{.FILE_PATH}}" ]; then
+          echo "{{.FILE_PATH}} does not exist!"
+          exit 1
+        fi
+      - task -t "{{.FILE_PATH}}" --summary "{{.TSK}}" | sed '/^dependencies:$/,$d' | sed '/^commands:$/,$d'
+    preconditions:
+      - sh: test -n "{{.TSK}}" || test -n "{{.T}}"
+        msg: "TSK|T argument is required"
+    silent: true
+
+  default:
+    desc: "[CORE] List of available tasks. Arguments: [FILE|F=Taskfile.dist.yml] (*)"
+    summary: |
+      [CORE] Show the list of available tasks.
+      Usage: task [-t Taskfile.dist.yml] [FILE|F=Taskfile.dist.yml]
+
+      Arguments:
+       FILE | F Taskfile path (optional, by default Taskfile.yml)
+    vars:
+      FILE: '{{default .F .FILE}}'
+      FILE_DEFAULT: "Taskfile.yml"
+      FILE_PATH: '{{default .FILE_DEFAULT .FILE}}'
+      TASKS_LIST:
+        sh: task --list -t "{{.FILE_PATH}}"
+    cmds:
+      - |
+        {{ range $i, $line := .TASKS_LIST | splitLines -}}
+          first_char="$(printf '%s' "{{ $line }}" | cut -c1)"
+          if [ "$first_char" = "*" ]; then
+             task=$(echo "{{ $line }}" | cut -d ' ' -f2)
+             desc=$(echo "{{ $line }}" | sed -e "s/^\* $task//" | sed 's/^[[:space:]]*//g')
+             printf "\e[32m%-25s \033[0m %s\n" "* $task" "$desc"
+          else
+            echo "{{ $line }}"
+          fi
+        {{ end -}}
+      - echo ""
+      - echo " (*) <task usage TSK=task-name> will show the usage of the task."
+      - echo ""
+    silent: true

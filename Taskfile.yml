@@ -9,6 +9,8 @@ vars:
   MAT_GIT_REPO: "https://gitlab.com/jfxs-multipass/multipass-ansible-toolkit/-/raw/main"
 
 includes:
+  00:
+    taskfile: "./Taskfile.project.yml"
   git:
     taskfile: "./Taskfile.d/git.yml"
   lint:
@@ -20,39 +22,46 @@ includes:
 
 tasks:
 
-  01-pre-commit:
-    desc: "[CORE] Pre-commit checks."
-    cmds:
-      - date > {{.FILE_TASK_START}}
-      - defer: rm -f {{.FILE_TASK_START}}
-      - mkdir -p "{{.DIR_TASKFILES}}"
-      - task lint:yaml-lint
-      - task lint:file-lint
-      - echo "Checks Start $(cat {{.FILE_TASK_START}}) - End $(date)"
-    silent: true
-
   usage:
-    desc: "[CORE] Show the usage of a task. Arguments: TSK|T=task-name (*)"
+    desc: "[CORE] Show the usage of a task. Arguments: TSK|T=task-name [FILE|F=Taskfile.dist.yml] (*)"
     summary: |
       [CORE] Show the usage of a task.
-      Usage: task usage TSK|T=<task-name>
+      Usage: task [-t Taskfile.dist.yml] usage TSK|T=<task-name> [FILE|F=Taskfile.dist.yml]
 
       Arguments:
-       TSK | T Name of the task (required)
+       TSK | T  Name of the task (required)
+       FILE | F Taskfile path (optional, by default Taskfile.yml)
     vars:
       TSK: '{{default .T .TSK}}'
+      FILE: '{{default .F .FILE}}'
+      FILE_DEFAULT: "Taskfile.yml"
+      FILE_PATH: '{{default .FILE_DEFAULT .FILE}}'
     cmds:
-      - task --summary "{{.TSK}}" | sed '/^dependencies:$/,$d' | sed '/^commands:$/,$d'
+      - |
+        if [ ! -f "{{.FILE_PATH}}" ]; then
+          echo "{{.FILE_PATH}} does not exist!"
+          exit 1
+        fi
+      - task -t "{{.FILE_PATH}}" --summary "{{.TSK}}" | sed '/^dependencies:$/,$d' | sed '/^commands:$/,$d'
     preconditions:
       - sh: test -n "{{.TSK}}" || test -n "{{.T}}"
         msg: "TSK|T argument is required"
     silent: true
 
   default:
-    desc: "[CORE] List of available tasks."
+    desc: "[CORE] List of available tasks. Arguments: [FILE|F=Taskfile.dist.yml] (*)"
+    summary: |
+      [CORE] Show the list of available tasks.
+      Usage: task [-t Taskfile.dist.yml] [FILE|F=Taskfile.dist.yml]
+
+      Arguments:
+       FILE | F Taskfile path (optional, by default Taskfile.yml)
     vars:
+      FILE: '{{default .F .FILE}}'
+      FILE_DEFAULT: "Taskfile.yml"
+      FILE_PATH: '{{default .FILE_DEFAULT .FILE}}'
       TASKS_LIST:
-        sh: task --list
+        sh: task -t "{{.FILE_PATH}}" --list
     cmds:
       - |
         {{ range $i, $line := .TASKS_LIST | splitLines -}}

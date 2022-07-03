@@ -59,4 +59,5 @@ tasks:
     cmds:
       - rm -rf .node_cache
       - rm -rf node_modules
+      - rm -f yarn.lock
     silent: true

@@ -11,7 +11,7 @@
     "@semantic-release/gitlab": "^9.3.2",
     "commitizen": "^4.2.4",
     "cz-conventional-changelog": "^3.3.0",
-    "semantic-release": "^19.0.2"
+    "semantic-release": "^19.0.3"
   },
   "scripts": {
     "commit": "cz"

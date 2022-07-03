@@ -47,7 +47,7 @@ tasks:
     cmds:
       - |
         {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
-          {{ if $line }} task mp:create-instance "IMAGE={{ ($line | mustFromJson).image }}" "NAME={{ ($line | mustFromJson).name }}" "CPU={{ ($line | mustFromJson).cpu }}" "MEM={{ ($line | mustFromJson).mem }}" "DISK={{ ($line | mustFromJson).disk }}" "KEY={{ ($line | mustFromJson).ansible_ssh_private_key_file }}" "MOUNT={{ ($line | fromJson).mount_point }}" {{ end }}
+          {{ if $line }} task mp:create-instance "IMAGE={{ ($line | mustFromJson).image }}" "NAME={{ ($line | mustFromJson).name }}" "CPU={{ ($line | mustFromJson).cpu }}" "MEM={{ ($line | mustFromJson).mem }}" "DISK={{ ($line | mustFromJson).disk }}" "KEY={{ ($line | mustFromJson).ansible_ssh_private_key_file }}" "MOUNT={{ ($line | fromJson).mounts }}" {{ end }}
         {{ end -}}
     silent: true
 
@@ -116,7 +116,7 @@ tasks:
       Usage: task mp:mount HOST|H=<hostname> [SOURCE|S=<path>]
 
       Arguments:
-       HOST | H Hostname (required)
+       HOST | H   Hostname (required)
        SOURCE | S Path of the local directory to mount (optional, by default current directory)
     vars:
       HOST: '{{default .H .HOST}}'

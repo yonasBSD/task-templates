@@ -1,0 +1,19 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+
+tasks:
+
+  01-pre-commit:
+    desc: "[PROJECT] Pre-commit checks."
+    cmds:
+      - date > {{.FILE_TASK_START}}
+      - defer: rm -f {{.FILE_TASK_START}}
+      - mkdir -p "{{.DIR_TASKFILES}}"
+      - task lint:yaml-lint
+      - task lint:file-lint
+      - echo "Checks Start $(cat {{.FILE_TASK_START}}) - End $(date)"
+    silent: true

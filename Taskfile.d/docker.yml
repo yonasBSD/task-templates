@@ -1,0 +1,21 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+
+tasks:
+
+  rm:
+    desc: "[DOCKER] Remove all unused containers"
+    cmds:
+      - docker container prune -f
+    silent: true
+
+  rmi:
+    desc: "[DOCKER] Remove all untagged images"
+    cmds:
+      - docker container prune -f
+      - docker image prune -f
+    silent: true
