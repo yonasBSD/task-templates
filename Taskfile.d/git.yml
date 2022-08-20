@@ -20,7 +20,7 @@ tasks:
 
       Arguments:
        KEY_PATH | K Absolute path to the private key file (required)
-       PULL | P Pull docker image by default (optional, by default yes)
+       PULL | P Pull docker image (optional, by default yes)
     vars:
       KEY_MOUNT_POINT: /Private
       SRC_MOUNT_POINT: /data

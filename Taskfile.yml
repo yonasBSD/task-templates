@@ -5,7 +5,7 @@ version: '3'
 
 vars:
   DIR_TASKFILES: "Taskfile.d"
-  FILE_TASK_START: "task-start-{{.TASK}}.txt"
+  FILE_TASK_START: "task-start-{{.TASK}}.tmp"
   MAT_GIT_REPO: "https://gitlab.com/jfxs-multipass/multipass-ansible-toolkit/-/raw/main"
 
 includes:
@@ -15,7 +15,7 @@ includes:
     taskfile: "./Taskfile.d/git.yml"
   lint:
     taskfile: "./Taskfile.d/lint.yml"
-  mp:
+  multipass:
     taskfile: "./Taskfile.d/multipass.yml"
   yarn:
     taskfile: "./Taskfile.d/yarn.yml"
@@ -75,6 +75,6 @@ tasks:
           fi
         {{ end -}}
       - echo ""
-      - echo " (*) <task usage TSK=task-name> will show the usage of the task."
+      - echo " (*) task usage TSK=<task-name> will show the usage of the task."
       - echo ""
     silent: true

@@ -24,9 +24,9 @@ tasks:
                   {{ $state := (split " " (regexReplaceAll " +" $line_host " "))._1 }}
                   {{if eq $state "Running"}}
                     {{ $ip := (split " " (regexReplaceAll " +" $line_host " "))._2 }}
-                    printf "\e[32m%-21s %-21s %-21s %s\n" {{$name}} {{$state}} {{$ip}} $(task mp:get-mounts H={{$name}})
+                    printf "\e[32m%-21s %-21s %-21s %s\n" {{$name}} {{$state}} {{$ip}} $(task multipass:get-mounts H={{$name}})
                   {{ else }}
-                    printf "\e[33m%-21s %-21s %-21s %s\n" {{$name}} {{$state}} "-" $(task mp:get-mounts H={{$name}})
+                    printf "\e[33m%-21s %-21s %-21s %s\n" {{$name}} {{$state}} "-" $(task multipass:get-mounts H={{$name}})
                   {{ end }}
                 {{ end }}
               {{ end -}}
@@ -47,7 +47,7 @@ tasks:
     cmds:
       - |
         {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
-          {{ if $line }} task mp:create-instance "IMAGE={{ ($line | mustFromJson).image }}" "NAME={{ ($line | mustFromJson).name }}" "CPU={{ ($line | mustFromJson).cpu }}" "MEM={{ ($line | mustFromJson).mem }}" "DISK={{ ($line | mustFromJson).disk }}" "KEY={{ ($line | mustFromJson).ansible_ssh_private_key_file }}" "MOUNT={{ ($line | fromJson).mounts }}" {{ end }}
+          {{ if $line }} task multipass:create-instance "IMAGE={{ ($line | mustFromJson).image }}" "NAME={{ ($line | mustFromJson).name }}" "CPU={{ ($line | mustFromJson).cpu }}" "MEM={{ ($line | mustFromJson).mem }}" "DISK={{ ($line | mustFromJson).disk }}" "KEY={{ ($line | mustFromJson).ansible_ssh_private_key_file }}" "MOUNT={{ ($line | fromJson).mounts }}" {{ end }}
         {{ end -}}
     silent: true
 
@@ -79,10 +79,10 @@ tasks:
     desc: "[MULTIPASS] Delete instances. Arguments: [FORCE|F=y|Y] (*)"
     summary: |
       [MULTIPASS] Delete instances.
-      Usage: task mp:del [FORCE|F=<y|Y>]
+      Usage: task multipass:del [FORCE|F=<y|Y>]
 
       Arguments:
-       FORCE | F Delete instances without confirmation (optionnal)
+       FORCE | F Delete instances without confirmation (optional, by default no)
     vars:
       FORCE: '{{default .F .FORCE}}'
     cmds:
@@ -113,7 +113,7 @@ tasks:
     desc: "[MULTIPASS] Mount a local directory inside the instance. Arguments: HOST|H=docker [SOURCE|S=<path>] (*)"
     summary: |
       [MULTIPASS] Mount a local directory inside the instance.
-      Usage: task mp:mount HOST|H=<hostname> [SOURCE|S=<path>]
+      Usage: task multipass:mount HOST|H=<hostname> [SOURCE|S=<path>]
 
       Arguments:
        HOST | H   Hostname (required)
@@ -126,7 +126,7 @@ tasks:
       - |
         full_path=$(readlink -f "{{.D_SOURCE}}")
         if [ -z "${full_path}" ]; then echo "Error: directory \"{{.D_SOURCE}}\" not found" && exit 1; fi
-        mounts=$(task mp:get-mounts HOST="{{.HOST}}")
+        mounts=$(task multipass:get-mounts HOST="{{.HOST}}")
         if echo "${mounts}" | grep -q "${full_path}" 2>/dev/null; then
           echo "${full_path} is already mounted."
         else
@@ -144,7 +144,7 @@ tasks:
     desc: "[MULTIPASS] Unmount a directory from an instance. Arguments: HOST|H=docker [SOURCE|S=<path>] (*)"
     summary: |
       [MULTIPASS] Unmount a directory from an instance.
-      Usage: task mp:umount HOST|H=<hostname> [SOURCE|S=<path>]
+      Usage: task multipass:umount HOST|H=<hostname> [SOURCE|S=<path>]
 
       Arguments:
        HOST | H Hostname (required)
@@ -170,7 +170,7 @@ tasks:
     desc: "[MULTIPASS] Mount all local directories declared in the multipass config file. Arguments: HOST|H=docker (*)"
     summary: |
       [MULTIPASS] Mount all local directories declared in the multipass config file.
-      Usage: task mp:mount-all HOST|H=<hostname>
+      Usage: task multipass:mount-all HOST|H=<hostname>
 
       Arguments:
        HOST | H Hostname (optional, by default mount declared directories for all declared hosts)
@@ -182,7 +182,7 @@ tasks:
     cmds:
       - |
         for mount in $(echo "{{.MOUNTS}}" | tr "," " "); do
-          task mp:mount HOST="{{.HOST}}" S="$mount"
+          task multipass:mount HOST="{{.HOST}}" S="$mount"
         done
     preconditions:
       - sh: command -v multipass
@@ -195,18 +195,18 @@ tasks:
     desc: "[MULTIPASS] Unmount all directories from an instance. Arguments: HOST|H=docker (*)"
     summary: |
       [MULTIPASS] Unmount all directories from an instance.
-      Usage: task mp:umount-all HOST|H=<hostname>
+      Usage: task multipass:umount-all HOST|H=<hostname>
 
       Arguments:
        HOST | H Hostname (required)
     vars:
       HOST: '{{default .H .HOST}}'
       MOUNTS:
-        sh: task mp:get-mounts HOST="{{.HOST}}"
+        sh: task multipass:get-mounts HOST="{{.HOST}}"
     cmds:
       - |
         for mount in $(echo "{{.MOUNTS}}" | tr "," " "); do
-          task mp:umount HOST="{{.HOST}}" S="$mount"
+          task multipass:umount HOST="{{.HOST}}" S="$mount"
         done
     preconditions:
       - sh: command -v multipass
@@ -219,13 +219,55 @@ tasks:
     desc: "[MULTIPASS] Restart multipass daemon and kill all hyperkit instances"
     cmds:
       - sudo launchctl stop com.canonical.multipassd
-      - sudo pkill hyperkit && sleep 2
-      - sudo pkill -9 hyperkit
+      - sudo pkill hyperkit && sleep 2 || true
+      - sudo pkill -9 hyperkit || true
       - sudo launchctl start com.canonical.multipassd
     preconditions:
       - sh: command -v multipass
         msg: "multipass is not installed"
     interactive: true
+    silent: true
+
+  ssh:
+    desc: "[MULTIPASS] ssh connection. Arguments: HOST=docker (*)"
+    summary: |
+      [SYSTEM] ssh connection.
+      Usage: task system:ssh HOST|H=<hostname>
+
+      Arguments:
+       HOST | H Hostname (required)
+
+      The following error:
+      template: :1:17: executing "" at <mustFromJson>: error calling mustFromJson: unexpected end of JSON input
+      occured when the hostname is probably not found in the multipass config file.
+    vars:
+      HOST: '{{default .H .HOST}}'
+      REGEX_HOST: "{ *\"name\": *\"{{.HOST}}\".*}"
+      LINE_HOST: '{{ mustRegexFind .REGEX_HOST .MULTIPASS_CONFIG }}'
+      KEY_PATH: "{{ (.LINE_HOST | mustFromJson).ansible_ssh_private_key_file }}"
+      USER: "{{ (.LINE_HOST | mustFromJson).ansible_user }}"
+      SSH_ARGS: "{{ (.LINE_HOST | mustFromJson).ansible_ssh_common_args }}"
+    cmds:
+      - ssh -i '{{.KEY_PATH}}' {{.SSH_ARGS}} {{.USER}}@{{.HOST}}.local
+    preconditions:
+      - sh: command -v multipass
+        msg: "multipass is not installed"
+      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
+        msg: "HOST|H argument is required"
+      - sh: test -f "{{.KEY_PATH}}"
+        msg: "Key file {{.KEY_PATH}} not found"
+      - sh: test -n "{{.USER}}"
+        msg: "ansible_user not found in {{.LINE_HOST}}"
+    interactive: true
+    silent: true
+
+  generate-keys:
+    desc: "[MULTIPASS] generate keys for all multipass instances."
+    cmds:
+      - |
+        {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
+          {{ if $line }} task system:generate-key "KEY={{ ($line | mustFromJson).ansible_ssh_private_key_file  }}" {{ end }}
+        {{ end -}}
     silent: true
 
   create-instance:
@@ -242,7 +284,7 @@ tasks:
       - rm "{{.FILE_CLOUD_INIT}}"
       - multipass stop "{{.NAME}}"
       - sleep 5 && multipass start "{{.NAME}}"
-      - task mp:mount-all HOST="{{.HOST}}"
+      - task multipass:mount-all HOST="{{.HOST}}"
     status:
       - if multipass list | grep -q "{{.NAME}}"; then exit 0; else exit 1; fi
     preconditions:

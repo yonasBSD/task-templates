@@ -40,14 +40,14 @@ task 01-download
 
 * [Optional] Create a dedicated taskfile for your project:
 
-** Uncomment the two lines in the `Taskfile.yml`
+Uncomment the two lines in the `Taskfile.yml`
 
 ```shell
 # 00:
 #   taskfile: "./Taskfile.project.yml"
 ```
 
-** Create a file `Taskfile.project.yml`
+Create a file `Taskfile.project.yml`
 
 ## Authors
 

@@ -20,10 +20,10 @@ includes:
 # lint:
 #   taskfile: "./Taskfile.d/lint.yml"
 #   optional: true
-# mp:
+# multipass:
 #   taskfile: "./Taskfile.d/multipass.yml"
 #   optional: true
-# sys:
+# system:
 #   taskfile: "./Taskfile.d/system.yml"
 #   optional: true
 # yarn:

@@ -16,12 +16,15 @@ tasks:
       Usage: task yarn:install [PULL|P=<n|N>]
 
       Arguments:
-       PULL | P Pull docker image by default (optional)
+       PULL | P Pull docker image (optional, by default yes)
     vars:
       PULL: '{{default .P .PULL}}'
     cmds:
       - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_NODE}}"; fi
       - docker run --rm -t -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" node:lts-bullseye yarn --cache-folder "{{.SRC_MOUNT_POINT}}/.node_cache" install
+    preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
     silent: true
 
   outdated:
@@ -31,12 +34,15 @@ tasks:
       Usage: task yarn:outdated [PULL|P=<n|N>]
 
       Arguments:
-       PULL | P Pull docker image by default (optional)
+       PULL | P Pull docker image (optional, by default yes)
     vars:
       PULL: '{{default .P .PULL}}'
     cmds:
       - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_NODE}}"; fi
       - docker run --rm -t -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" node:lts-bullseye yarn --cache-folder "{{.SRC_MOUNT_POINT}}/.node_cache" outdated || true
+    preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
     silent: true
 
   upgrade:
@@ -46,12 +52,15 @@ tasks:
       Usage: task yarn:upgrade [PULL|P=<n|N>]
 
       Arguments:
-       PULL | P Pull docker image by default (optional)
+       PULL | P Pull docker image (optional, by default yes)
     vars:
       PULL: '{{default .P .PULL}}'
     cmds:
       - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_NODE}}"; fi
       - docker run --rm -t -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" node:lts-bullseye yarn --cache-folder "{{.SRC_MOUNT_POINT}}/.node_cache" upgrade
+    preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
     silent: true
 
   clean:
@@ -59,5 +68,4 @@ tasks:
     cmds:
       - rm -rf .node_cache
       - rm -rf node_modules
-      - rm -f yarn.lock
     silent: true

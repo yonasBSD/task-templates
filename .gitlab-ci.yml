@@ -6,10 +6,9 @@ workflow:
     - when: always
 
 variables:
-  IMAGE_DOCKER: docker:latest
+  IMAGE_DEFAULT: alpine:latest
   IMAGE_NODE: node:lts-bullseye
   IMAGE_YAMLLINT: cytopia/yamllint
-  SERVICE_DOCKER_TAG: stable-dind
 
 stages:
   - checks
@@ -24,16 +23,14 @@ lint-yaml:
     - yamllint -f colored .
 
 lint-file:
-  image: $IMAGE_DOCKER
+  image: $IMAGE_DEFAULT
   stage: checks
-  services:
-    - docker:$SERVICE_DOCKER_TAG
   before_script:
-    - docker info
-    - apk --no-cache add curl
+    - apk --no-cache add curl file git ncurses
     - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+    - task --version
   script:
-    - task lint:file-lint
+    - task lint:file
 
 gitlab-release:
   only:

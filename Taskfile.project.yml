@@ -13,7 +13,7 @@ tasks:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}
       - mkdir -p "{{.DIR_TASKFILES}}"
-      - task lint:yaml-lint
-      - task lint:file-lint
+      - task lint:yaml
+      - task lint:file
       - echo "Checks Start $(cat {{.FILE_TASK_START}}) - End $(date)"
     silent: true

@@ -7,48 +7,6 @@ vars:
 
 tasks:
 
-  generate-keys:
-    desc: "[SYSTEM] generate keys for all instances."
-    cmds:
-      - |
-        {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
-          {{ if $line }} task sys:generate-key "KEY={{ ($line | mustFromJson).ansible_ssh_private_key_file  }}" {{ end }}
-        {{ end -}}
-    silent: true
-
-  ssh:
-    desc: "[SYSTEM] ssh connection. Arguments: HOST=docker (*)"
-    summary: |
-      [SYSTEM] ssh connection.
-      Usage: task sys:ssh HOST|H=<hostname>
-
-      Arguments:
-       HOST | H Hostname (required)
-
-      The following error:
-      template: :1:17: executing "" at <mustFromJson>: error calling mustFromJson: unexpected end of JSON input
-      occured when the hostname is not found in the multipass config file.
-    vars:
-      HOST: '{{default .H .HOST}}'
-      REGEX_HOST: "{\"name\": \"{{.HOST}}\".*}"
-      LINE_HOST: '{{ mustRegexFind .REGEX_HOST .MULTIPASS_CONFIG }}'
-      KEY_PATH: "{{ (.LINE_HOST | mustFromJson).ansible_ssh_private_key_file }}"
-      USER: "{{ (.LINE_HOST | mustFromJson).ansible_user }}"
-      SSH_ARGS: "{{ (.LINE_HOST | mustFromJson).ansible_ssh_common_args }}"
-    cmds:
-      - ssh -i '{{.KEY_PATH}}' {{.SSH_ARGS}} {{.USER}}@{{.HOST}}.local
-    preconditions:
-      - sh: command -v multipass
-        msg: "multipass is not installed"
-      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
-        msg: "HOST|H argument is required"
-      - sh: test -f "{{.KEY_PATH}}"
-        msg: "Key file {{.KEY_PATH}} not found"
-      - sh: test -n "{{.USER}}"
-        msg: "ansible_user not found in {{.LINE_HOST}}"
-    interactive: true
-    silent: true
-
   generate-key:
     cmds:
       - mkdir -p .ssh

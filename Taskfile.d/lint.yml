@@ -4,43 +4,275 @@
 version: '3'
 
 vars:
-  IMAGE_YAMLINT: cytopia/yamllint
   IMAGE_FILELINT: cytopia/file-lint
-  # TODO: Generate from .gitignore
-  FL_IGNORE_PATHS: .git/,.node_cache/,node_modules/,*.log
+  IMAGE_HADOLINT: hadolint/hadolint
+  IMAGE_MARKDOWNLINT: tmknom/markdownlint
+  IMAGE_SHELLCHECK: koalaman/shellcheck:stable
+  IMAGE_YAMLINT: cytopia/yamllint
+  RED:
+    sh: tput setaf 1
+  GREEN:
+    sh: tput setaf 2
+  NORMAL:
+    sh: tput sgr0
 
 tasks:
 
-  yaml-lint:
+  file:
+    desc: "[QA] Linter for files. Arguments: [FIX|F=y|Y] (*)"
+    summary: |
+      [QA] Linter for files.
+      Usage: task lint:file [FIX|F=<y|Y>]
+
+      Arguments:
+       FIX | F Fix files (optional, by default no)
+
+      Notes:
+       - Only git versionned files are checked.
+    vars:
+      FIX: '{{default .F .FIX}}'
+    cmds:
+      - task lint:file-utf8
+      - task lint:file-cr FIX="{{.FIX}}"
+      - task lint:file-tws FIX="{{.FIX}}"
+      - task lint:file-nleof
+    silent: true
+
+  file-cr:
+    desc: "[QA] Linter CR (Carriage Return). Arguments: [FIX|F=y|Y] (*)"
+    summary: |
+      [QA] Linter CR (Carriage Return).
+      Usage: task lint:file-cr [FIX|F=<y|Y>]
+
+      Arguments:
+       FIX | F Fix files (optional, by default no)
+
+      Notes:
+       - Only git tracked files are checked,
+       - add "# Exclude" to lines you want to exclude from lint.
+    vars:
+      FIX: '{{default .F .FIX}}'
+      GREP_RE: "\r" # Exclude
+      SED_RE: "\r" # Exclude
+      DESC: "CR (Carriage Return)"
+    cmds:
+      - task lint:find-remove GREP="{{.GREP_RE}}" SED="{{.SED_RE}}" DESC="{{.DESC}}" FIX="{{.FIX}}"
+    silent: true
+
+  file-nleof:
+    desc: "[QA] Linter for one new line at the end of a file. Arguments: [FIX|F=y|Y] (*)"
+    summary: |
+      [QA] Linter for one new line at the end of a file.
+      Usage: task lint:file-nleof [FIX|F=<y|Y>]
+
+      Arguments:
+       FIX | F Fix files (optional, by default no)
+
+      Notes:
+       - Only git tracked files are checked.
+    cmds:
+      - |
+        count_all=0
+        count_ko=0
+        while read -r line
+        do
+          # File exists in local
+          if [ -e "$line" ]; then
+            format=$(file -b --mime-encoding "$line")
+            is_binary=$(echo "$format" | grep -c binary || true)
+            # If text file
+            if [ "$is_binary" = "0" ]; then
+              count_all=$((count_all+1))
+              # Get 2 last char | no adresse, write all input data, specify output format
+              end_file=$(tail -c 2 "$line" | od -An -v -tc)
+              char1=$(echo "$end_file" | awk '{print $1}')
+              char2=$(echo "$end_file" | awk '{print $2}')
+              if [ "$char2" = "\n" ]; then
+                if [ "$char1" = "\n" ]; then
+                printf "%s has more than one newline at the end of the file!\n" "$line"
+                count_ko=$((count_ko+1))
+                fi
+              else
+                printf "%s has no newline at the end of the file!\n" "$line"
+                count_ko=$((count_ko+1))
+              fi
+            fi
+          fi
+        done < <(git ls-files)
+        if [ "$count_ko" = "0" ]; then
+            printf "%s[OK] All %s text files have an empty line at the end of file.%s\n" "{{.GREEN}}" "$count_all" "{{.NORMAL}}"
+        else
+          printf "%s[KO] %s text files have not exactly one empty line at the end of file!%s\n" "{{.RED}}" "$count_ko" "{{.NORMAL}}"
+        fi
+        exit "$count_ko"
+    silent: true
+
+  file-tws:
+    desc: "[QA] Linter for trailing whitespaces at the end of a line. Arguments: [FIX|F=y|Y] (*)"
+    summary: |
+      [QA] Linter trailing whitespace line at the end of a line.
+      Usage: task lint:file-tws [FIX|F=<y|Y>]
+
+      Arguments:
+       FIX | F Fix files (optional, by default no)
+
+      Notes:
+       - Only git tracked files are checked,
+       - add "# Exclude" to lines you want to exclude from lint.
+    vars:
+      FIX: '{{default .F .FIX}}'
+      GREP_RE: "[[:space:]]$" # Exclude
+      SED_RE: "[[:space:]]*$" # Exclude
+      DESC: "trailing whitespaces at the end of line(s)"
+    cmds:
+      - task lint:find-remove GREP="{{.GREP_RE}}" SED="{{.SED_RE}}" DESC="{{.DESC}}" FIX="{{.FIX}}"
+    silent: true
+
+  file-utf8:
+    desc: "[QA] Check if text files are utf-8 encoded. Arguments: [FIX|F=y|Y] (*)"
+    summary: |
+      [QA] Check if text files are utf-8 encoded.
+      Usage: task lint:file-utf8
+
+      Notes:
+       - Only git tracked files are checked.
+    cmds:
+      - |
+        count_all=0
+        count_ko=0
+        while read -r line
+        do
+          # File exists in local
+          if [ -e "$line" ]; then
+            format=$(file -b --mime-encoding "$line")
+            is_binary=$(echo "$format" | grep -c binary || true)
+            # If text file
+            if [ "$is_binary" = "0" ]; then
+              count_all=$((count_all+1))
+              if ! iconv -f utf8 -t utf8 < "$line" >/dev/null 2>&1; then
+                printf "%s is not in UTF-8 format, probably %s!\n" "$line" "$format"
+                count_ko=$((count_ko+1))
+              fi
+            fi
+          fi
+        done < <(git ls-files)
+        if [ "$count_ko" = "0" ]; then
+            printf "%s[OK] All %s text files are UTF-8 encoded.%s\n" "{{.GREEN}}" "$count_all" "{{.NORMAL}}"
+        else
+          printf "%s[KO] %s text files are not in UTF-8 format!%s\n" "{{.RED}}" "$count_ko" "{{.NORMAL}}"
+        fi
+        exit "$count_ko"
+    preconditions:
+      - sh: command -v git
+        msg: "git is not installed"
+    silent: true
+
+  markdown:
+    desc: "[QA] Linter for Mardown files. Arguments: [PULL|P=n|N] (*)"
+    summary: |
+      [QA] Linter for Markdown files.
+      Usage: task lint:markdown [PULL|P=<n|N>]
+
+      Arguments:
+       PULL | P Pull docker image (optional, by default yes)
+
+      Notes:
+       - .gitignore file is used to exclude files and directories
+    vars:
+      PULL: '{{default .P .PULL}}'
+    cmds:
+      - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_MARKDOWNLINT}}"; fi
+      - docker run --rm -t -v $(pwd):/work "{{.IMAGE_MARKDOWNLINT}}" markdownlint --ignore-path .gitignore .
+    preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
+    silent: true
+
+  shell:
+    desc: "[QA] Linter for bash/sh shell files. Arguments: FILES|F=\"myscripts/*.sh\" [PULL|P=n|N] (*)"
+    summary: |
+      [QA] Linter for bash/sh shell files.
+      Usage: task lint:shell FILES|F="myscripts/*.sh" [PULL|P=<n|N>]
+
+      Arguments:
+       FILES | F Files to check (required)
+       PULL | P  Pull docker image (optional, by default yes)
+    vars:
+      PULL: '{{default .P .PULL}}'
+      FILES: '{{default .F .FILES}}'
+    cmds:
+      - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_SHELLCHECK}}"; fi
+      - docker run --rm -t -v $(pwd):/mnt "{{.IMAGE_SHELLCHECK}}" {{.FILES}}
+    preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
+      - sh: test -n "{{.FILES}}" || test -n "{{.F}}"
+        msg: "FILES|F argument is required"
+    silent: true
+
+  yaml:
+    # TODO: Exclude directories from git ignore
     desc: "[QA] Linter for YAML files. Arguments: [PULL|P=n|N] (*)"
     summary: |
       [QA] Linter for YAML files.
-      Usage: task lint:yaml-lint [PULL|P=<n|N>]
+      Usage: task lint:yaml [PULL|P=<n|N>]
 
       Arguments:
-       PULL | P Pull docker image by default (optional)
+       PULL | P Pull docker image (optional, by default yes)
     vars:
       PULL: '{{default .P .PULL}}'
     cmds:
       - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_YAMLINT}}"; fi
       - docker run --rm -t -v $(pwd):/data "{{.IMAGE_YAMLINT}}" .
+    preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
     silent: true
 
-  file-lint:
-    desc: "[QA] Linter for files. Arguments: [PULL|P=n|N] (*)"
-    summary: |
-      [QA] Linter for files.
-      Usage: task lint:file-lint [PULL|P=<n|N>]
-
-      Arguments:
-       PULL | P Pull docker image by default (optional)
+  find-remove:
     vars:
-      PULL: '{{default .P .PULL}}'
+      EXCLUDE_PATTERN: "# Exclude"
+      FILE_FR: "{{.TASK}}.tmp"
     cmds:
-      - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_FILELINT}}"; fi
-      - docker run --rm -t -v $(pwd):/data "{{.IMAGE_FILELINT}}" file-cr --text --ignore "{{.FL_IGNORE_PATHS}}" --path .
-      - docker run --rm -t -v $(pwd):/data "{{.IMAGE_FILELINT}}" file-crlf --text --ignore "{{.FL_IGNORE_PATHS}}" --path .
-      - docker run --rm -t -v $(pwd):/data "{{.IMAGE_FILELINT}}" file-trailing-space --fix --text --ignore "{{.FL_IGNORE_PATHS}}" --path .
-      - docker run --rm -t -v $(pwd):/data "{{.IMAGE_FILELINT}}" file-trailing-single-newline --fix --text --ignore "{{.FL_IGNORE_PATHS}}" --path .
-      - docker run --rm -t -v $(pwd):/data "{{.IMAGE_FILELINT}}" file-utf8 --text --ignore "{{.FL_IGNORE_PATHS}}" --path .
+      - git grep -nIE "$(printf '{{.GREP}}')" | grep -v "{{.EXCLUDE_PATTERN}}" > {{.FILE_FR}} || true
+      - defer: rm -f {{.FILE_FR}}
+      - |
+        count=$(wc -l < {{.FILE_FR}} | awk '{print $1}')
+        if [ "$count" = "0" ]; then
+            printf "%s[OK] No file with {{.DESC}} found.%s\n" "{{.GREEN}}" "{{.NORMAL}}"
+        else
+          printf "%s[KO] %s {{.DESC}} found:%s\n" "{{.RED}}" "$count" "{{.NORMAL}}"
+          if [ "{{.FIX}}" = "y" ] || [ "{{.FIX}}" = "Y" ]; then
+            files=""
+            while read -r line; do
+              # Get file name only
+              file=$(printf "%s" "$line" | sed -E 's/:[0-9]+:.*//')
+              # Set list with EOL separator
+              if [ -z "$files" ]; then
+                files="$file"
+              else
+                files=$(printf "%s\n%s" "$files" "$file")
+              fi
+            done < {{.FILE_FR}}
+            # Remove duplicate filename
+            uniq_files=$(printf "%s" "$files" | uniq)
+            printf "%s" "$uniq_files" | while read -r line ; do
+              sed -i.bu -E '/.*{{.EXCLUDE_PATTERN}}.*/!s/{{.SED}}//' "$line"
+              rm -f "$line.bu"
+              printf "%sFile %s fixed%s\n" "{{.GREEN}}" "$line" "{{.NORMAL}}"
+            done
+          else
+            cat {{.FILE_FR}}
+          fi
+        fi
+        exit "$count"
+    preconditions:
+      - sh: command -v git
+        msg: "git is not installed"
+      - sh: test -n "{{.GREP}}"
+        msg: "GREP argument is required"
+      - sh: test -n "{{.SED}}"
+        msg: "SED argument is required"
+      - sh: test -n "{{.DESC}}"
+        msg: "DESC argument is required"
     silent: true
