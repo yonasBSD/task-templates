@@ -10,11 +10,11 @@ vars:
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
   IMAGE_YAMLINT: cytopia/yamllint
   RED:
-    sh: tput setaf 1
+    sh: if [ -z "$TERM" ]; then export TERM=dumb; fi && tput setaf 1
   GREEN:
-    sh: tput setaf 2
+    sh: if [ -z "$TERM" ]; then export TERM=dumb; fi && tput setaf 2
   NORMAL:
-    sh: tput sgr0
+    sh: if [ -z "$TERM" ]; then export TERM=dumb; fi && tput sgr0
 
 tasks:
 
