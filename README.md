@@ -38,6 +38,9 @@ Or manual installation: edit the Taskfile.yml file and uncomment in the `include
 task 01-download
 ```
 
+* Available tasks are shown by execute `task` command without any parameter:
+![Available tasks](tasks-list.png "Available tasks")
+
 * [Optional] Create a dedicated taskfile for your project:
 
 Uncomment the two lines in the `Taskfile.yml`

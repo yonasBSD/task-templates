@@ -15,8 +15,6 @@ includes:
     taskfile: "./Taskfile.d/git.yml"
   lint:
     taskfile: "./Taskfile.d/lint.yml"
-  multipass:
-    taskfile: "./Taskfile.d/multipass.yml"
   yarn:
     taskfile: "./Taskfile.d/yarn.yml"
 

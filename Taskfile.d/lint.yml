@@ -9,12 +9,6 @@ vars:
   IMAGE_MARKDOWNLINT: tmknom/markdownlint
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
   IMAGE_YAMLINT: cytopia/yamllint
-  RED:
-    sh: if [ -z "$TERM" ]; then export TERM=dumb; fi && tput setaf 1
-  GREEN:
-    sh: if [ -z "$TERM" ]; then export TERM=dumb; fi && tput setaf 2
-  NORMAL:
-    sh: if [ -z "$TERM" ]; then export TERM=dumb; fi && tput sgr0
 
 tasks:
 
@@ -100,9 +94,9 @@ tasks:
           fi
         done < <(git ls-files)
         if [ "$count_ko" = "0" ]; then
-            printf "%s[OK] All %s text files have an empty line at the end of file.%s\n" "{{.GREEN}}" "$count_all" "{{.NORMAL}}"
+            printf "\033[0;32m[OK] All %s text files have an empty line at the end of file.\033[0m\n" "$count_all"
         else
-          printf "%s[KO] %s text files have not exactly one empty line at the end of file!%s\n" "{{.RED}}" "$count_ko" "{{.NORMAL}}"
+          printf "\033[0;31m[KO] %s text files have not exactly one empty line at the end of file!\033[0m\n" "$count_ko"
         fi
         exit "$count_ko"
     silent: true
@@ -157,9 +151,9 @@ tasks:
           fi
         done < <(git ls-files)
         if [ "$count_ko" = "0" ]; then
-            printf "%s[OK] All %s text files are UTF-8 encoded.%s\n" "{{.GREEN}}" "$count_all" "{{.NORMAL}}"
+            printf "\033[0;32m[OK] All %s text files are UTF-8 encoded.\033[0m\n" "$count_all"
         else
-          printf "%s[KO] %s text files are not in UTF-8 format!%s\n" "{{.RED}}" "$count_ko" "{{.NORMAL}}"
+          printf "\033[0;31m[KO] %s text files are not in UTF-8 format!\033[0m\n" "$count_ko"
         fi
         exit "$count_ko"
     preconditions:
@@ -239,9 +233,9 @@ tasks:
       - |
         count=$(wc -l < {{.FILE_FR}} | awk '{print $1}')
         if [ "$count" = "0" ]; then
-            printf "%s[OK] No file with {{.DESC}} found.%s\n" "{{.GREEN}}" "{{.NORMAL}}"
+          printf "\033[0;32m[OK] No file with %s found.\033[0m\n" "{{.DESC}}"
         else
-          printf "%s[KO] %s {{.DESC}} found:%s\n" "{{.RED}}" "$count" "{{.NORMAL}}"
+          printf "\033[0;31m[KO] %s %s found:\033[0m\n" "$count" "{{.DESC}}"
           if [ "{{.FIX}}" = "y" ] || [ "{{.FIX}}" = "Y" ]; then
             files=""
             while read -r line; do
@@ -259,7 +253,7 @@ tasks:
             printf "%s" "$uniq_files" | while read -r line ; do
               sed -i.bu -E '/.*{{.EXCLUDE_PATTERN}}.*/!s/{{.SED}}//' "$line"
               rm -f "$line.bu"
-              printf "%sFile %s fixed%s\n" "{{.GREEN}}" "$line" "{{.NORMAL}}"
+              printf "\033[0;32mFile %s fixed\033[0m\n" "$line"
             done
           else
             cat {{.FILE_FR}}

@@ -24,14 +24,14 @@ tasks:
                   {{ $state := (split " " (regexReplaceAll " +" $line_host " "))._1 }}
                   {{if eq $state "Running"}}
                     {{ $ip := (split " " (regexReplaceAll " +" $line_host " "))._2 }}
-                    printf "\e[32m%-21s %-21s %-21s %s\n" {{$name}} {{$state}} {{$ip}} $(task multipass:get-mounts H={{$name}})
+                    printf "\033[32m%-21s %-21s %-21s %s\033[0m\n" {{$name}} {{$state}} {{$ip}} $(task multipass:get-mounts H={{$name}})
                   {{ else }}
-                    printf "\e[33m%-21s %-21s %-21s %s\n" {{$name}} {{$state}} "-" $(task multipass:get-mounts H={{$name}})
+                    printf "\033[33m%-21s %-21s %-21s %s\033[0m\n" {{$name}} {{$state}} "-" $(task multipass:get-mounts H={{$name}})
                   {{ end }}
                 {{ end }}
               {{ end -}}
             {{ else }}
-              printf "\e[31m%-21s %s\n" {{$name}} "Missing"
+              printf "\033[31m%-21s %s\033[0m\n" {{$name}} "Missing"
             {{ end }}
           {{ end }}
         {{ end -}}
@@ -215,6 +215,7 @@ tasks:
         msg: "HOST|H argument is required"
     silent: true
 
+# TODO: Kill not only hyperkit but qemu, use argument.
   reset:
     desc: "[MULTIPASS] Restart multipass daemon and kill all hyperkit instances"
     cmds:
