@@ -1,0 +1,160 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  IMAGE_GO: golang:latest
+
+tasks:
+
+  build-local:
+    desc: "[GO] Build for local architecture: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    summary: |
+      [GO] Clean Go modules.
+      If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
+      otherwise a Go Docker image is used.
+      Usage: task go:mod-clean [IMG|I=<golang:latest>] [PULL|P=<n|N>]
+
+      Arguments:
+       IMG | I Docker Go image to use if the local Go (optional, by default golang:latest)
+       PULL | P Pull docker image (optional, by default yes)
+    vars:
+      IMG: '{{default .I .IMG}}'
+      PULL: '{{default .P .PULL}}'
+      CMD: "go mod tidy"
+    cmds:
+      - task go:exec-local-docker-go IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
+    silent: true
+
+  format-check:
+    desc: "[GO] Check code with gofmt and go vet: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    summary: |
+      [GO] Check code with gofmt and go vet.
+      If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
+      otherwise a Go Docker image is used.
+      Usage: task go:format-check [IMG|I=<golang:latest>] [PULL|P=<n|N>]
+
+      Arguments:
+       IMG | I Docker Go image to use if the local Go (optional, by default golang:latest)
+       PULL | P Pull docker image (optional, by default yes)
+    vars:
+      IMG: '{{default .I .IMG}}'
+      IMG_D: '{{default .IMAGE_GO .IMG}}'
+      PULL: '{{default .P .PULL}}'
+    cmds:
+      - |
+        if (! test -n "{{.IMG}}") && (command -v go 2>&1 >/dev/null); then
+          if [ -n "$(gofmt -l .)" ]; then echo "Go code is not formatted!" && gofmt -d . && exit 1; else go vet ./...; fi
+        else
+          if ! command -v docker 2>&1 >/dev/null; then
+            echo "docker is not installed!" && exit 1
+          fi
+          if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
+          docker run --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" sh -c 'if [ -n "$(gofmt -l .)" ]; then echo "Go code is not formatted!" && gofmt -d . && exit 1; else go vet ./...; fi'
+        fi
+    silent: true
+
+  mod-clean:
+    desc: "[GO] Clean Go modules: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    summary: |
+      [GO] Clean Go modules.
+      If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
+      otherwise a Go Docker image is used.
+      Usage: task go:mod-clean [IMG|I=<golang:latest>] [PULL|P=<n|N>]
+
+      Arguments:
+       IMG | I Docker Go image to use if the local Go (optional, by default golang:latest)
+       PULL | P Pull docker image (optional, by default yes)
+    vars:
+      IMG: '{{default .I .IMG}}'
+      PULL: '{{default .P .PULL}}'
+      CMD: "go mod tidy"
+    cmds:
+      - task go:exec-local-docker-go IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
+    silent: true
+
+  mod-outdated:
+    desc: "[GO] Check outdated Go modules: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    summary: |
+      [GO] Check outdated Go modules.
+      If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
+      otherwise a Go Docker image is used.
+      Usage: task go:mod-outdated [IMG|I=<golang:latest>] [PULL|P=<n|N>]
+
+      Arguments:
+       IMG | I Docker Go image to use if the local Go (optional, by default golang:latest)
+       PULL | P Pull docker image (optional, by default yes)
+    vars:
+      IMG: '{{default .I .IMG}}'
+      IMG_D: '{{default .IMAGE_GO .IMG}}'
+      PULL: '{{default .P .PULL}}'
+    cmds:
+      - |
+        if (! test -n "{{.IMG}}") && (command -v go 2>&1 >/dev/null); then
+          go list -u -f '{{`{{if (and (not (or .Main .Indirect)) .Update)}}`}}{{`{{.Path}}`}}  {{`{{.Version}}`}} -> {{`{{.Update.Version}}`}}{{`{{end}}`}}' -m all 2> /dev/null
+        else
+          if ! command -v docker 2>&1 >/dev/null; then
+            echo "docker is not installed!" && exit 1
+          fi
+          if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
+          docker run --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" go list -u -f '{{`{{if (and (not (or .Main .Indirect)) .Update)}}`}}{{`{{.Path}}`}}  {{`{{.Version}}`}} -> {{`{{.Update.Version}}`}}{{`{{end}}`}}' -m all 2> /dev/null
+        fi
+    silent: true
+
+  test-unit:
+    desc: "[GO] Run Go unit tests: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    summary: |
+      [GO] Run Go unit tests.
+      If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
+      otherwise a Go Docker image is used.
+      Usage: task go:test-unit [IMG|I=<golang:latest>] [PULL|P=<n|N>]
+
+      Arguments:
+       IMG | I Docker Go image to use if the local Go (optional, by default golang:latest)
+       PULL | P Pull docker image (optional, by default yes)
+    vars:
+      IMG: '{{default .I .IMG}}'
+      PULL: '{{default .P .PULL}}'
+      CMD: go test ./... -cover
+    cmds:
+      - task go:exec-local-docker-go IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
+    silent: true
+
+  test-unit-verbose:
+    desc: "[GO] Run Go unit tests with details: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    summary: |
+      [GO] Run Go unit tests with details.
+      If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
+      otherwise a Go Docker image is used.
+      Usage: task go:test-unit-verbose [IMG|I=<golang:latest>] [PULL|P=<n|N>]
+
+      Arguments:
+       IMG | I Docker Go image to use if the local Go (optional, by default golang:latest)
+       PULL | P Pull docker image (optional, by default yes)
+    vars:
+      IMG: '{{default .I .IMG}}'
+      PULL: '{{default .P .PULL}}'
+      CMD: go test ./... -v -cover | sed '/PASS/s//$(printf "\033[32mPASS\033[0m")/' | sed '/FAIL/s//$(printf "\033[31mFAIL\033[0m")/'
+    cmds:
+      - task go:exec-local-docker-go IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
+    silent: true
+
+  exec-local-docker-go:
+    vars:
+      IMG_D: '{{default .IMAGE_GO .IMG}}'
+    cmds:
+      - |
+        if (! test -n "{{.IMG}}") && (command -v go 2>&1 >/dev/null); then
+          {{.CMD}}
+        else
+          if ! command -v docker 2>&1 >/dev/null; then
+            echo "docker is not installed!" && exit 1
+          fi
+          if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
+          docker run --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" sh -c '{{.CMD}}'
+        fi
+    preconditions:
+      - sh: test -n "{{.CMD}}"
+        msg: "CMD argument is required"
+    silent: true

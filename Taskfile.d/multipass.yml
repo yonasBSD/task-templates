@@ -110,9 +110,9 @@ tasks:
     silent: true
 
   mount:
-    desc: "[MULTIPASS] Mount a local directory inside the instance. Arguments: HOST|H=docker [SOURCE|S=<path>] (*)"
+    desc: "[MULTIPASS] Mount a local directory inside an instance. Arguments: HOST|H=docker [SOURCE|S=<path>] (*)"
     summary: |
-      [MULTIPASS] Mount a local directory inside the instance.
+      [MULTIPASS] Mount a local directory inside an instance.
       Usage: task multipass:mount HOST|H=<hostname> [SOURCE|S=<path>]
 
       Arguments:

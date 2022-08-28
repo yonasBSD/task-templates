@@ -7,7 +7,7 @@ vars:
 
 tasks:
 
-  01-pre-commit:
+  10-pre-commit:
     desc: "[PROJECT] Pre-commit checks."
     cmds:
       - date > {{.FILE_TASK_START}}

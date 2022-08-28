@@ -22,35 +22,31 @@ In order to use:
 
 ```shell
 curl --progress-bar -o Taskfile.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.dist.yml
+curl --progress-bar -o Taskfile.project.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.project.dist.yml
 ```
 
-* Select your template(s)
+* Select your template(s) by editing the `Taskfile.project.yml` file variable `TASK_TEMPLATES` and run:
 
 ```shell
-t 01-t-activate T=lint,yarn
+task 10-init-task
 ```
 
-Or manual installation: edit the Taskfile.yml file and uncomment in the `include:` section the template(s) to use and the `01-download:` section of the template(s) to download.
+Or manual installation: edit the Taskfile.yml file and uncomment in the `include:` section the template(s) to use and the `20-t-download:` section of the template(s) to download and run: `task 20-t-download`
 
-* Download resources:
+* Git:
+
+Taskfile.project.yml is the file that contains your specific project tasks. It should probably be commited.
+If you always want the last version of the task templates, add those 2 following lines in your `.gitignore` file
 
 ```shell
-task 01-download
+Taskfile.yml
+/Taskfile.d/
 ```
+
+Otherwise, if you prefer stability you should also commit the `Taskfile.yml` file and the content of the `Taskfile.d` directory.
 
 * Available tasks are shown by execute `task` command without any parameter:
 ![Available tasks](tasks-list.png "Available tasks")
-
-* [Optional] Create a dedicated taskfile for your project:
-
-Uncomment the two lines in the `Taskfile.yml`
-
-```shell
-# 00:
-#   taskfile: "./Taskfile.project.yml"
-```
-
-Create a file `Taskfile.project.yml`
 
 ## Authors
 

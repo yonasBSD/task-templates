@@ -1,0 +1,38 @@
+---
+# https://taskfile.dev
+#
+# Taskfile.project.yml for your main project tasks. Must be commited.
+# If you always want the last version of the task templates, add those 2 following lines in your .gitignore file
+# Taskfile.yml
+# /Taskfile.d/
+#
+version: '3'
+
+vars:
+# TO MODIFY: Task templates to download separated by comma
+  TASK_TEMPLATES: lint
+
+tasks:
+
+  10-init-task:
+    desc: "[PROJECT] Init and download tasks templates."
+    cmds:
+      - date > {{.TASK_TEMP_DIR}}/{{.FILE_TASK_START}}
+      - defer: rm -f {{.TASK_TEMP_DIR}}/{{.FILE_TASK_START}}
+      - mkdir -p "{{.DIR_TASKFILES}}"
+      - task 10-t-activate TEMPLATE={{.TASK_TEMPLATES}}
+      - task 20-t-download
+      - echo "Checks Start $(cat {{.TASK_TEMP_DIR}}/{{.FILE_TASK_START}}) - End $(date)"
+    silent: true
+
+# Task example
+  20-pre-commit:
+    desc: "[PROJECT] Pre-commit checks."
+    cmds:
+      - date > {{.FILE_TASK_START}}
+      - defer: rm -f {{.FILE_TASK_START}}
+      - mkdir -p "{{.DIR_TASKFILES}}"
+      - task lint:yaml
+      - task lint:file
+      - echo "Checks Start $(cat {{.FILE_TASK_START}}) - End $(date)"
+    silent: true
