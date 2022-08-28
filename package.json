@@ -43,7 +43,7 @@
     "url": "git+ttps://gitlab.com/op_so/task/task-templates.git"
   },
   "author": "FX Soubirou",
-  "license": "GPL-3.0",
+  "license": "MIT",
   "bugs": {
     "url": "https://gitlab.com/op_so/task/task-templates/issues"
   },

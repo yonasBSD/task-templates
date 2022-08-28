@@ -1,6 +1,6 @@
 # Task Templates
 
-[![Software License](https://img.shields.io/badge/license-GPL%20v3-informational.svg?style=flat&logo=gnu)](LICENSE)
+[![Software License](https://img.shields.io/badge/license-MIT-informational.svg?style=flat)](LICENSE)
 [![Pipeline Status](https://gitlab.com/op_so/task/task-templates/badges/main/pipeline.svg)](https://gitlab.com/op_so/task/task-templates/pipelines)
 [![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
 
@@ -54,4 +54,4 @@ Otherwise, if you prefer stability you should also commit the `Taskfile.yml` fil
 
 ## License
 
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See the [LICENSE](https://www.gnu.org/licenses/gpl-3.0.html) file for details.
+This program is free software: you can redistribute it and/or modify it under the terms of The MIT License (MIT). See the [LICENSE](https://opensource.org/licenses/MIT) for details.
