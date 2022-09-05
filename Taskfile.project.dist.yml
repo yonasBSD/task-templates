@@ -14,24 +14,22 @@ vars:
 
 tasks:
 
-  10-init-task:
+  00-init-task:
     desc: "[PROJECT] Init and download tasks templates."
-    cmds:
-      - date > {{.TASK_TEMP_DIR}}/{{.FILE_TASK_START}}
-      - defer: rm -f {{.TASK_TEMP_DIR}}/{{.FILE_TASK_START}}
-      - mkdir -p "{{.DIR_TASKFILES}}"
-      - task 10-t-activate TEMPLATE={{.TASK_TEMPLATES}}
-      - task 20-t-download
-      - echo "Checks Start $(cat {{.TASK_TEMP_DIR}}/{{.FILE_TASK_START}}) - End $(date)"
-    silent: true
-
-# Task example
-  20-pre-commit:
-    desc: "[PROJECT] Pre-commit checks."
     cmds:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}
       - mkdir -p "{{.DIR_TASKFILES}}"
+      - task 10-t-activate TEMPLATE={{.TASK_TEMPLATES}}
+      - task 20-t-download
+    silent: true
+
+# Task example
+  10-pre-commit:
+    desc: "[PROJECT] Pre-commit checks."
+    cmds:
+      - date > {{.FILE_TASK_START}}
+      - defer: rm -f {{.FILE_TASK_START}}
       - task lint:yaml
       - task lint:file
       - echo "Checks Start $(cat {{.FILE_TASK_START}}) - End $(date)"

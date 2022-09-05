@@ -28,7 +28,7 @@ curl --progress-bar -o Taskfile.project.yml https://gitlab.com/op_so/task/task-t
 * Select your template(s) by editing the `Taskfile.project.yml` file variable `TASK_TEMPLATES` and run:
 
 ```shell
-task 10-init-task
+task 00:00-init-task
 ```
 
 Or manual installation: edit the Taskfile.yml file and uncomment in the `include:` section the template(s) to use and the `20-t-download:` section of the template(s) to download and run: `task 20-t-download`

@@ -8,25 +8,6 @@ vars:
 
 tasks:
 
-  build-local:
-    desc: "[GO] Build for local architecture: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
-    summary: |
-      [GO] Clean Go modules.
-      If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
-      otherwise a Go Docker image is used.
-      Usage: task go:mod-clean [IMG|I=<golang:latest>] [PULL|P=<n|N>]
-
-      Arguments:
-       IMG | I Docker Go image to use if the local Go (optional, by default golang:latest)
-       PULL | P Pull docker image (optional, by default yes)
-    vars:
-      IMG: '{{default .I .IMG}}'
-      PULL: '{{default .P .PULL}}'
-      CMD: "go mod tidy"
-    cmds:
-      - task go:exec-local-docker-go IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
-    silent: true
-
   format-check:
     desc: "[GO] Check code with gofmt and go vet: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
     summary: |

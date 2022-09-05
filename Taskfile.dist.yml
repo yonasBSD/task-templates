@@ -79,6 +79,7 @@ tasks:
       - mkdir -p "{{.DIR_TASKFILES}}"
       # - curl --progress-bar -o "{{.DIR_TASKFILES}}/docker.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/docker.yml"
       # - curl --progress-bar -o "{{.DIR_TASKFILES}}/git.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/git.yml"
+      # - curl --progress-bar -o "{{.DIR_TASKFILES}}/go.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/go.yml"
       # - curl --progress-bar -o "{{.DIR_TASKFILES}}/lint.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/lint.yml"
       # - curl --progress-bar -o "{{.DIR_TASKFILES}}/multipass.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/multipass.yml"
       # - curl --progress-bar -o "{{.DIR_TASKFILES}}/system.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/system.yml"
