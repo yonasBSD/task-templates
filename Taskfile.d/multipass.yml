@@ -215,7 +215,7 @@ tasks:
         msg: "HOST|H argument is required"
     silent: true
 
-# TODO: Kill not only hyperkit but qemu, use argument.
+  # TODO: Kill not only hyperkit but qemu, use argument.
   reset:
     desc: "[MULTIPASS] Restart multipass daemon and kill all hyperkit instances"
     cmds:

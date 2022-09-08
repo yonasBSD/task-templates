@@ -46,8 +46,8 @@ tasks:
        - add "# Exclude" to lines you want to exclude from lint.
     vars:
       FIX: '{{default .F .FIX}}'
-      GREP_RE: "\r" # Exclude
-      SED_RE: "\r" # Exclude
+      GREP_RE: "\r"  # Exclude
+      SED_RE: "\r"  # Exclude
       DESC: "CR (Carriage Return)"
     cmds:
       - task lint:find-remove GREP="{{.GREP_RE}}" SED="{{.SED_RE}}" DESC="{{.DESC}}" FIX="{{.FIX}}"
@@ -115,8 +115,8 @@ tasks:
        - add "# Exclude" to lines you want to exclude from lint.
     vars:
       FIX: '{{default .F .FIX}}'
-      GREP_RE: "[[:space:]]$" # Exclude
-      SED_RE: "[[:space:]]*$" # Exclude
+      GREP_RE: "[[:space:]]$"  # Exclude
+      SED_RE: "[[:space:]]*$"  # Exclude
       DESC: "trailing whitespaces at the end of line(s)"
     cmds:
       - task lint:find-remove GREP="{{.GREP_RE}}" SED="{{.SED_RE}}" DESC="{{.DESC}}" FIX="{{.FIX}}"
@@ -220,8 +220,8 @@ tasks:
     desc: "[QA] Linter for YAML files. Arguments: [FILES|F=\".\"] [IMG|I=cytopia/yamllint] [PULL|P=n|N] (*)"
     summary: |
       [QA] Linter for YAML files.
-      If shellcheck command is in the path and IMG/I argument is not set, the local shellcheck command is executed,
-      otherwise a shellcheck Docker image is used.
+      If yamllint command is in the path and IMG/I argument is not set, the local yamllint command is executed,
+      otherwise a yamllint Docker image is used.
       You can configure rules and exclude directories with a .yamlint configuration file:
       https://yamllint.readthedocs.io/en/stable/configuration.html
       Usage: task lint:yaml [PULL|P=<n|N>]
@@ -234,20 +234,20 @@ tasks:
       FILES: '{{default .F .FILES}}'
       FILES_D: '{{default "." .FILES}}'
       IMG: '{{default .I .IMG}}'
-      IMG_D: '{{default .IMAGE_SHELLCHECK .IMG}}'
+      IMG_D: '{{default .IMAGE_YAMLINT .IMG}}'
       PULL: '{{default .P .PULL}}'
       EXEC: yamllint
     cmds:
-        - |
-          if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
-            {{.EXEC}} {{.FILES_D}}
-          else
-            if ! command -v docker 2>&1 >/dev/null; then
-              echo "docker and {{.EXEC}} are not installed!" && exit 1
-            fi
-            if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-            docker run --rm -t -v $(pwd):/data "{{.IMG_D}}" {{.FILES_D}}
+      - |
+        if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
+          {{.EXEC}} {{.FILES_D}}
+        else
+          if ! command -v docker 2>&1 >/dev/null; then
+            echo "docker and {{.EXEC}} are not installed!" && exit 1
           fi
+          if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
+          docker run --rm -t -v $(pwd):/data "{{.IMG_D}}" {{.FILES_D}}
+        fi
     silent: true
 
   find-remove:

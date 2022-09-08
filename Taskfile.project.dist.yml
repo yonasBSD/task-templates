@@ -9,7 +9,7 @@
 version: '3'
 
 vars:
-# TO MODIFY: Task templates to download separated by comma
+  # TO MODIFY: Task templates to download separated by comma
   TASK_TEMPLATES: lint
 
 tasks:
@@ -24,7 +24,7 @@ tasks:
       - task 20-t-download
     silent: true
 
-# Task example
+  # Task example
   10-pre-commit:
     desc: "[PROJECT] Pre-commit checks."
     cmds:
