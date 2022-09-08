@@ -7,20 +7,16 @@ workflow:
 
 variables:
   IMAGE_DEFAULT: alpine:latest
+  IMAGE_DOCKER: docker:latest
   IMAGE_NODE: node:lts-bullseye
+  IMAGE_SHELLCHECK: koalaman/shellcheck:stable
   IMAGE_YAMLLINT: cytopia/yamllint
+  SERVICE_DOCKER_TAG: stable-dind
 
 stages:
   - checks
+  - tests
   - gitlab-release
-
-lint-yaml:
-  image:
-    name: $IMAGE_YAMLLINT
-    entrypoint: ["/bin/ash", "-c"]
-  stage: checks
-  script:
-    - yamllint -f colored .
 
 lint-file:
   image: $IMAGE_DEFAULT
@@ -31,6 +27,55 @@ lint-file:
     - task --version
   script:
     - task lint:file
+
+lint-yaml:
+  image:
+    name: $IMAGE_YAMLLINT
+    entrypoint: [""]
+  stage: checks
+  before_script:
+    - apk --no-cache add curl file git ncurses
+    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+    - task --version
+  script:
+    - task lint:yaml
+
+lint-yaml-dind:
+  image:
+    name: $IMAGE_DOCKER
+  services:
+    - docker:$SERVICE_DOCKER_TAG
+  stage: tests
+  before_script:
+    - apk --no-cache add curl file git ncurses
+    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+    - task --version
+  script:
+    - task lint:yaml
+
+lint-shell:
+  image:
+    name: $IMAGE_SHELLCHECK
+  stage: tests
+  before_script:
+    - apk --no-cache add curl file git ncurses
+    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+    - task --version
+  script:
+    - task lint:shell FILES="tests/lint/*.sh"
+
+lint-shell-dind:
+  image:
+    name: $IMAGE_DOCKER
+  services:
+    - docker:$SERVICE_DOCKER_TAG
+  stage: tests
+  before_script:
+    - apk --no-cache add curl file git ncurses
+    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+    - task --version
+  script:
+    - task lint:shell FILES="tests/lint/*.sh"
 
 gitlab-release:
   only:

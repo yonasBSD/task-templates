@@ -14,7 +14,7 @@ In order to use:
 
 * [Task](https://taskfile.dev)
 * curl
-* [Docker](https://docs.docker.com/engine/install/) (recommended): Many templates use Docker images to avoid the need to install any software.
+* [Docker](https://docs.docker.com/engine/install/) (recommended): Many templates use Docker images to avoid installing software.
 
 ### Installation
 

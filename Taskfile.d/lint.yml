@@ -183,44 +183,71 @@ tasks:
     silent: true
 
   shell:
-    desc: "[QA] Linter for bash/sh shell files. Arguments: FILES|F=\"myscripts/*.sh\" [PULL|P=n|N] (*)"
+    desc: "[QA] Linter for bash/sh shell files. Arguments: FILES|F=\"myscripts/*.sh\" [IMG|I=koalaman/shellcheck:stable] [PULL|P=n|N] (*)"
     summary: |
       [QA] Linter for bash/sh shell files.
-      Usage: task lint:shell FILES|F="myscripts/*.sh" [PULL|P=<n|N>]
+      If shellcheck command is in the path and IMG/I argument is not set, the local shellcheck command is executed,
+      otherwise a shellcheck Docker image is used.
+      Usage: task lint:shell FILES|F="myscripts/*.sh" [IMG|I=<koalaman/shellcheck:stable>] [PULL|P=<n|N>]
 
       Arguments:
        FILES | F Files to check (required)
-       PULL | P  Pull docker image (optional, by default yes)
+       IMG | I Docker shellcheck image to use (optional, by default koalaman/shellcheck:stable)
+       PULL | P Pull docker image (optional, by default yes)
     vars:
-      PULL: '{{default .P .PULL}}'
       FILES: '{{default .F .FILES}}'
+      IMG: '{{default .I .IMG}}'
+      IMG_D: '{{default .IMAGE_SHELLCHECK .IMG}}'
+      PULL: '{{default .P .PULL}}'
+      EXEC: shellcheck
     cmds:
-      - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_SHELLCHECK}}"; fi
-      - docker run --rm -t -v $(pwd):/mnt "{{.IMAGE_SHELLCHECK}}" {{.FILES}}
+      - |
+        if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
+          {{.EXEC}} {{.FILES}}
+        else
+          if ! command -v docker 2>&1 >/dev/null; then
+            echo "docker and {{.EXEC}} are not installed!" && exit 1
+          fi
+          if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
+          docker run --rm -t -v $(pwd):/mnt "{{.IMG_D}}" {{.FILES}}
+        fi
     preconditions:
-      - sh: command -v docker
-        msg: "docker is not installed"
       - sh: test -n "{{.FILES}}" || test -n "{{.F}}"
         msg: "FILES|F argument is required"
     silent: true
 
   yaml:
-    # TODO: Exclude directories from git ignore
-    desc: "[QA] Linter for YAML files. Arguments: [PULL|P=n|N] (*)"
+    desc: "[QA] Linter for YAML files. Arguments: [FILES|F=\".\"] [IMG|I=cytopia/yamllint] [PULL|P=n|N] (*)"
     summary: |
       [QA] Linter for YAML files.
+      If shellcheck command is in the path and IMG/I argument is not set, the local shellcheck command is executed,
+      otherwise a shellcheck Docker image is used.
+      You can configure rules and exclude directories with a .yamlint configuration file:
+      https://yamllint.readthedocs.io/en/stable/configuration.html
       Usage: task lint:yaml [PULL|P=<n|N>]
 
       Arguments:
+       FILES | F Files to check (optional, by default .)
+       IMG | I Docker yamllint image to use (optional, by default cytopia/yamllint)
        PULL | P Pull docker image (optional, by default yes)
     vars:
+      FILES: '{{default .F .FILES}}'
+      FILES_D: '{{default "." .FILES}}'
+      IMG: '{{default .I .IMG}}'
+      IMG_D: '{{default .IMAGE_SHELLCHECK .IMG}}'
       PULL: '{{default .P .PULL}}'
+      EXEC: yamllint
     cmds:
-      - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_YAMLINT}}"; fi
-      - docker run --rm -t -v $(pwd):/data "{{.IMAGE_YAMLINT}}" .
-    preconditions:
-      - sh: command -v docker
-        msg: "docker is not installed"
+        - |
+          if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
+            {{.EXEC}} {{.FILES_D}}
+          else
+            if ! command -v docker 2>&1 >/dev/null; then
+              echo "docker and {{.EXEC}} are not installed!" && exit 1
+            fi
+            if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
+            docker run --rm -t -v $(pwd):/data "{{.IMG_D}}" {{.FILES_D}}
+          fi
     silent: true
 
   find-remove:
