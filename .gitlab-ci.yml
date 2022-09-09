@@ -8,6 +8,7 @@ workflow:
 variables:
   IMAGE_DEFAULT: alpine:latest
   IMAGE_DOCKER: docker:latest
+  IMAGE_MARKDOWNLINT: tmknom/markdownlint
   IMAGE_NODE: node:lts-bullseye
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
   IMAGE_YAMLLINT: cytopia/yamllint
@@ -28,6 +29,17 @@ lint-file:
   script:
     - task lint:file
 
+lint-markdown:
+  image:
+    name: $IMAGE_MARKDOWNLINT
+  stage: checks
+  before_script:
+    - apk --no-cache add curl file git ncurses
+    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+    - task --version
+  script:
+    - task lint:markdown
+
 lint-yaml:
   image:
     name: $IMAGE_YAMLLINT
@@ -40,7 +52,7 @@ lint-yaml:
   script:
     - task lint:yaml
 
-lint-yaml-dind:
+lint-markdown-dind:
   image:
     name: $IMAGE_DOCKER
   services:
@@ -51,11 +63,12 @@ lint-yaml-dind:
     - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
     - task --version
   script:
-    - task lint:yaml
+    - task lint:markdown
 
 lint-shell:
   image:
     name: $IMAGE_SHELLCHECK
+    entrypoint: [""]
   stage: tests
   before_script:
     - apk --no-cache add curl file git ncurses
@@ -76,6 +89,19 @@ lint-shell-dind:
     - task --version
   script:
     - task lint:shell FILES="tests/lint/*.sh"
+
+lint-yaml-dind:
+  image:
+    name: $IMAGE_DOCKER
+  services:
+    - docker:$SERVICE_DOCKER_TAG
+  stage: tests
+  before_script:
+    - apk --no-cache add curl file git ncurses
+    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+    - task --version
+  script:
+    - task lint:yaml
 
 gitlab-release:
   only:
