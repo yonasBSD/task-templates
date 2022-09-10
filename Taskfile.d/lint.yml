@@ -6,7 +6,7 @@ version: '3'
 vars:
   IMAGE_FILELINT: cytopia/file-lint
   IMAGE_HADOLINT: hadolint/hadolint
-  IMAGE_MARKDOWNLINT: tmknom/markdownlint
+  IMAGE_MARKDOWNLINT: davidanson/markdownlint-cli2
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
   IMAGE_YAMLINT: cytopia/yamllint
 
@@ -162,35 +162,35 @@ tasks:
     silent: true
 
   markdown:
-    desc: "[QA] Linter for Mardown files. Arguments: [FILES|F=\".\"] [IMG|I=tmknom/markdownlint] [PULL|P=n|N] (*)"
+    desc: "[QA] Linter for Mardown files. Arguments: [GLOB|G=\"**/*.md\"] [IMG|I=tmknom/markdownlint] [PULL|P=n|N] (*)"
     summary: |
       [QA] Linter for Markdown files.
-      Usage: task lint:markdown [FILES|F=\".\"] [IMG|I=tmknom/markdownlint] [PULL|P=<n|N>]
+      Usage: task lint:markdown [GLOB|G="\"**/*.md\" \"#node_modules\""] [IMG|I=tmknom/markdownlint] [PULL|P=<n|N>]
 
       Arguments:
-       FILES | F Files to check (optional, by default .)
+       GLOB | G Glob expressions (optional, by default "**/*.md")
        IMG | I Docker markdownlint image to use (optional, by default tmknom/markdownlint)
        PULL | P Pull docker image (optional, by default yes)
 
       Notes:
-       - .gitignore file is used to exclude files and directories
+       - Documentation of Glob expressions: https://github.com/DavidAnson/markdownlint-cli2
     vars:
-      FILES: '{{default .F .FILES}}'
-      FILES_D: '{{default "." .FILES}}'
+      GLOB: '{{default .G .GLOB}}'
+      GLOB_D: '{{default "\"**/*.md\"" .GLOB}}'
       IMG: '{{default .I .IMG}}'
       IMG_D: '{{default .IMAGE_MARKDOWNLINT .IMG}}'
       PULL: '{{default .P .PULL}}'
-      EXEC: markdownlint
+      EXEC: markdownlint-cli2
     cmds:
       - |
         if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
-          {{.EXEC}} --ignore-path .gitignore {{.FILES_D}}
+          {{.EXEC}} {{.GLOB_D}}
         else
           if ! command -v docker 2>&1 >/dev/null; then
             echo "docker and {{.EXEC}} are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run --rm -t -v $(pwd):/work "{{.IMG_D}}" {{.EXEC}} --ignore-path .gitignore {{.FILES_D}}
+          docker run --rm -t -v $(pwd):/workdir "{{.IMG_D}}" {{.GLOB_D}}
         fi
     silent: true
 

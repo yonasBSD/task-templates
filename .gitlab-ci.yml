@@ -8,7 +8,7 @@ workflow:
 variables:
   IMAGE_DEFAULT: alpine:latest
   IMAGE_DOCKER: docker:latest
-  IMAGE_MARKDOWNLINT: tmknom/markdownlint
+  IMAGE_MARKDOWNLINT: davidanson/markdownlint-cli2
   IMAGE_NODE: node:lts-bullseye
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
   IMAGE_YAMLLINT: cytopia/yamllint
@@ -34,23 +34,20 @@ lint-markdown:
     name: $IMAGE_MARKDOWNLINT
   stage: checks
   before_script:
-    - apk --no-cache add curl file git ncurses
-    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-    - task --version
+    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
+    - ./bin/task --version
   script:
-    - task lint:markdown
+    - ./bin/task lint:markdown G="\"**/*.md\" \"#node_modules\" \"#.node_cache\""
 
 lint-yaml:
   image:
     name: $IMAGE_YAMLLINT
-    entrypoint: [""]
   stage: checks
   before_script:
-    - apk --no-cache add curl file git ncurses
-    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-    - task --version
+    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
+    - ./bin/task --version
   script:
-    - task lint:yaml
+    - ./bin/task lint:yaml
 
 lint-markdown-dind:
   image:
@@ -59,11 +56,10 @@ lint-markdown-dind:
     - docker:$SERVICE_DOCKER_TAG
   stage: tests
   before_script:
-    - apk --no-cache add curl file git ncurses
-    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-    - task --version
+    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
+    - ./bin/task --version
   script:
-    - task lint:markdown
+    - ./bin/task lint:markdown
 
 lint-shell:
   image:
@@ -71,11 +67,10 @@ lint-shell:
     entrypoint: [""]
   stage: tests
   before_script:
-    - apk --no-cache add curl file git ncurses
-    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-    - task --version
+    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
+    - ./bin/task --version
   script:
-    - task lint:shell FILES="tests/lint/*.sh"
+    - ./bin/task lint:shell FILES="tests/lint/*.sh"
 
 lint-shell-dind:
   image:
@@ -84,11 +79,10 @@ lint-shell-dind:
     - docker:$SERVICE_DOCKER_TAG
   stage: tests
   before_script:
-    - apk --no-cache add curl file git ncurses
-    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-    - task --version
+    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
+    - ./bin/task --version
   script:
-    - task lint:shell FILES="tests/lint/*.sh"
+    - ./bin/task lint:shell FILES="tests/lint/*.sh"
 
 lint-yaml-dind:
   image:
@@ -97,11 +91,10 @@ lint-yaml-dind:
     - docker:$SERVICE_DOCKER_TAG
   stage: tests
   before_script:
-    - apk --no-cache add curl file git ncurses
-    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-    - task --version
+    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
+    - ./bin/task --version
   script:
-    - task lint:yaml
+    - ./bin/task lint:yaml
 
 gitlab-release:
   only:
