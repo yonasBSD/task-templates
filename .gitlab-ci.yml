@@ -32,6 +32,7 @@ lint-file:
 lint-markdown:
   image:
     name: $IMAGE_MARKDOWNLINT
+    entrypoint: [""]
   stage: checks
   before_script:
     - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
@@ -42,6 +43,7 @@ lint-markdown:
 lint-yaml:
   image:
     name: $IMAGE_YAMLLINT
+    entrypoint: [""]
   stage: checks
   before_script:
     - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
