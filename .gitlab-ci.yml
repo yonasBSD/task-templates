@@ -63,17 +63,6 @@ lint-markdown-dind:
   script:
     - ./bin/task lint:markdown
 
-lint-shell:
-  image:
-    name: $IMAGE_SHELLCHECK
-    entrypoint: [""]
-  stage: tests
-  before_script:
-    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
-    - ./bin/task --version
-  script:
-    - ./bin/task lint:shell FILES="tests/lint/*.sh"
-
 lint-shell-dind:
   image:
     name: $IMAGE_DOCKER
