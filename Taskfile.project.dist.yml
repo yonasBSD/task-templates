@@ -2,14 +2,14 @@
 # https://taskfile.dev
 #
 # Taskfile.project.yml for your main project tasks. Must be commited.
-# If you always want the last version of the task templates, add those 2 following lines in your .gitignore file
-# Taskfile.yml
+# If you always want the last version of the task templates, add this line in your .gitignore file
 # /Taskfile.d/
 #
 version: '3'
 
 vars:
   # TO MODIFY: Task templates to download separated by comma
+  # Example: TASK_TEMPLATES: go,lint,yarn
   TASK_TEMPLATES: lint
 
 tasks:

@@ -26,11 +26,11 @@ includes:
 # lint:
 #   taskfile: "./Taskfile.d/lint.yml"
 #   optional: true
-# multipass:
-#   taskfile: "./Taskfile.d/multipass.yml"
-#   optional: true
 # multipass-lite:
 #   taskfile: "./Taskfile.d/multipass-lite.yml"
+#   optional: true
+# multipass:
+#   taskfile: "./Taskfile.d/multipass.yml"
 #   optional: true
 # system:
 #   taskfile: "./Taskfile.d/system.yml"
@@ -62,7 +62,7 @@ tasks:
           sed -i.bu "/${t}:$/s/^#/ /" "{{.FILE_PATH}}"
           sed -i.bu "/${t}:$/{n;s/^#/ /;}" "{{.FILE_PATH}}"
           sed -i.bu "/${t}:$/{n;n;s/^#/ /;}" "{{.FILE_PATH}}"
-          sed -i.bu "/}}\/${t}\.yml/s/# - curl/- curl/" "{{.FILE_PATH}}"
+          sed -i.bu "/TEMPLATE=${t}\.yml/s/# - task download-template/- task download-template/" "{{.FILE_PATH}}"
         done
       - defer: rm -f "{{.FILE_PATH}}".bu
     preconditions:
@@ -77,17 +77,18 @@ tasks:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}
       - mkdir -p "{{.DIR_TASKFILES}}"
-      # - curl --progress-bar -o "{{.DIR_TASKFILES}}/docker.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/docker.yml"
-      # - curl --progress-bar -o "{{.DIR_TASKFILES}}/git.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/git.yml"
-      # - curl --progress-bar -o "{{.DIR_TASKFILES}}/go.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/go.yml"
-      # - curl --progress-bar -o "{{.DIR_TASKFILES}}/lint.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/lint.yml"
-      # - curl --progress-bar -o "{{.DIR_TASKFILES}}/multipass.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/multipass.yml"
-      # - curl --progress-bar -o "{{.DIR_TASKFILES}}/system.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/system.yml"
-      # - curl --progress-bar -o "{{.DIR_TASKFILES}}/yarn.yml" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/yarn.yml"
+      # - task download-template TEMPLATE=docker.yml
+      # - task download-template TEMPLATE=git.yml
+      # - task download-template TEMPLATE=go.yml
+      # - task download-template TEMPLATE=lint.yml
+      # - task download-template TEMPLATE=multipass-lite.yml
+      # - task download-template TEMPLATE=multipass.yml
+      # - task download-template TEMPLATE=system.yml
+      # - task download-template TEMPLATE=yarn.yml
       - echo "Download Start $(cat {{.FILE_TASK_START}}) - End $(date)"
     preconditions:
-      - sh: command -v curl
-        msg: "curl is not installed"
+      - sh: command -v curl || command -v wget
+        msg: "curl and wget are not installed"
     silent: true
 
   usage:
@@ -145,4 +146,19 @@ tasks:
       - echo ""
       - echo " (*) <task usage TSK=task-name> will show the usage of the task."
       - echo ""
+    silent: true
+
+  download-template:
+    cmds:
+      - |
+        if [ -x "$(command -v wget)" ]; then
+          wget -c -q --show-progress -O "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
+        else
+          curl --progress-bar -o "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
+        fi
+    preconditions:
+      - sh: test -n "{{.TEMPLATE}}"
+        msg: "TEMPLATE argument is required"
+      - sh: command -v curl || command -v wget
+        msg: "curl or wget are not installed"
     silent: true

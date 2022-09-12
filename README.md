@@ -18,11 +18,20 @@ In order to use:
 
 ### Installation
 
-* Download the main Taskfile.yml:
+* Download the main `Taskfile.yml` and the project file template `Taskfile.project.yml`:
+
+with curl:
 
 ```shell
 curl --progress-bar -o Taskfile.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.dist.yml
 curl --progress-bar -o Taskfile.project.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.project.dist.yml
+```
+
+or with wget:
+
+```shell
+wget -c -q --show-progress -O Taskfile.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.dist.yml
+wget -c -q --show-progress -O Taskfile.project.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.project.dist.yml
 ```
 
 * Select your template(s) by editing the `Taskfile.project.yml` file variable `TASK_TEMPLATES` and run:
@@ -35,15 +44,14 @@ Or manual installation: edit the Taskfile.yml file and uncomment in the `include
 
 * Git:
 
-Taskfile.project.yml is the file that contains your specific project tasks. It should probably be commited.
-If you always want the last version of the task templates, add those 2 following lines in your `.gitignore` file
+`Taskfile.project.yml` is the file that contains your specific project tasks. It should probably be commited.
+If you always want the last version of the task templates, add this following line in your `.gitignore` file
 
 ```shell
-Taskfile.yml
 /Taskfile.d/
 ```
 
-Otherwise, if you prefer stability you should also commit the `Taskfile.yml` file and the content of the `Taskfile.d` directory.
+Otherwise, if you prefer stability you should also commit the content of the `Taskfile.d` directory.
 
 * Available tasks are shown by execute `task` command without any parameter:
 ![Available tasks](tasks-list.png "Available tasks")
