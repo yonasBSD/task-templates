@@ -13,7 +13,7 @@ A set of reusable [Task](https://taskfile.dev) templates, ready to use.
 In order to use:
 
 * [Task](https://taskfile.dev)
-* curl
+* curl or wget
 * [Docker](https://docs.docker.com/engine/install/) (recommended): Many templates use Docker images to avoid installing software.
 
 ### Installation
@@ -34,7 +34,16 @@ wget -c -q --show-progress -O Taskfile.yml https://gitlab.com/op_so/task/task-te
 wget -c -q --show-progress -O Taskfile.project.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.project.dist.yml
 ```
 
-* Select your template(s) by editing the `Taskfile.project.yml` file variable `TASK_TEMPLATES` and run:
+* Select your template(s) by editing the `Taskfile.project.yml` file variable `TASK_TEMPLATES`:
+
+example:
+
+```shell
+vars:
+  TASK_TEMPLATES: go,lint
+```
+
+and run:
 
 ```shell
 task 00:00-init-task

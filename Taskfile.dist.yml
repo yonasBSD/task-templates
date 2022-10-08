@@ -151,10 +151,10 @@ tasks:
   download-template:
     cmds:
       - |
-        if [ -x "$(command -v wget)" ]; then
-          wget -c -q --show-progress -O "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
-        else
+        if [ -x "$(command -v curl)" ]; then
           curl --progress-bar -o "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
+        else
+          wget -cq -O "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
         fi
     preconditions:
       - sh: test -n "{{.TEMPLATE}}"
