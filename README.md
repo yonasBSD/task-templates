@@ -8,7 +8,7 @@ A set of reusable [Task](https://taskfile.dev) templates, ready to use.
 
 ## Getting Started
 
-### Prerequisities
+### Requirements
 
 In order to use:
 
@@ -38,7 +38,7 @@ wget -c -q --show-progress -O Taskfile.project.yml https://gitlab.com/op_so/task
 
 example:
 
-```shell
+```yaml
 vars:
   TASK_TEMPLATES: go,lint
 ```
@@ -71,4 +71,4 @@ Otherwise, if you prefer stability you should also commit the content of the `Ta
 
 ## License
 
-This program is free software: you can redistribute it and/or modify it under the terms of The MIT License (MIT). See the [LICENSE](https://opensource.org/licenses/MIT) for details.
+This program is free software: you can redistribute it and/or modify it under the terms of the MIT License (MIT). See the [LICENSE](https://opensource.org/licenses/MIT) for details.

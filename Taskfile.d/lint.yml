@@ -4,13 +4,34 @@
 version: '3'
 
 vars:
-  IMAGE_FILELINT: cytopia/file-lint
   IMAGE_HADOLINT: hadolint/hadolint
   IMAGE_MARKDOWNLINT: davidanson/markdownlint-cli2
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
-  IMAGE_YAMLINT: cytopia/yamllint
+  IMAGE_YAMLINT: jfxs/ansible
 
 tasks:
+
+  all:
+    desc: "[QA] Linter for files, markdown, yaml extensions. Arguments: [FIX|F=y|Y] (*)"
+    summary: |
+      [QA] Linter for files.
+      Usage: task lint:file [FIX|F=<y|Y>]
+
+      Arguments:
+       FIX | F Fix files (optional, by default no)
+
+      Notes:
+       - Only git versionned files are checked.
+    vars:
+      FIX: '{{default .F .FIX}}'
+    cmds:
+      - echo "Files:" && echo "======"
+      - task lint:file
+      - echo "" && echo "Markdown:" && echo "========="
+      - task lint:markdown
+      - echo "" && echo "YAML:" && echo "====="
+      - task lint:yaml
+    silent: true
 
   file:
     desc: "[QA] Linter for files. Arguments: [FIX|F=y|Y] (*)"
@@ -229,7 +250,7 @@ tasks:
     silent: true
 
   yaml:
-    desc: "[QA] Linter for YAML files. Arguments: [FILES|F=\".\"] [IMG|I=cytopia/yamllint] [PULL|P=n|N] (*)"
+    desc: "[QA] Linter for YAML files. Arguments: [FILES|F=\".\"] [IMG|I=jfxs/ansible] [PULL|P=n|N] (*)"
     summary: |
       [QA] Linter for YAML files.
       If yamllint command is in the path and IMG/I argument is not set, the local yamllint command is executed,
@@ -240,7 +261,7 @@ tasks:
 
       Arguments:
        FILES | F Files to check (optional, by default .)
-       IMG | I Docker yamllint image to use (optional, by default cytopia/yamllint)
+       IMG | I Docker yamllint image to use (optional, by default jfxs/ansible)
        PULL | P Pull docker image (optional, by default yes)
     vars:
       FILES: '{{default .F .FILES}}'
@@ -258,7 +279,7 @@ tasks:
             echo "docker and {{.EXEC}} are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run --rm -t -v $(pwd):/data "{{.IMG_D}}" {{.FILES_D}}
+          docker run --rm -t -v $(pwd):/ansible "{{.IMG_D}}" {{.EXEC}} {{.FILES_D}}
         fi
     silent: true
 

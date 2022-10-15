@@ -11,7 +11,7 @@ variables:
   IMAGE_MARKDOWNLINT: davidanson/markdownlint-cli2
   IMAGE_NODE: node:lts-bullseye
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
-  IMAGE_YAMLLINT: cytopia/yamllint
+  IMAGE_YAMLLINT: jfxs/ansible
   SERVICE_DOCKER_TAG: stable-dind
 
 stages:
@@ -43,7 +43,6 @@ lint-markdown:
 lint-yaml:
   image:
     name: $IMAGE_YAMLLINT
-    entrypoint: [""]
   stage: checks
   before_script:
     - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
