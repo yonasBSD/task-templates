@@ -30,9 +30,11 @@ curl --progress-bar -o Taskfile.project.yml https://gitlab.com/op_so/task/task-t
 or with wget:
 
 ```shell
-wget -c -q --show-progress -O Taskfile.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.dist.yml
-wget -c -q --show-progress -O Taskfile.project.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.project.dist.yml
+wget -cq --show-progress -O Taskfile.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.dist.yml
+wget -cq --show-progress -O Taskfile.project.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.project.dist.yml
 ```
+
+On Alpine Linux, `--show-progress` option is not available.
 
 * Select your template(s) by editing the `Taskfile.project.yml` file variable `TASK_TEMPLATES`:
 

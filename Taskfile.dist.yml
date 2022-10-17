@@ -14,6 +14,9 @@ includes:
   00:
     taskfile: "./Taskfile.project.yml"
     optional: true
+# ansible:
+#   taskfile: "./Taskfile.d/ansible.yml"
+#   optional: true
 # docker:
 #   taskfile: "./Taskfile.d/docker.yml"
 #   optional: true
@@ -77,6 +80,7 @@ tasks:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}
       - mkdir -p "{{.DIR_TASKFILES}}"
+      # - task download-template TEMPLATE=ansible.yml
       # - task download-template TEMPLATE=docker.yml
       # - task download-template TEMPLATE=git.yml
       # - task download-template TEMPLATE=go.yml
