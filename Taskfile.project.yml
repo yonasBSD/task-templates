@@ -12,8 +12,6 @@ tasks:
     cmds:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}
-      - mkdir -p "{{.DIR_TASKFILES}}"
-      - task lint:file
-      - task lint:markdown G="\"**/*.md\" \"#node_modules\" \"#.node_cache\""
-      - echo "Checks Start $(cat {{.FILE_TASK_START}}) - End $(date)"
+      - task lint:all MEX='\"#node_modules\" \"#.node_cache\"'
+      - echo "" && echo "Checks Start $(cat {{.FILE_TASK_START}}) - End $(date)"
     silent: true

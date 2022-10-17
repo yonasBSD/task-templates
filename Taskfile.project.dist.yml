@@ -2,7 +2,7 @@
 # https://taskfile.dev
 #
 # Taskfile.project.yml for your main project tasks. Must be commited.
-# If you always want the last version of the task templates, add this line in your .gitignore file
+# If you always want the last version of the task templates, add the following line in your .gitignore file
 # /Taskfile.d/
 #
 version: '3'
@@ -30,7 +30,6 @@ tasks:
     cmds:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}
-      - task lint:yaml
-      - task lint:file
+      - task lint:all
       - echo "Checks Start $(cat {{.FILE_TASK_START}}) - End $(date)"
     silent: true

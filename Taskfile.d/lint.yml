@@ -12,23 +12,26 @@ vars:
 tasks:
 
   all:
-    desc: "[QA] Linter for files, markdown, yaml extensions. Arguments: [FIX|F=y|Y] (*)"
+    desc: "[QA] Linter for files, markdown, yaml extensions. Arguments: [FIX|F=y|Y] [MEX|M=\"\"#node_modules\"\"](*)"
     summary: |
       [QA] Linter for files.
-      Usage: task lint:file [FIX|F=<y|Y>]
+      Usage: task lint:file [FIX|F=<y|Y>] [M_EX='\"#node_modules\"']
 
       Arguments:
        FIX | F Fix files (optional, by default no)
+       MEX | M Makdown exlude directories with single quotes example: MEX='\"#node_modules\" \"#.node_cache\"' (see: https://github.com/DavidAnson/markdownlint-cli2)
 
       Notes:
-       - Only git versionned files are checked.
+       - Only git versionned files are checked for generic files. Use MEX argument for Mardown files and .yamlint for YAML files.
+
     vars:
       FIX: '{{default .F .FIX}}'
+      MEX: '{{default .M .MEX}}'
     cmds:
       - echo "Files:" && echo "======"
-      - task lint:file
+      - task lint:file FIX={{.FIX}}
       - echo "" && echo "Markdown:" && echo "========="
-      - task lint:markdown
+      - task lint:markdown GLOB="\"**/*.md\" {{.MEX}}"
       - echo "" && echo "YAML:" && echo "====="
       - task lint:yaml
     silent: true
