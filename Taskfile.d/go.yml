@@ -17,8 +17,8 @@ tasks:
       Usage: task go:format-check [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG | I Docker Go image to use (optional, by default golang:latest)
-       PULL | P Pull docker image (optional, by default yes)
+       IMG  | I  Docker Go image to use (optional, by default golang:latest)
+       PULL | P  Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
       IMG_D: '{{default .IMAGE_GO .IMG}}'
@@ -45,8 +45,8 @@ tasks:
       Usage: task go:mod-clean [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG | I Docker Go image to use (optional, by default golang:latest)
-       PULL | P Pull docker image (optional, by default yes)
+       IMG  | I  Docker Go image to use (optional, by default golang:latest)
+       PULL | P  Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
       PULL: '{{default .P .PULL}}'
@@ -64,8 +64,8 @@ tasks:
       Usage: task go:mod-clean [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG | I Docker Go image to use (optional, by default golang:latest)
-       PULL | P Pull docker image (optional, by default yes)
+       IMG  | I  Docker Go image to use (optional, by default golang:latest)
+       PULL | P  Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
       PULL: '{{default .P .PULL}}'
@@ -130,8 +130,8 @@ tasks:
       Usage: task go:test-unit-verbose [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG | I Docker Go image to use (optional, by default golang:latest)
-       PULL | P Pull docker image (optional, by default yes)
+       IMG  | I  Docker Go image to use (optional, by default golang:latest)
+       PULL | P  Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
       PULL: '{{default .P .PULL}}'

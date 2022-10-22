@@ -62,10 +62,15 @@ tasks:
       - mkdir -p "{{.DIR_TASKFILES}}"
       - |
         for t in $(echo "{{.TEMPLATE}}" | tr "," " "); do
-          sed -i.bu "/${t}:$/s/^#/ /" "{{.FILE_PATH}}"
-          sed -i.bu "/${t}:$/{n;s/^#/ /;}" "{{.FILE_PATH}}"
-          sed -i.bu "/${t}:$/{n;n;s/^#/ /;}" "{{.FILE_PATH}}"
-          sed -i.bu "/TEMPLATE=${t}\.yml/s/# - task download-template/- task download-template/" "{{.FILE_PATH}}"
+          if ! grep -Fq "Taskfile.d/${t}.yml" "{{.FILE_PATH}}"
+          then
+            printf "\e[33m Warning: %s template does not exist.\033[0m Please upgrade your Taskfile.yml file!\n" "${t}"
+          else
+            sed -i.bu "/${t}:$/s/^#/ /" "{{.FILE_PATH}}"
+            sed -i.bu "/${t}:$/{n;s/^#/ /;}" "{{.FILE_PATH}}"
+            sed -i.bu "/${t}:$/{n;n;s/^#/ /;}" "{{.FILE_PATH}}"
+            sed -i.bu "/TEMPLATE=${t}\.yml/s/# - task download-template/- task download-template/" "{{.FILE_PATH}}"
+          fi
         done
       - defer: rm -f "{{.FILE_PATH}}".bu
     preconditions:

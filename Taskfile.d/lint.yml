@@ -18,8 +18,8 @@ tasks:
       Usage: task lint:file [FIX|F=<y|Y>] [M_EX='\"#node_modules\"']
 
       Arguments:
-       FIX | F Fix files (optional, by default no)
-       MEX | M Makdown exlude directories with single quotes example: MEX='\"#node_modules\" \"#.node_cache\"' (see: https://github.com/DavidAnson/markdownlint-cli2)
+       FIX | F  Fix files (optional, by default no)
+       MEX | M  Makdown exlude directories with single quotes example: MEX='\"#node_modules\" \"#.node_cache\"' (see: https://github.com/DavidAnson/markdownlint-cli2)
 
       Notes:
        - Only git versionned files are checked for generic files. Use MEX argument for Mardown files and .yamlint for YAML files.
@@ -43,7 +43,7 @@ tasks:
       Usage: task lint:file [FIX|F=<y|Y>]
 
       Arguments:
-       FIX | F Fix files (optional, by default no)
+       FIX | F  Fix files (optional, by default no)
 
       Notes:
        - Only git versionned files are checked.
@@ -63,7 +63,7 @@ tasks:
       Usage: task lint:file-cr [FIX|F=<y|Y>]
 
       Arguments:
-       FIX | F Fix files (optional, by default no)
+       FIX | F  Fix files (optional, by default no)
 
       Notes:
        - Only git tracked files are checked,
@@ -84,7 +84,7 @@ tasks:
       Usage: task lint:file-nleof [FIX|F=<y|Y>]
 
       Arguments:
-       FIX | F Fix files (optional, by default no)
+       FIX | F  Fix files (optional, by default no)
 
       Notes:
        - Only git tracked files are checked.
@@ -132,7 +132,7 @@ tasks:
       Usage: task lint:file-tws [FIX|F=<y|Y>]
 
       Arguments:
-       FIX | F Fix files (optional, by default no)
+       FIX | F  Fix files (optional, by default no)
 
       Notes:
        - Only git tracked files are checked,
@@ -147,7 +147,7 @@ tasks:
     silent: true
 
   file-utf8:
-    desc: "[QA] Check if text files are utf-8 encoded. Arguments: [FIX|F=y|Y] (*)"
+    desc: "[QA] Check if text files are utf-8 encoded. (*)"
     summary: |
       [QA] Check if text files are utf-8 encoded.
       Usage: task lint:file-utf8
@@ -192,9 +192,9 @@ tasks:
       Usage: task lint:markdown [GLOB|G="\"**/*.md\" \"#node_modules\""] [IMG|I=tmknom/markdownlint] [PULL|P=<n|N>]
 
       Arguments:
-       GLOB | G Glob expressions (optional, by default "**/*.md")
-       IMG | I Docker markdownlint image to use (optional, by default tmknom/markdownlint)
-       PULL | P Pull docker image (optional, by default yes)
+       GLOB | G  Glob expressions (optional, by default "**/*.md")
+       IMG  | I  Docker markdownlint image to use (optional, by default tmknom/markdownlint)
+       PULL | P  Pull docker image (optional, by default yes)
 
       Notes:
        - Documentation of Glob expressions: https://github.com/DavidAnson/markdownlint-cli2
@@ -227,9 +227,9 @@ tasks:
       Usage: task lint:shell FILES|F="myscripts/*.sh" [IMG|I=<koalaman/shellcheck:stable>] [PULL|P=<n|N>]
 
       Arguments:
-       FILES | F Files to check (required)
-       IMG | I Docker shellcheck image to use (optional, by default koalaman/shellcheck:stable)
-       PULL | P Pull docker image (optional, by default yes)
+       FILES | F  Files to check (required)
+       IMG   | I  Docker shellcheck image to use (optional, by default koalaman/shellcheck:stable)
+       PULL  | P  Pull docker image (optional, by default yes)
     vars:
       FILES: '{{default .F .FILES}}'
       IMG: '{{default .I .IMG}}'
@@ -263,9 +263,9 @@ tasks:
       Usage: task lint:yaml [PULL|P=<n|N>]
 
       Arguments:
-       FILES | F Files to check (optional, by default .)
-       IMG | I Docker yamllint image to use (optional, by default jfxs/ansible)
-       PULL | P Pull docker image (optional, by default yes)
+       FILES | F  Files to check (optional, by default .)
+       IMG   | I  Docker yamllint image to use (optional, by default jfxs/ansible)
+       PULL  | P  Pull docker image (optional, by default yes)
     vars:
       FILES: '{{default .F .FILES}}'
       FILES_D: '{{default "." .FILES}}'

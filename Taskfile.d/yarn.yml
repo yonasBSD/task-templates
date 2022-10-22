@@ -16,7 +16,7 @@ tasks:
       Usage: task yarn:install [PULL|P=<n|N>]
 
       Arguments:
-       PULL | P Pull docker image (optional, by default yes)
+       PULL | P  Pull docker image (optional, by default yes)
     vars:
       PULL: '{{default .P .PULL}}'
     cmds:
@@ -34,7 +34,7 @@ tasks:
       Usage: task yarn:outdated [PULL|P=<n|N>]
 
       Arguments:
-       PULL | P Pull docker image (optional, by default yes)
+       PULL | P  Pull docker image (optional, by default yes)
     vars:
       PULL: '{{default .P .PULL}}'
     cmds:
@@ -52,7 +52,7 @@ tasks:
       Usage: task yarn:upgrade [PULL|P=<n|N>]
 
       Arguments:
-       PULL | P Pull docker image (optional, by default yes)
+       PULL | P  Pull docker image (optional, by default yes)
     vars:
       PULL: '{{default .P .PULL}}'
     cmds:

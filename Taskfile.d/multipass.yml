@@ -82,7 +82,7 @@ tasks:
       Usage: task multipass:del [FORCE|F=<y|Y>]
 
       Arguments:
-       FORCE | F Delete instances without confirmation (optional, by default no)
+       FORCE | F  Delete instances without confirmation (optional, by default no)
     vars:
       FORCE: '{{default .F .FORCE}}'
     cmds:
@@ -116,8 +116,8 @@ tasks:
       Usage: task multipass:mount HOST|H=<hostname> [SOURCE|S=<path>]
 
       Arguments:
-       HOST | H   Hostname (required)
-       SOURCE | S Path of the local directory to mount (optional, by default current directory)
+       HOST   | H  Hostname (required)
+       SOURCE | S  Path of the local directory to mount (optional, by default current directory)
     vars:
       HOST: '{{default .H .HOST}}'
       SOURCE: '{{default .S .SOURCE}}'
@@ -147,8 +147,8 @@ tasks:
       Usage: task multipass:umount HOST|H=<hostname> [SOURCE|S=<path>]
 
       Arguments:
-       HOST | H Hostname (required)
-       SOURCE | S Path of the local directory to umount (optional, by default current directory)
+       HOST   | H  Hostname (required)
+       SOURCE | S  Path of the local directory to umount (optional, by default current directory)
     vars:
       HOST: '{{default .H .HOST}}'
       SOURCE: '{{default .S .SOURCE}}'
@@ -173,7 +173,7 @@ tasks:
       Usage: task multipass:mount-all HOST|H=<hostname>
 
       Arguments:
-       HOST | H Hostname (optional, by default mount declared directories for all declared hosts)
+       HOST | H  Hostname (optional, by default mount declared directories for all declared hosts)
     vars:
       HOST: '{{default .H .HOST}}'
       REGEX_HOST: "{.*\"name\": \"{{.HOST}}\".*}"
@@ -198,7 +198,7 @@ tasks:
       Usage: task multipass:umount-all HOST|H=<hostname>
 
       Arguments:
-       HOST | H Hostname (required)
+       HOST | H  Hostname (required)
     vars:
       HOST: '{{default .H .HOST}}'
       MOUNTS:
@@ -236,7 +236,7 @@ tasks:
       Usage: task system:ssh HOST|H=<hostname>
 
       Arguments:
-       HOST | H Hostname (required)
+       HOST | H  Hostname (required)
 
       The following error:
       template: :1:17: executing "" at <mustFromJson>: error calling mustFromJson: unexpected end of JSON input

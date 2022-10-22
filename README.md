@@ -67,9 +67,14 @@ Otherwise, if you prefer stability you should also commit the content of the `Ta
 * Available tasks are shown by execute `task` command without any parameter:
 ![Available tasks](tasks-list.png "Available tasks")
 
+### Upgrade
+
+* To upgrade your existing templates, just run the command: `task 00:00-init-task`
+* To add a new template, add it to the variable `TASK_TEMPLATES` and run `task 00:00-init-task`
+
 ## Authors
 
-* **FX Soubirou** - *Initial work* - [Gitlab repositories](https://gitlab.com/op_so)
+* **FX Soubirou** - *Initial work* - [GitLab repositories](https://gitlab.com/op_so)
 
 ## License
 

@@ -14,7 +14,7 @@ tasks:
       Usage: task multipass-lite:mount HOST|H=<hostname>
 
       Arguments:
-       HOST | H   Hostname (required)
+       HOST | H  Hostname (required)
     vars:
       HOST: '{{default .H .HOST}}'
       D_SOURCE: .
@@ -43,7 +43,7 @@ tasks:
       Usage: task multipass:umount HOST|H=<hostname>
 
       Arguments:
-       HOST | H Hostname (required)
+       HOST | H  Hostname (required)
     vars:
       HOST: '{{default .H .HOST}}'
       D_SOURCE: .
