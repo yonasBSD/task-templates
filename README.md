@@ -69,8 +69,8 @@ Otherwise, if you prefer stability you should also commit the content of the `Ta
 
 ### Upgrade
 
-* To upgrade your existing templates, just run the command: `task 00:00-init-task`
-* To add a new template, add it to the variable `TASK_TEMPLATES` and run `task 00:00-init-task`
+* To upgrade your existing templates, just run the command: `task 00:00-init-task`,
+* To add a new template, add it to the variable `TASK_TEMPLATES` and run `task 00:00-init-task`.
 
 ## Authors
 

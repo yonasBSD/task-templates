@@ -8,56 +8,61 @@ vars:
 
 tasks:
 
-  init-role:
-    desc: "[ANSIBLE] Init an Ansible role: NAME|N=role_name [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
-    summary: |
-      [ANSIBLE] Init an Ansible role.
-      If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
-      otherwise an Ansible Docker image is used.
-      Usage: task ansible:init-role NAME|N=role_name [IMG|I=<docker_image:tag>] [PULL|P=<n|N>]
-
-      Arguments:
-       NAME | N  Ansible role name (required)
-       IMG  | I  Docker Go image to use (optional, by default jfxs/ansible:latest)
-       PULL | P  Pull docker image (optional, by default yes)
-    vars:
-      NAME: '{{default .N .NAME}}'
-      IMG: '{{default .I .IMG}}'
-      PULL: '{{default .P .PULL}}'
-      CMD: ansible-galaxy init "{{.NAME}}"
-    cmds:
-      - task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
-    preconditions:
-      - sh: test -n "{{.NAME}}" || test -n "{{.N}}"
-        msg: "NAME|N argument is required"
-    silent: true
-
   galaxy-install:
-    desc: "[ANSIBLE] Ansible Galaxy install requirements: FILE|F=\"provision/requirements.txt\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
+    desc: "[ANSIBLE] Ansible Galaxy install requirements. Arguments: REQ|R=\"provision/requirements.txt\" [FORCE|F=<y|Y>] [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [ANSIBLE] Ansible Galaxy install requirements.
       If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
       otherwise an Ansible Docker image is used.
-      Usage: task ansible:galaxy-install FILE|F=<file_path> [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
+      Usage: task ansible:galaxy-install FILE|F=<file_path> [FORCE|F=<y|Y>] [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       FILE | F  Requirements file path (required)
+       REQ   | R  Requirements file path (required)
+       FORCE | F  Force to install the last version of collections (optional, by default no)
+       IMG   | I  Docker Go image to use (optional, by default jfxs/ansible:latest)
+       PULL  | P  Pull docker image (optional, by default yes)
+    vars:
+      REQ: '{{default .R .REQ}}'
+      FORCE: '{{default .F .FORCE}}'
+      IMG: '{{default .I .IMG}}'
+      PULL: '{{default .P .PULL}}'
+    cmds:
+      - |
+        if [ "{{.FORCE}}" = "Y" ] || [ "{{.F}}" = "y" ]; then
+          task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="ansible-galaxy install --force -r {{.REQ}}"
+        else
+          task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="ansible-galaxy install -r {{.REQ}}"
+        fi
+    preconditions:
+      - sh: test -n "{{.REQ}}" || test -n "{{.R}}"
+        msg: "REQ|R argument is required"
+    silent: true
+
+  command:
+    desc: "[ANSIBLE] Run an Ansible command. Arguments: CMD|C=\"ansible --version\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
+    summary: |
+      [ANSIBLE] Run an Ansible command.
+      If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
+      otherwise an Ansible Docker image is used.
+      Usage: task ansible:command CMD|C=<ansible_command> [IMG|I=<docker_image:tag>] [PULL|P=<n|N>]
+
+      Arguments:
+       CMD  | C  Ansible command to run (required)
        IMG  | I  Docker Go image to use (optional, by default jfxs/ansible:latest)
        PULL | P  Pull docker image (optional, by default yes)
     vars:
-      FILE: '{{default .F .FILE}}'
+      CMD: '{{default .C .CMD}}'
       IMG: '{{default .I .IMG}}'
       PULL: '{{default .P .PULL}}'
-      CMD: "ansible-galaxy install -r {{.FILE}}"
     cmds:
       - task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
     preconditions:
-      - sh: test -n "{{.FILE}}" || test -n "{{.F}}"
-        msg: "FILE|F argument is required"
+      - sh: test -n "{{.CMD}}" || test -n "{{.C}}"
+        msg: "CMD|C argument is required"
     silent: true
 
   lint:
-    desc: "[ANSIBLE] Lint Ansible playbooks and roles: ARG|A=\"--force-color --offline -p playbook.yml\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
+    desc: "[ANSIBLE] Lint Ansible playbooks and roles. Arguments: ARG|A=\"--force-color --offline -p playbook.yml\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [ANSIBLE] Lint Ansible playbook and roles.
       If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
@@ -81,7 +86,7 @@ tasks:
     silent: true
 
   playbook:
-    desc: "[ANSIBLE] Run Ansible playbook: ARG|A=\"-i inventory playbook.yml\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
+    desc: "[ANSIBLE] Run Ansible playbook. Arguments: ARG|A=\"-i inventory playbook.yml\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
     summary: |
       [ANSIBLE] Run Ansible playbook.
       If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
@@ -116,7 +121,7 @@ tasks:
             echo "docker and ansible are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run --rm -v $(pwd):/ansible -w /ansible "{{.IMG_D}}" sh -c '{{.CMD}}'
+          docker run -t --rm -v $(pwd):/ansible -w /ansible "{{.IMG_D}}" sh -c '{{.CMD}}'
         fi
     preconditions:
       - sh: test -n "{{.CMD}}"

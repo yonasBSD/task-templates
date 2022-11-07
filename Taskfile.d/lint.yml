@@ -214,7 +214,7 @@ tasks:
             echo "docker and {{.EXEC}} are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run --rm -t -v $(pwd):/workdir "{{.IMG_D}}" {{.GLOB_D}}
+          docker run -t --rm -v $(pwd):/workdir "{{.IMG_D}}" {{.GLOB_D}}
         fi
     silent: true
 
@@ -245,7 +245,7 @@ tasks:
             echo "docker and {{.EXEC}} are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run --rm -t -v $(pwd):/mnt "{{.IMG_D}}" {{.FILES}}
+          docker run -t --rm -v $(pwd):/mnt "{{.IMG_D}}" {{.FILES}}
         fi
     preconditions:
       - sh: test -n "{{.FILES}}" || test -n "{{.F}}"
@@ -282,7 +282,7 @@ tasks:
             echo "docker and {{.EXEC}} are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run --rm -t -v $(pwd):/ansible "{{.IMG_D}}" {{.EXEC}} {{.FILES_D}}
+          docker run -t --rm -v $(pwd):/ansible "{{.IMG_D}}" {{.EXEC}} {{.FILES_D}}
         fi
     silent: true
 

@@ -9,7 +9,7 @@ vars:
 tasks:
 
   format-check:
-    desc: "[GO] Check code with gofmt and go vet: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    desc: "[GO] Check code with gofmt and go vet. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
     summary: |
       [GO] Check code with gofmt and go vet.
       If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
@@ -32,12 +32,12 @@ tasks:
             echo "docker and go are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" sh -c 'if [ -n "$(gofmt -l .)" ]; then echo "Go code is not formatted!" && gofmt -d . && exit 1; else go vet ./...; fi'
+          docker run -t --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" sh -c 'if [ -n "$(gofmt -l .)" ]; then echo "Go code is not formatted!" && gofmt -d . && exit 1; else go vet ./...; fi'
         fi
     silent: true
 
   mod-tidy:
-    desc: "[GO] Go mod tidy: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    desc: "[GO] Go mod tidy. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
     summary: |
       [GO] Go mod tidy.
       If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
@@ -56,7 +56,7 @@ tasks:
     silent: true
 
   mod-download:
-    desc: "[GO] Go mod download: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    desc: "[GO] Go mod download. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
     summary: |
       [GO] Go mod download.
       If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
@@ -75,7 +75,7 @@ tasks:
     silent: true
 
   mod-outdated:
-    desc: "[GO] Check outdated Go modules: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    desc: "[GO] Check outdated Go modules. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
     summary: |
       [GO] Check outdated Go modules.
       If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
@@ -98,12 +98,12 @@ tasks:
             echo "docker and go are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" go list -u -f '{{`{{if (and (not (or .Main .Indirect)) .Update)}}`}}{{`{{.Path}}`}}  {{`{{.Version}}`}} -> {{`{{.Update.Version}}`}}{{`{{end}}`}}' -m all 2> /dev/null
+          docker run -t --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" go list -u -f '{{`{{if (and (not (or .Main .Indirect)) .Update)}}`}}{{`{{.Path}}`}}  {{`{{.Version}}`}} -> {{`{{.Update.Version}}`}}{{`{{end}}`}}' -m all 2> /dev/null
         fi
     silent: true
 
   test-unit:
-    desc: "[GO] Run Go unit tests: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    desc: "[GO] Run Go unit tests. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
     summary: |
       [GO] Run Go unit tests.
       If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
@@ -122,7 +122,7 @@ tasks:
     silent: true
 
   test-unit-verbose:
-    desc: "[GO] Run Go unit tests with details: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    desc: "[GO] Run Go unit tests with details. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
     summary: |
       [GO] Run Go unit tests with details.
       If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
@@ -152,7 +152,7 @@ tasks:
             echo "docker and go are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" sh -c '{{.CMD}}'
+          docker run -t --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" sh -c '{{.CMD}}'
         fi
     preconditions:
       - sh: test -n "{{.CMD}}"

@@ -10,7 +10,7 @@ vars:
 tasks:
 
   commit-signed:
-    desc: "[GIT] Signed commit: KEY_PATH|K=key_full_path MESSAGE|M=message [OPTION|O=\"--amend\"] [PULL|P=n|N] (*)"
+    desc: "[GIT] Signed commit. Arguments: KEY_PATH|K=key_full_path MESSAGE|M=message [OPTION|O=\"--amend\"] [PULL|P=n|N] (*)"
     summary: |
       [GIT] Signed commit.
       Usage: task git:commit KEY_PATH|K=<key_full_path> MESSAGE|M=<message> [OPTION|O=\"<options>\"] [PULL|P=<n|N>]
@@ -52,7 +52,7 @@ tasks:
     silent: true
 
   commitizen:
-    desc: "[GIT] Signed commit with Commitizen: KEY_PATH|K=key_full_path [PULL|P=n|N] (*)"
+    desc: "[GIT] Signed commit with Commitizen. Arguments: KEY_PATH|K=key_full_path [PULL|P=n|N] (*)"
     summary: |
       [GIT] Signed commit with Commitizen.
       Usage: task git:commit KEY_PATH|K=<key_full_path> [PULL|P=<n|N>]

@@ -277,11 +277,12 @@ tasks:
         sh: cat "{{.KEY}}.pub"
       FILE_REF_CLOUD_INIT_PREFIX: "{{.DIR_FILES}}/cloud-init"
       FILE_CLOUD_INIT: "{{.DIR_SSH}}/cloud-init.yml"
+      MULTIPASS_TIMEOUT: 600
     cmds:
       - if test -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}-{{.NAME}}.yml"; then cp -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}-{{.NAME}}.yml" "{{.FILE_CLOUD_INIT}}"; else cp -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}.yml" "{{.FILE_CLOUD_INIT}}"; fi
       - sed -i.bu "s#__SSH_KEY__#{{.PUB_KEY}}#g" "{{.FILE_CLOUD_INIT}}"
       - rm -f "{{.FILE_CLOUD_INIT}}.bu"
-      - multipass launch "{{.IMAGE}}" --name "{{.NAME}}" --cpus "{{.CPU}}" --mem "{{.MEM}}" --disk "{{.DISK}}" --cloud-init "{{.FILE_CLOUD_INIT}}"
+      - multipass launch "{{.IMAGE}}" --name "{{.NAME}}" --cpus "{{.CPU}}" --mem "{{.MEM}}" --disk "{{.DISK}}" --cloud-init "{{.FILE_CLOUD_INIT}}" --timeout "{{.MULTIPASS_TIMEOUT}}"
       - rm "{{.FILE_CLOUD_INIT}}"
       - multipass stop "{{.NAME}}"
       - sleep 5 && multipass start "{{.NAME}}"
