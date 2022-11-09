@@ -45,7 +45,6 @@ includes:
 tasks:
 
   10-t-activate:
-    desc: "[CORE] Activate Tasks templates. Arguments: TEMPLATE|T=docker,git [FILE|F=Taskfile.dist.yml] (*)"
     summary: |
       [CORE] Activate Tasks templates.
       Usage: task [-t Taskfile.dist.yml] 10-t-activate TEMPLATE|T=<template1-name>,<template2-name> [FILE|F=Taskfile.dist.yml]
@@ -80,7 +79,6 @@ tasks:
 
   20-t-download:
     # TODO: Add optional proxy arguments
-    desc: "[CORE] Download necessary resources."
     cmds:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}
@@ -97,7 +95,7 @@ tasks:
       - echo "Download Start $(cat {{.FILE_TASK_START}}) - End $(date)"
     preconditions:
       - sh: command -v curl || command -v wget
-        msg: "curl and wget are not installed"
+        msg: "curl or wget are not installed"
     silent: true
 
   usage:

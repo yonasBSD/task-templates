@@ -15,6 +15,7 @@ vars:
 tasks:
 
   00-init-task:
+  # TODO: Proxy usage arguments
     desc: "[PROJECT] Init and download tasks templates."
     cmds:
       - date > {{.FILE_TASK_START}}

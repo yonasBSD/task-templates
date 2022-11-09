@@ -2,6 +2,7 @@
 extends: default
 
 ignore: |
+  .git/
   .node_cache/
   node_modules/
 

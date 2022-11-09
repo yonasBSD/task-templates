@@ -8,6 +8,29 @@ vars:
 
 tasks:
 
+  command:
+    desc: "[ANSIBLE] Run an Ansible command. Arguments: CMD|C=\"ansible --version\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
+    summary: |
+      [ANSIBLE] Run an Ansible command.
+      If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
+      otherwise an Ansible Docker image is used.
+      Usage: task ansible:command CMD|C=<ansible_command> [IMG|I=<docker_image:tag>] [PULL|P=<n|N>]
+
+      Arguments:
+       CMD  | C  Ansible command to run (required)
+       IMG  | I  Docker Go image to use (optional, by default jfxs/ansible:latest)
+       PULL | P  Pull docker image (optional, by default yes)
+    vars:
+      CMD: '{{default .C .CMD}}'
+      IMG: '{{default .I .IMG}}'
+      PULL: '{{default .P .PULL}}'
+    cmds:
+      - task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
+    preconditions:
+      - sh: test -n "{{.CMD}}" || test -n "{{.C}}"
+        msg: "CMD|C argument is required"
+    silent: true
+
   galaxy-install:
     desc: "[ANSIBLE] Ansible Galaxy install requirements. Arguments: REQ|R=\"provision/requirements.txt\" [FORCE|F=<y|Y>] [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
     summary: |
@@ -36,29 +59,6 @@ tasks:
     preconditions:
       - sh: test -n "{{.REQ}}" || test -n "{{.R}}"
         msg: "REQ|R argument is required"
-    silent: true
-
-  command:
-    desc: "[ANSIBLE] Run an Ansible command. Arguments: CMD|C=\"ansible --version\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
-    summary: |
-      [ANSIBLE] Run an Ansible command.
-      If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
-      otherwise an Ansible Docker image is used.
-      Usage: task ansible:command CMD|C=<ansible_command> [IMG|I=<docker_image:tag>] [PULL|P=<n|N>]
-
-      Arguments:
-       CMD  | C  Ansible command to run (required)
-       IMG  | I  Docker Go image to use (optional, by default jfxs/ansible:latest)
-       PULL | P  Pull docker image (optional, by default yes)
-    vars:
-      CMD: '{{default .C .CMD}}'
-      IMG: '{{default .I .IMG}}'
-      PULL: '{{default .P .PULL}}'
-    cmds:
-      - task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
-    preconditions:
-      - sh: test -n "{{.CMD}}" || test -n "{{.C}}"
-        msg: "CMD|C argument is required"
     silent: true
 
   lint:
@@ -94,7 +94,7 @@ tasks:
       Usage: task ansible:playbook ARG|A=<arguments_list> [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       ARG  | A  Arguments of the playbook to run
+       ARG  | A  Arguments of the playbook to run (required)
        IMG  | I  Docker Go image to use (optional, by default jfxs/ansible:latest)
        PULL | P  Pull docker image (optional, by default yes)
     vars:
@@ -107,6 +107,43 @@ tasks:
     preconditions:
       - sh: test -n "{{.ARG}}" || test -n "{{.A}}"
         msg: "ARG|A argument is required"
+    silent: true
+
+  vault:
+    desc: "[ANSIBLE] Operation on a file with Ansible Vault. Arguments: FILE|F=key.pem ACTION|A=ENC|DEC|EDIT [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
+    summary: |
+      [ANSIBLE] Operation on a file with Ansible Vault.
+      If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
+      otherwise an Ansible Docker image is used.
+      Usage: task ansible:vault FILE|F=<file_path> ACTION|A=<ENC|DEC|EDIT> [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
+
+      Arguments:
+       FILE   | F  Path of the file (required)
+       ACTION | F  Action ENC: encrypt, DEC: decrypt, EDIT: edit the file (required)
+       IMG    | I  Docker Go image to use (optional, by default jfxs/ansible:latest)
+       PULL   | P  Pull docker image (optional, by default yes)
+    vars:
+      FILE: '{{default .F .FILE}}'
+      ACTION: '{{default .A .ACTION}}'
+      IMG: '{{default .I .IMG}}'
+      PULL: '{{default .P .PULL}}'
+      CMD: "ansible-vault encrypt {{.FILE}}"
+    cmds:
+      - |
+        if [ "{{.ACTION}}" = "ENC" ]; then
+          task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="ansible-vault encrypt {{.FILE}}" && mv "{{.FILE}}" "{{.FILE}}.vault"
+        elif [ "{{.ACTION}}" = "DEC" ]; then
+          task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="ansible-vault decrypt {{.FILE}}"
+        elif [ "{{.ACTION}}" = "EDIT" ]; then
+          task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="ansible-vault edit {{.FILE}}"
+        else
+          printf "\033[0;31m[ERROR] Wrong ACTION: %s , possible actions: ENC|DEC|EDIT \033[0m\n" "{{.ACTION}}" && exit 1
+        fi
+    preconditions:
+      - sh: test -n "{{.FILE}}" || test -n "{{.F}}"
+        msg: "FILE|F argument is required"
+      - sh: test -n "{{.ACTION}}" || test -n "{{.A}}"
+        msg: "ACTION|A argument is required"
     silent: true
 
   exec-local-docker-ansible:
