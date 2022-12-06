@@ -36,6 +36,37 @@ tasks:
       - task lint:yaml
     silent: true
 
+  docker:
+    desc: "[QA] Linter for Dockerfiles. Arguments: [FILE|F=Dockerfile] [IMG|I=hadolint/hadolint] [PULL|P=n|N] (*)"
+    summary: |
+      [QA] Linter for Dockerfiles.
+      Usage: task lint:markdown [FILE|F=Dockerfile] [IMG|I=hadolint/hadolint] [PULL|P=<n|N>]
+
+      Arguments:
+       FILE | F  Path of the Docker file to lint (optional, by default Dockerfile)
+       IMG  | I  Docker markdownlint image to use (optional, by default hadolint/hadolint)
+       PULL | P  Pull docker image (optional, by default yes)
+
+    vars:
+      FILE: '{{default .F .FILE}}'
+      FILE_D: '{{default "Dockerfile" .FILE}}'
+      IMG: '{{default .I .IMG}}'
+      IMG_D: '{{default .IMAGE_HADOLINT .IMG}}'
+      PULL: '{{default .P .PULL}}'
+      EXEC: hadolint
+    cmds:
+      - |
+        if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
+          {{.EXEC}} {{.FILE_D}}
+        else
+          if ! command -v docker 2>&1 >/dev/null; then
+            echo "docker and {{.EXEC}} are not installed!" && exit 1
+          fi
+          if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
+          docker run -t --rm -v $(pwd):/mnt "{{.IMG_D}}" {{.EXEC}} /mnt/{{.FILE_D}}
+        fi
+    silent: true
+
   file:
     desc: "[QA] Linter for files. Arguments: [FIX|F=y|Y] (*)"
     summary: |
