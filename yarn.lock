@@ -466,7 +466,7 @@
     p-retry "^4.0.0"
     url-join "^4.0.0"
 
-"@semantic-release/gitlab@^9.5.0":
+"@semantic-release/gitlab@^9.5.1":
   version "9.5.1"
   resolved "https://registry.yarnpkg.com/@semantic-release/gitlab/-/gitlab-9.5.1.tgz#da69fdc2e840857bbc9bc383dc589d266a4a3cb8"
   integrity sha512-QQvIgB/uOUi/cGi0bUndaOki+E1n4XWdRK4WtYIYsPE6AM9r9L7kb5jHzxihHwMvfVA38xSWal4IgLnBX9V7AQ==

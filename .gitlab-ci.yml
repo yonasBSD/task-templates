@@ -60,7 +60,7 @@ lint-docker-dind:
     - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
     - ./bin/task --version
   script:
-    - ./bin/task lint:docker FILES="tests/lint/Dockerfile"
+    - ./bin/task lint:docker FILE="tests/lint/Dockerfile"
 
 lint-markdown-dind:
   image:

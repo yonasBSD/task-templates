@@ -8,7 +8,7 @@
   },
   "devDependencies": {
     "@semantic-release/exec": "^6.0.3",
-    "@semantic-release/gitlab": "^9.5.0",
+    "@semantic-release/gitlab": "^9.5.1",
     "commitizen": "^4.2.6",
     "cz-conventional-changelog": "^3.3.0",
     "semantic-release": "^19.0.5"
