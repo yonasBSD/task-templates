@@ -14,7 +14,7 @@
     "semantic-release": "^19.0.5"
   },
   "scripts": {
-    "commit": "cz commit --signoff"
+    "commit": "cz --signoff"
   },
   "release": {
     "branches": ["main", "master"],

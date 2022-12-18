@@ -12,14 +12,14 @@ vars:
 tasks:
 
   all:
-    desc: "[QA] Linter for files, markdown, yaml extensions. Arguments: [FIX|F=y|Y] [MEX|M=\"\"#node_modules\"\"](*)"
+    desc: '[QA] Linter for files, markdown, yaml extensions. Arguments: [FIX|F=y|Y] [MEX|M=\"#node_modules\"] (*)'
     summary: |
       [QA] Linter for files.
-      Usage: task lint:file [FIX|F=<y|Y>] [M_EX='\"#node_modules\"']
+      Usage: task lint:file [FIX|F=<y|Y>] [MEX='"#node_modules"']
 
       Arguments:
        FIX | F  Fix files (optional, by default no)
-       MEX | M  Makdown exlude directories with single quotes example: MEX='\"#node_modules\" \"#.node_cache\"' (see: https://github.com/DavidAnson/markdownlint-cli2)
+       MEX | M  Makdown exlude directories with single quotes example: MEX='"#node_modules" "#.node_cache"' (see: https://github.com/DavidAnson/markdownlint-cli2)
 
       Notes:
        - Only git versionned files are checked for generic files. Use MEX argument for Mardown files and .yamlint for YAML files.
@@ -29,11 +29,13 @@ tasks:
       MEX: '{{default .M .MEX}}'
     cmds:
       - echo "Files:" && echo "======"
-      - task lint:file FIX={{.FIX}}
+      - task: file
+        vars: {FIX: "{{.FIX}}"}
       - echo "" && echo "Markdown:" && echo "========="
-      - task lint:markdown GLOB="\"**/*.md\" {{.MEX}}"
+      - task: markdown
+        vars: {GLOB: '"**/*.md" {{.MEX}}'}
       - echo "" && echo "YAML:" && echo "====="
-      - task lint:yaml
+      - task: yaml
     silent: true
 
   docker:
@@ -44,9 +46,8 @@ tasks:
 
       Arguments:
        FILE | F  Path of the Docker file to lint (optional, by default Dockerfile)
-       IMG  | I  Docker markdownlint image to use (optional, by default hadolint/hadolint)
+       IMG  | I  Docker markdownlint image to use (optional, by default {{.IMAGE_HADOLINT}})
        PULL | P  Pull docker image (optional, by default yes)
-
     vars:
       FILE: '{{default .F .FILE}}'
       FILE_D: '{{default "Dockerfile" .FILE}}'
@@ -81,10 +82,12 @@ tasks:
     vars:
       FIX: '{{default .F .FIX}}'
     cmds:
-      - task lint:file-utf8
-      - task lint:file-cr FIX="{{.FIX}}"
-      - task lint:file-tws FIX="{{.FIX}}"
-      - task lint:file-nleof
+      - task: file-utf8
+      - task: file-cr
+        vars: {FIX: "{{.FIX}}"}
+      - task: file-tws
+        vars: {FIX: "{{.FIX}}"}
+      - task: file-nleof
     silent: true
 
   file-cr:
@@ -105,7 +108,8 @@ tasks:
       SED_RE: "\r"  # Exclude
       DESC: "CR (Carriage Return)"
     cmds:
-      - task lint:find-remove GREP="{{.GREP_RE}}" SED="{{.SED_RE}}" DESC="{{.DESC}}" FIX="{{.FIX}}"
+      - task: find-remove
+        vars: {GREP: "{{.GREP_RE}}", SED: "{{.SED_RE}}", DESC: "{{.DESC}}", FIX: "{{.FIX}}"}
     silent: true
 
   file-nleof:
@@ -174,7 +178,8 @@ tasks:
       SED_RE: "[[:space:]]*$"  # Exclude
       DESC: "trailing whitespaces at the end of line(s)"
     cmds:
-      - task lint:find-remove GREP="{{.GREP_RE}}" SED="{{.SED_RE}}" DESC="{{.DESC}}" FIX="{{.FIX}}"
+      - task: find-remove
+        vars: {GREP: "{{.GREP_RE}}", SED: "{{.SED_RE}}", DESC: "{{.DESC}}", FIX: "{{.FIX}}"}
     silent: true
 
   file-utf8:
@@ -224,7 +229,7 @@ tasks:
 
       Arguments:
        GLOB | G  Glob expressions (optional, by default "**/*.md")
-       IMG  | I  Docker markdownlint image to use (optional, by default tmknom/markdownlint)
+       IMG  | I  Docker markdownlint image to use (optional, by default {{.IMAGE_MARKDOWNLINT}})
        PULL | P  Pull docker image (optional, by default yes)
 
       Notes:
@@ -259,7 +264,7 @@ tasks:
 
       Arguments:
        FILES | F  Files to check (required)
-       IMG   | I  Docker shellcheck image to use (optional, by default koalaman/shellcheck:stable)
+       IMG   | I  Docker shellcheck image to use (optional, by default {{.IMAGE_SHELLCHECK}})
        PULL  | P  Pull docker image (optional, by default yes)
     vars:
       FILES: '{{default .F .FILES}}'
@@ -295,7 +300,7 @@ tasks:
 
       Arguments:
        FILES | F  Files to check (optional, by default .)
-       IMG   | I  Docker yamllint image to use (optional, by default jfxs/ansible)
+       IMG   | I  Docker yamllint image to use (optional, by default {{.IMAGE_YAMLINT}})
        PULL  | P  Pull docker image (optional, by default yes)
     vars:
       FILES: '{{default .F .FILES}}'

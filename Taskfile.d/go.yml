@@ -17,7 +17,7 @@ tasks:
       Usage: task go:format-check [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG  | I  Docker Go image to use (optional, by default golang:latest)
+       IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
        PULL | P  Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
@@ -45,7 +45,7 @@ tasks:
       Usage: task go:mod-clean [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG  | I  Docker Go image to use (optional, by default golang:latest)
+       IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
        PULL | P  Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
@@ -64,7 +64,7 @@ tasks:
       Usage: task go:mod-clean [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG  | I  Docker Go image to use (optional, by default golang:latest)
+       IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
        PULL | P  Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
@@ -83,7 +83,7 @@ tasks:
       Usage: task go:mod-outdated [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG | I Docker Go image to use (optional, by default golang:latest)
+       IMG | I Docker Go image to use (optional, by default {{.IMAGE_GO}})
        PULL | P Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
@@ -111,7 +111,7 @@ tasks:
       Usage: task go:test-unit [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG | I Docker Go image to use (optional, by default golang:latest)
+       IMG | I Docker Go image to use (optional, by default {{.IMAGE_GO}})
        PULL | P Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
@@ -130,7 +130,7 @@ tasks:
       Usage: task go:test-unit-verbose [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG  | I  Docker Go image to use (optional, by default golang:latest)
+       IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
        PULL | P  Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'

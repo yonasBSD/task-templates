@@ -50,6 +50,18 @@ lint-yaml:
   script:
     - ./bin/task lint:yaml
 
+lint-docker-dind:
+  image:
+    name: $IMAGE_DOCKER
+  services:
+    - docker:$SERVICE_DOCKER_TAG
+  stage: tests
+  before_script:
+    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
+    - ./bin/task --version
+  script:
+    - ./bin/task lint:docker FILES="tests/lint/Dockerfile"
+
 lint-markdown-dind:
   image:
     name: $IMAGE_DOCKER

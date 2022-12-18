@@ -24,7 +24,7 @@ tasks:
       Arguments:
        KEY_PATH | K  Absolute path to the private key file (required)
        MESSAGE  | M  Commit message (required)
-       OPTIONS  | O  Git options (optional, by default empty)
+       OPTIONS  | O  Git options (optional, by default --signoff)
        PULL     | P  Pull docker image (optional, by default yes)
     vars:
       KEY_MOUNT_POINT: /Private
@@ -32,6 +32,7 @@ tasks:
       KEY_PATH: '{{default .K .KEY_PATH}}'
       MESSAGE: '{{default .M .MESSAGE}}'
       OPTIONS: '{{default .O .OPTIONS}}'
+      D_OPTIONS: '{{default "--signoff" .OPTIONS}}'
       PULL: '{{default .P .PULL}}'
       KEY_PATH_DIR:
         sh: dirname "{{.KEY_PATH}}"
@@ -42,7 +43,7 @@ tasks:
       - docker run -d --name commit -v "{{.KEY_PATH_DIR}}:{{.KEY_MOUNT_POINT}}" -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" "{{.IMAGE_DEFAULT}}" sleep infinity
       - defer: echo "Waiting for the container to stop..." && docker stop commit && docker rm commit
       - docker exec -it commit /bin/sh -c 'apt-get update && apt-get -y install git gnupg2 && gpg --import "{{.KEY_MOUNT_POINT}}/{{.KEY_NAME}}"'
-      - docker exec -it commit /bin/sh -c 'export GPG_TTY=$(tty); git commit {{.OPTIONS}} -m "{{.MESSAGE}}"'
+      - docker exec -it commit /bin/sh -c 'export GPG_TTY=$(tty); git commit {{.D_OPTIONS}} -m "{{.MESSAGE}}"'
       - echo "Signed commit succeeded!"
     preconditions:
       - sh: test -n "{{.KEY_PATH}}" || test -n "{{.K}}"

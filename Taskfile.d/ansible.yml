@@ -18,7 +18,7 @@ tasks:
 
       Arguments:
        CMD  | C  Ansible command to run (required)
-       IMG  | I  Docker Ansible image to use (optional, by default jfxs/ansible:latest)
+       IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
        PULL | P  Pull docker image (optional, by default yes)
     vars:
       CMD: '{{default .C .CMD}}'
@@ -42,7 +42,7 @@ tasks:
       Arguments:
        REQ   | R  Requirements file path (required)
        FORCE | F  Force to install the last version of collections (optional, by default no)
-       IMG   | I  Docker Ansible image to use (optional, by default jfxs/ansible:latest)
+       IMG   | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
        PULL  | P  Pull docker image (optional, by default yes)
     vars:
       REQ: '{{default .R .REQ}}'
@@ -71,7 +71,7 @@ tasks:
 
       Arguments:
        ARG  | A  Arguments of the ansible-lint (required)
-       IMG  | I  Docker Ansible image to use (optional, by default jfxs/ansible:latest)
+       IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
        PULL | P  Pull docker image (optional, by default yes)
     vars:
       ARG: '{{default .A .NAME}}'
@@ -95,7 +95,7 @@ tasks:
 
       Arguments:
        ARG  | A  Arguments of the command to run (required)
-       IMG  | I  Docker Ansible image to use (optional, by default jfxs/ansible:latest)
+       IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
        PULL | P  Pull docker image (optional, by default yes)
     vars:
       ARG: '{{default .A .NAME}}'
@@ -119,7 +119,7 @@ tasks:
 
       Arguments:
        ARG  | A  Arguments of the playbook to run (required)
-       IMG  | I  Docker Ansible image to use (optional, by default jfxs/ansible:latest)
+       IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
        PULL | P  Pull docker image (optional, by default yes)
     vars:
       ARG: '{{default .A .NAME}}'
@@ -144,7 +144,7 @@ tasks:
       Arguments:
        FILE   | F  Path of the file (required)
        ACTION | F  Action ENC: encrypt, DEC: decrypt, EDIT: edit the file (required)
-       IMG    | I  Docker Ansible image to use (optional, by default jfxs/ansible:latest)
+       IMG    | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
        PULL   | P  Pull docker image (optional, by default yes)
     vars:
       FILE: '{{default .F .FILE}}'
