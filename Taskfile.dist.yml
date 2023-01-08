@@ -35,8 +35,14 @@ includes:
 # multipass:
 #   taskfile: "./Taskfile.d/multipass.yml"
 #   optional: true
+# sbom:
+#   taskfile: "./Taskfile.d/sbom.yml"
+#   optional: true
 # system:
 #   taskfile: "./Taskfile.d/system.yml"
+#   optional: true
+# version:
+#   taskfile: "./Taskfile.d/version.yml"
 #   optional: true
 # yarn:
 #   taskfile: "./Taskfile.d/yarn.yml"

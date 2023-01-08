@@ -1,0 +1,231 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+
+  attach-sbom-attest:
+    desc: "[SBOM] Adding an SBOM to an image as an attestation: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 KEY|K=/home/my_dir/cosign.key [DIR|D=.] (*)"
+    summary: |
+      [SBOM] Adding an SBOM to an image as an attestation in registry.
+      Usage: task sbom:attach-sbom-attest IMG|I=<image> KEY|K=<private_key_path> DIR|D=<temporary_directory>
+
+      Arguments:
+        IMG | I  Image to analyze (required)
+        KEY | K  Cosign private key path (required)
+        DIR | D  Temporary directory to save attestation file (optional, current directory by default)
+
+      Requirements:
+        - cosign
+        - syft
+        - COSIGN_PASSWORD env. variable set
+        - Registry push permission (docker login ...)
+    vars:
+      DIR: '{{default .D .DIR}}'
+      D_DIR: '{{default "." .DIR}}'
+      IMG: '{{default .I .IMG}}'
+      KEY: '{{default .K .KEY}}'
+      ATT_FILENAME:
+        sh: echo "{{.IMG}}" | sed -E 's/[\/:.@]+/-/g'
+    cmds:
+      - defer: rm -f "{{.D_DIR}}/{{.ATT_FILENAME}}.att"
+      - syft attest --key "{{.KEY}}" -o spdx-json "{{.IMG}}" > "{{.D_DIR}}/{{.ATT_FILENAME}}.att"
+      - cosign attach attestation --attestation "{{.D_DIR}}/{{.ATT_FILENAME}}.att" "{{.IMG}}"
+    preconditions:
+      - sh: command -v cosign
+        msg: "cosign is not installed"
+      - sh: command -v syft
+        msg: "syft is not installed"
+      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+        msg: "IMG|I argument is required"
+      - sh: test -n "{{.KEY}}" || test -n "{{.K}}"
+        msg: "KEY|K argument is required"
+    silent: true
+
+  diff-sbom:
+    desc: "[SBOM] Compare a subset of 2 SBOM files in syft table format: INPUT1|I1=sbom1.table.txt INPUT2|I2=sbom2.table.txt [GREP|G=^github.com/go-task/task/v3 |^curl ] (*)"
+    summary: |
+      [SBOM] Compare a subset of 2 SBOM files in syft table format.
+      Usage: task sbom:diff-sbom INPUT1|I1=<input_file_1> INPUT2|I2=<input_file_2> [GREP|G=<subset_to_extract>]
+      Returns 1 if the subset of files are different, 0 otherwise
+
+      Arguments:
+        INPUT1 | I1  Input file 1 (required)
+        INPUT2 | I2  Input file 2 (required)
+        GREP   | G   Grep regex to select subset to compare (optional)
+    vars:
+      INPUT1: '{{default .I1 .INPUT1}}'
+      INPUT2: '{{default .I2 .INPUT2}}'
+      GREP: '{{default .G .GREP}}'
+    cmds:
+      - |
+        if [ -z "{{.GREP}}" ]; then
+          subset1=$(cat "{{.INPUT1}}")
+          subset2=$(cat "{{.INPUT2}}")
+        else
+          if [ -s "{{.INPUT1}}" ]; then
+            subset1=$(cat "{{.INPUT1}}" | grep -E "{{.GREP}}")
+          else
+            subset1=""
+          fi
+          if [ -s "{{.INPUT2}}" ]; then
+            subset2=$(cat "{{.INPUT2}}" | grep -E "{{.GREP}}")
+          else
+            subset2=""
+          fi
+        fi
+        subset_filter1=$(echo "$subset1" | sed 's/[^[:print:]\t]//g' | sed '/^[[:space:]]*$/d' | sort -u)
+        subset_filter2=$(echo "$subset2" | sed 's/[^[:print:]\t]//g' | sed '/^[[:space:]]*$/d' | sort -u)
+        diff <(echo "$subset_filter1") <(echo "$subset_filter2") >/dev/null 2>&1 && DIFF=0 || DIFF=1
+        echo $DIFF
+    preconditions:
+      - sh: test -n "{{.INPUT1}}" || test -n "{{.I1}}"
+        msg: "INPUT1|I1 argument is required"
+      - sh: test -n "{{.INPUT2}}" || test -n "{{.I2}}"
+        msg: "INPUT2|I2 argument is required"
+      - sh: test -n "{{.INPUT1}}" || test -n "{{.I1}}"
+        msg: "INPUT1|I1 argument is required"
+      - sh: ! (test -f "{{.INPUT1}}" || test -f "{{.I1}}")
+        msg: "File {{.INPUT1}} not found"
+      - sh: ! (test -f "{{.INPUT2}}" || test -f "{{.I2}}")
+        msg: "File {{.INPUT2}} not found"
+    silent: true
+
+  get-docker-sbom:
+    desc: "[SBOM] Get the SBOM with Docker daemon: IMG|I=jfxs/alpine-task [FORMAT|F=cyclonedx-json] (*)"
+    summary: |
+      [SBOM] Get the SBOM with Docker daemon.
+      Usage: task sbom:get-docker-sbom IMG|I=<image> [FORMAT|F=<output_format>]
+
+      Arguments:
+        IMG    | I  Image to analyze (required)
+        FORMAT | F  Output format syft-json, spdx-json, spdx-tag-value, cyclonedx-json, cyclonedx-xml, github, table, template (optional, by default table)
+
+      Requirements:
+        - docker
+        - syft
+    vars:
+      FORMAT: '{{default .F .FORMAT}}'
+      D_FORMAT: '{{default "table" .FORMAT}}'
+      IMG: '{{default .I .IMG}}'
+      TMP_FILE: '{{.IMG}}.tmp.tar'
+    cmds:
+      - defer: rm -f "{{.TMP_FILE}}"
+      - docker save "{{.IMG}}" > "{{.TMP_FILE}}"
+      - syft "{{.TMP_FILE}}" -o "{{.D_FORMAT}}"
+    preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
+      - sh: command -v syft
+        msg: "syft is not installed"
+      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+        msg: "IMG|I argument is required"
+    silent: true
+
+  get-sbom-attest:
+    desc: "[SBOM] Get and verify an SBOM attestation: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 KEY|K=/home/my_dir/cosign.key OUTPUT|O=sbom.json [FORMAT|F=cyclonedx-json] (*)"
+    summary: |
+      [SBOM] Get and verify an SBOM attestation.
+      Usage: task sbom:get-sbom-attest IMG|I=<image> KEY|K=<public_key_path> OUTPUT|O=<sbom_file_path> [FORMAT|F=<output_format>]
+
+      Arguments:
+        IMG    | I  Image to analyze (required)
+        KEY    | K  Cosign public key path (required)
+        OUTPUT | O  Output SBOM file path (required)
+        FORMAT | F  Output format syft-json, spdx-json, spdx-tag-value, cyclonedx-json, cyclonedx-xml, github, table, template (optional, by default same as attestation)
+
+      Requirements:
+        - cosign
+        - syft
+    vars:
+      FORMAT: '{{default .F .FORMAT}}'
+      IMG: '{{default .I .IMG}}'
+      KEY: '{{default .K .KEY}}'
+      OUTPUT: '{{default .O .OUTPUT}}'
+    cmds:
+      - defer: rm -f "{{.OUTPUT}}.tmp"
+      - cosign verify-attestation --key "{{.KEY}}" --type spdxjson "{{.IMG}}"  | jq '.payload | @base64d | fromjson | .predicate' > "{{.OUTPUT}}.tmp"
+      - |
+        if [ -z "{{.FORMAT}}" ]; then
+          mv "{{.OUTPUT}}.tmp" "{{.OUTPUT}}"
+        else
+          syft convert "{{.OUTPUT}}.tmp" -o "{{.FORMAT}}={{.OUTPUT}}"
+        fi
+    preconditions:
+      - sh: command -v cosign
+        msg: "cosign is not installed"
+      - sh: command -v syft
+        msg: "syft is not installed"
+      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+        msg: "IMG|I argument is required"
+      - sh: test -n "{{.KEY}}" || test -n "{{.K}}"
+        msg: "KEY|K argument is required"
+      - sh: test -n "{{.OUTPUT}}" || test -n "{{.O}}"
+        msg: "OUTPUT|O argument is required"
+    silent: true
+
+  get-sbom-subset:
+    desc: "[SBOM] Get an SBOM subset in table format: INPUT|I=sbom-table.txt OUTPUT|O=sbom-subset.txt [GREP|G=^github.com/go-task/task/v3 |^curl ] (*)"
+    summary: |
+      [SBOM] Get an SBOM subset in table format.
+      Usage: task sbom:get-sbom-subset INPUT|I=<sbom_file_path> OUTPUT|O=<subset_file_path> [GREP|G=<subset_to_extract>]
+
+      Arguments:
+        INPUT  | I  SBOM file in syft table format (required)
+        OUTPUT | O  Output SBOM file path (required)
+        GREP   | G  Grep regex to select subset (optional, if not set returns all)
+    vars:
+      GREP: '{{default .G .GREP}}'
+      INPUT: '{{default .I .INPUT}}'
+      OUTPUT: '{{default .O .OUTPUT}}'
+    cmds:
+      - |
+        if [ -z "{{.GREP}}" ]; then
+          cat "{{.INPUT}}" | sed '/NAME/d' > "{{.OUTPUT}}"
+        else
+          cat "{{.INPUT}}" | grep -E "{{.GREP}}" > "{{.OUTPUT}}"
+        fi
+    preconditions:
+      - sh: test -n "{{.INPUT}}" || test -n "{{.I}}"
+        msg: "INPUT|I argument is required"
+      - sh: test -n "{{.OUTPUT}}" || test -n "{{.O}}"
+        msg: "OUTPUT|O argument is required"
+      - sh: ! (test -f "{{.INPUT}}" || test -f "{{.I}}")
+        msg: "File {{.INPUT}} not found"
+    silent: true
+
+  set-sbom-in-file:
+    desc: "[SBOM] Insert an SBOM table in README file: SBOM|S=sbom-table.txt [README|R=README.md] [PATTERN|P=--SBOM-TABLE--] (*)"
+    summary: |
+      [SBOM] Insert an SBOM table in README file.
+      Usage: task sbom:set-sbom-in-file SBOM|S=<sbom_file_path> [README|R=<readme_file_path>] [PATTERN|P=<pattern_to_replace>]
+
+      Arguments:
+        SBOM    | S  SBOM file path in table syft format (required)
+        README  | R  README file path (optional, by default README.md)
+        PATTERN | P  Pattern to replace with the SBOM table (optional, by default --SBOM-TABLE--)
+    vars:
+      PATTERN: '{{default .P .PATTERN}}'
+      D_PATTERN: '{{default "--SBOM-TABLE--" .PATTERN}}'
+      README: '{{default .R .README}}'
+      D_README: '{{default "README.md" .README}}'
+      SBOM: '{{default .S .SBOM}}'
+      HEAD: "| Name | Version | Type |\\n|------|------|------|"
+    cmds:
+      - defer: rm -f "{{.D_README}}.bu"
+      - |
+        table="{{.HEAD}}"
+        while read -r line; do
+          name=$(echo $line | awk '{ print $1 }')
+          version=$(echo $line | awk '{ print $2 }')
+          type=$(echo $line | awk '{ print $3 }')
+          table="$table\\n| $name | $version  | $type |"
+        done < {{.SBOM}}
+        sed -i'.bu' "s=^{{.D_PATTERN}}.*=$table=g" "{{.D_README}}"
+    preconditions:
+      - sh: test -n "{{.SBOM}}" || test -n "{{.S}}"
+        msg: "SBOM|S argument is required"
+      - sh: ! (test -f "{{.SBOM}}" || test -f "{{.S}}")
+        msg: "File {{.SBOM}} not found"
+    silent: true

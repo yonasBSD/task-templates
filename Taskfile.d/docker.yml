@@ -4,8 +4,214 @@
 version: '3'
 
 vars:
+  IMAGE_QEMU: multiarch/qemu-user-static
 
 tasks:
+
+  build-local:
+    desc: "[DOCKER] Build an image locally: TAG|T=image:tag VERSION|V=1.2.3 [VCS_REF|C=110f273aad1cc] [FILE|F=Dockerfile] (*)"
+    summary: |
+      [DOCKER] Build an image locally.
+      Usage: task docker:build-local TAG|T=<image[:tag]> VERSION|V=<version> [VCS_REF|C=<commit_sha>] [FILE|F=<Dockerfile_path>]
+
+      Arguments:
+        TAG     | T  Tag of the image (required)
+        VERSION | V  Version (required)
+        VCS_REF | C  Commit revision SHA hash (optional, by default NO_REF)
+        FILE    | F  Dockerfile path (optional, by default Dockerfile)
+
+      Requirements:
+        - docker
+    vars:
+      BUILD_DATE:
+        sh: date -u +'%Y-%m-%dT%H:%M:%SZ'
+      TAG: '{{default .T .TAG}}'
+      VERSION: '{{default .V .VERSION}}'
+      VCS_REF: '{{default .C .VCS_REF}}'
+      D_VCS_REF: '{{default "NO_REF" .VCS_REF}}'
+      FILE: '{{default .F .FILE}}'
+      D_FILE: '{{default "Dockerfile" .FILE}}'
+    cmds:
+      - docker build --build-arg VERSION="{{.VERSION}}" --build-arg VCS_REF="{{.D_VCS_REF}}" --build-arg BUILD_DATE="{{.BUILD_DATE}}" -t "{{.TAG}}" -f "{{.D_FILE}}" .
+    preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
+    silent: true
+
+  build-push-multiarch:
+    desc: "[DOCKER] Build and push a docker image: DOCKER_USER|U=username DOCKER_PASS|P=password TAG|T=image:tag VERSION|V=1.2.3 [REGISTRY|R=docker.io] [VCS_REF|C=110f273aad1cc] [FILE|F=Dockerfile] [ARCH|A=linux/amd64,linux/arm64] (*)"
+    summary: |
+      [DOCKER] Build and push a docker image.
+      Usage: task docker:build-push DOCKER_USER|U=<username> DOCKER_PASS|P=<password> TAG|T=<image[:tag]> VERSION|V=<version> [REGISTRY|R=<registry_url>] [VCS_REF|C=<commit_sha>] [FILE|F=<Dockerfile_path>] [ARCH|A=<architecture_list>]
+
+      Arguments:
+        DOCKER_USER | U  Registry user (required)
+        DOCKER_PASS | P  Registry password/token (required)
+        TAG         | T  Tag of the image (required)
+        VERSION     | V  Version (required)
+        REGISTRY    | R  Registry URL (optional, by default docker.io)
+        VCS_REF     | C  Commit revision SHA hash (optional)
+        FILE        | F  Dockerfile path (optional, by default Dockerfile)
+        ARCH        | A  Build plateform (optional, by default linux/amd64,linux/arm64)
+
+      Requirements:
+        - docker
+    vars:
+      BUILD_DATE:
+        sh: date -u +'%Y-%m-%dT%H:%M:%SZ'
+      DOCKER_USER: '{{default .U .DOCKER_USER}}'
+      DOCKER_PASS: '{{default .P .DOCKER_PASS}}'
+      TAG: '{{default .T .TAG}}'
+      VERSION: '{{default .V .VERSION}}'
+      REGISTRY: '{{default .R .REGISTRY}}'
+      D_REGISTRY: '{{default "docker.io" .REGISTRY}}'
+      VCS_REF: '{{default .C .VCS_REF}}'
+      D_VCS_REF: '{{default "NO_REF" .VCS_REF}}'
+      FILE: '{{default .F .FILE}}'
+      D_FILE: '{{default "Dockerfile" .FILE}}'
+      ARCH: '{{default .A .ARCH}}'
+      D_ARCH: '{{default "linux/amd64,linux/arm64" .ARCH}}'
+    cmds:
+      - echo -n "{{.DOCKER_PASS}}" | docker login -u "{{.DOCKER_USER}}" --password-stdin "{{.D_REGISTRY}}"
+      - defer: docker logout "{{.D_REGISTRY}}"
+      - docker run --name qemu --rm --privileged "{{.IMAGE_QEMU}}" --reset -p yes
+      - docker context create builder-context
+      - defer: docker context rm builder-context
+      - docker buildx create --name builderx --driver docker-container --use builder-context
+      - defer: docker buildx rm builderx
+      - docker buildx build --build-arg VERSION="{{.VERSION}}" --build-arg VCS_REF="{{.D_VCS_REF}}" --build-arg BUILD_DATE="{{.BUILD_DATE}}" --push -t "{{.TAG}}" --platform "{{.D_ARCH}}" -f "{{.D_FILE}}" .
+    preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
+    silent: true
+
+  get-digest:
+    desc: "[DOCKER] Get the digest of an image: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 (*)"
+    summary: |
+      [DOCKER] Get the digest of an image.
+      Usage: task docker:get-digest IMG|I=<image>
+
+      Arguments:
+        IMG | I  Image to analyze (required)
+
+      Requirements:
+        - docker or skopeo
+    vars:
+      IMG: '{{default .I .IMG}}'
+      IMAGE_SKOPEO: quay.io/skopeo/stable
+    cmds:
+      - |
+        if [ -x "$(command -v skopeo)" ]; then
+          if ! skopeo_output=$(skopeo inspect --format "{{ `{{ .Digest }}` }}" "docker://{{.IMG}}"); then
+            printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{ .Digest }}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
+            exit 1
+          fi
+        else
+          if ! skopeo_output=$(docker run -t --rm "{{.IMAGE_SKOPEO}}" inspect --format "{{ `{{ .Digest }}` }}" "docker://{{.IMG}}"); then
+            printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{ .Digest }}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
+            exit 1
+          fi
+        fi
+        echo $skopeo_output
+    preconditions:
+      - sh: command -v docker || command -v skopeo
+        msg: "skopeo or docker are not installed"
+      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+        msg: "IMG|I argument is required"
+    silent: true
+
+  get-digest-layer0:
+    desc: "[DOCKER] Get the digest of the layer 0 (base image) of an image: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 (*)"
+    summary: |
+      [DOCKER] Get the digest of the layer 0 (base image) of an image.
+      Usage: task docker:get-digest-layer0 IMG|I=<image>
+
+      Arguments:
+        IMG | I  Image to analyze (required)
+
+      Requirements:
+        - docker or skopeo
+    vars:
+      IMG: '{{default .I .IMG}}'
+      IMAGE_SKOPEO: quay.io/skopeo/stable
+    cmds:
+      - |
+        if [ -x "$(command -v skopeo)" ]; then
+          if ! skopeo_output=$(skopeo inspect --format "{{ `{{index .Layers 0}}` }}" "docker://{{.IMG}}"); then
+            printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{index .Layers 0}}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
+            exit 1
+          fi
+        else
+          if ! skopeo_output=$(docker run -t --rm "{{.IMAGE_SKOPEO}}" inspect --format "{{ `{{index .Layers 0}}` }}" "docker://{{.IMG}}"); then
+            printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{index .Layers 0}}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
+            exit 1
+          fi
+        fi
+        echo $skopeo_output
+    preconditions:
+      - sh: command -v docker || command -v skopeo
+        msg: "skopeo or docker are not installed"
+      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+        msg: "IMG|I argument is required"
+    silent: true
+
+  get-next-tag-index:
+    desc: "[DOCKER] Get the next index for a tag: IMG|I=index.docker.io/jfxs/alpine-task VERSION|V=1.2.3 (*)"
+    summary: |
+      [DOCKER] Get the next index.
+      Usage: task docker:get-next-tag-index IMG|I=<image> VERSION|V=<version>
+
+      Arguments:
+        IMG     | I  Image to analyze (required)
+        VERSION | V  Version (required)
+
+      Requirements:
+        - docker or skopeo
+        - jq
+    vars:
+      IMG: '{{default .I .IMG}}'
+      VERSION: '{{default .V .VERSION}}'
+      IMAGE_SKOPEO: quay.io/skopeo/stable
+    cmds:
+      - |
+        if [ -x "$(command -v skopeo)" ]; then
+          if ! skopeo_output=$(skopeo list-tags "docker://{{.IMG}}"); then
+            printf "\033[0;31m[ERROR] Command skopeo list-tags docker://%s failed!\033[0m\n" "{{.IMG}}"
+            exit 1
+          fi
+        else
+          if ! skopeo_output=$(docker run -t --rm "{{.IMAGE_SKOPEO}}" list-tags "docker://{{.IMG}}"); then
+            printf "\033[0;31m[ERROR] Command skopeo list-tags docker://%s failed!\033[0m\n" "{{.IMG}}"
+            exit 1
+          fi
+        fi
+        tags=$(echo $skopeo_output | jq .Tags | grep "{{.VERSION}}-" | cat)
+        index=0
+        for tag in $tags
+        do
+          tag_index=$(echo "$tag" | sed 's/^.*-\([0-9]*\).*/\1/')
+          if [ "$tag_index" -gt "$index" ] 2>/dev/null; then
+            index=$tag_index;
+          fi
+        done
+        index=$((index + 1))
+        if [ "$index" -lt "10" ] 2>/dev/null; then
+          echo "00$index"
+        elif [ "$index" -lt "100" ] 2>/dev/null; then
+          echo "0$index"
+        else
+          echo "$index"
+        fi
+    preconditions:
+      - sh: command -v jq
+        msg: "jq is not installed"
+      - sh: command -v docker || command -v skopeo
+        msg: "skopeo or docker are not installed"
+      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+        msg: "IMG|I argument is required"
+      - sh: test -n "{{.VERSION}}" || test -n "{{.V}}"
+        msg: "VERSION|V argument is required"
+    silent: true
 
   rm:
     desc: "[DOCKER] Remove all unused containers"

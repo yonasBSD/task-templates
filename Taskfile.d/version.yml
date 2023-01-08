@@ -1,0 +1,200 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+
+tasks:
+
+  format-semver:
+    desc: "[VERSION] generate a version in semver format : VERSION|V=5.7 (*)"
+    summary: |
+      [VERSION] format-semver:
+      Usage: task version:format-semver VERSION|V=<version>
+      See: https://semver.org/ for Semantic Versioning.
+      Remove <build> if any, format to <major> "." <minor> "." <patch> "-" <pre-release>
+      <pre-release> is optional.
+      Example: task version:format-semver VERSION=5.7 will return 5.7.0
+
+      Arguments:
+        VERSION | V  Version to format (required)
+    vars:
+      REGEX: ^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-.*)?$
+      VERSION: '{{default .V .VERSION}}'
+    cmds:
+      - |
+        version_without_build=$(echo "{{.VERSION}}" | cut -f1 -d"+")
+        if echo "$version_without_build" | grep -Eq "{{.REGEX}}"; then
+          echo "$version_without_build"
+        else
+          if echo "$version_without_build" | grep '-' >/dev/null 2>&1; then
+            part_version=$(echo $version_without_build | sed 's/-.*//')
+            part_pre=$(echo $version_without_build | sed 's/^[^-]*-/-/')
+          else
+            part_version=$version_without_build
+            part_pre=""
+          fi
+          point_count=$(echo "$part_version" | tr -cd '.' | wc -c | awk '{print $1}')
+          if [ $point_count -eq 0 ]; then
+            part_version="$part_version.0.0"
+          elif [ $point_count -eq 1 ]; then
+            part_version="$part_version.0"
+          fi
+          echo "$part_version$part_pre"
+        fi
+    preconditions:
+      - sh: test -n "{{.VERSION}}" || test -n "{{.V}}"
+        msg: "VERSION|V argument is required"
+    silent: true
+
+  get-cli-version:
+    desc: "[VERSION] Get version from CLI output of a --version option: OUTPUT|O='Task version: v3.19.0 (h1:jS1s2...' (*)"
+    summary: |
+      [VERSION] Get version from CLI output:
+      Usage: task version:get-cli-version OUTPUT|O=<cli_output>/<repo>
+
+      Arguments:
+        OUTPUT | O  CLI output (required)
+    vars:
+      OUTPUT: '{{default .O .OUTPUT}}'
+    cmds:
+      - echo "{{.OUTPUT}}" | head -n 1 | sed 's/[^0-9]*\([0-9.]*\).*/\1/'
+    preconditions:
+      - sh: test -n "{{.OUTPUT}}" || test -n "{{.O}}"
+        msg: "OUTPUT|O argument is required"
+    silent: true
+
+  get-docker-cli-version:
+    desc: "[VERSION] Get version from CLI output command of a Docker container: IMG|I=jfxs/alpine-task CMD|C=task --version (*)"
+    summary: |
+      [VERSION] Get version from CLI output command of a Docker container:
+      Usage: task version:get-docker-cli-version IMG|I=<image> CMD|C=<shell_command>
+
+      Arguments:
+        IMG | I  Image to run (required)
+        CMD | C  CLI command (required)
+
+      Requirements:
+        - docker
+    vars:
+      CMD: '{{default .C .CMD}}'
+      IMG: '{{default .I .IMG}}'
+      CLI_OUTPUT:
+        sh: docker run -t --rm "{{.IMG}}" /bin/sh -c "{{.CMD}}"
+    cmds:
+      - task: get-cli-version
+        vars: {OUTPUT: "{{.CLI_OUTPUT}}"}
+    preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
+      - sh: test -n "{{.CMD}}" || test -n "{{.C}}"
+        msg: "CMD|C argument is required"
+      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+        msg: "IMG|I argument is required"
+    silent: true
+
+  get-docker-manifest-version:
+    desc: "[VERSION] Get version from docker manifest with skopeo: IMG|I=index.docker.io/jfxs/alpine-task [LABEL|L=org.opencontainers.image.version] (*)"
+    summary: |
+      [VERSION] get-manifest-version:
+      Usage: task version:get-manifest-version IMG|I=<image> [LABEL|L=<label_of_version>]
+
+      Arguments:
+        IMG   | I  Image to analyze (required)
+        LABEL | L  Label of the version (optional, default org.opencontainers.image.version)
+
+      Requirements:
+        - docker or skopeo
+    vars:
+      IMG: '{{default .I .IMG}}'
+      LABEL: '{{default .L .LABEL}}'
+      D_LABEL: '{{default "org.opencontainers.image.version" .LABEL}}'
+      IMAGE_SKOPEO: quay.io/skopeo/stable
+    cmds:
+      - |
+        label='"'{{.D_LABEL}}'"'
+        if [ -x "$(command -v skopeo)" ]; then
+          if ! skopeo_output=$(skopeo inspect --format "{{ `{{index .Labels $label}}` }}" "docker://{{.IMG}}"); then
+            printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{index .Labels $label}}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
+            exit 1
+          fi
+        else
+          if ! skopeo_output=$(docker run -t --rm "{{.IMAGE_SKOPEO}}" inspect --format "{{ `{{index .Labels $label}}` }}" "docker://{{.IMG}}"); then
+            printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{index .Labels $label}}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
+            exit 1
+          fi
+        fi
+        echo $skopeo_output
+    preconditions:
+      - sh: command -v docker || command -v skopeo
+        msg: "skopeo or docker are not installed"
+      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+        msg: "IMG|I argument is required"
+    silent: true
+
+  get-latest-github:
+    desc: "[VERSION] Get latest version from Github: REPO|R=go-task/task (*)"
+    summary: |
+      [VERSION] Get latest version from Github:
+      Usage: task version:get-latest-github REPO|R=<owner>/<repo>
+
+      Arguments:
+        REPO | R  Repository in format: <owner>/<repo> (required)
+
+      Requirements:
+        - curl
+        - jq
+    vars:
+      REPO: '{{default .R .REPO}}'
+    cmds:
+      - |
+        if [ -x "$(command -v curl)" ]; then
+          curl -sL https://api.github.com/repos/{{.REPO}}/releases/latest | jq -r ".tag_name" | sed 's/v//g'
+        else
+          wget -qO- https://api.github.com/repos/{{.REPO}}/releases/latest | jq -r ".tag_name" | sed 's/v//g'
+        fi
+    preconditions:
+      - sh: command -v curl || command -v wget
+        msg: "curl or wget are not installed"
+      - sh: command -v jq
+        msg: "jq is not installed"
+      - sh: test -n "{{.REPO}}" || test -n "{{.R}}"
+        msg: "REPO|R argument is required"
+    silent: true
+
+  get-major-minor-version:
+    desc: "[VERSION] Get majeur and minor version number from full version: VERSION|V=3.19.1 (*)"
+    summary: |
+      [VERSION] Get majeurand minor  version number from full version:
+      Usage: task version:get-major-minor-version VERSION|V=<full_version>/<repo>
+      Example: task version:get-major-minor-version VERSION=3.19.1 will return 3.19
+
+      Arguments:
+        VERSION | V  Version (required)
+    vars:
+      VERSION: '{{default .V .VERSION}}'
+    cmds:
+      - echo "{{.VERSION}}" | sed -E 's/([0-9]+\.[0-9]+)\..*/\1/'
+    preconditions:
+      - sh: test -n "{{.VERSION}}" || test -n "{{.V}}"
+        msg: "VERSION|V argument is required"
+    silent: true
+
+  get-major-version:
+    desc: "[VERSION] Get majeur version number from full version: VERSION|V=3.19.1 (*)"
+    summary: |
+      [VERSION] Get majeur version number from full version:
+      Usage: task version:get-major-version VERSION|V=<full_version>/<repo>
+      Example: task version:get-major-version VERSION=3.19.1 will return 3
+
+      Arguments:
+        VERSION | V  Version (required)
+    vars:
+      VERSION: '{{default .V .VERSION}}'
+    cmds:
+      - echo "{{.VERSION}}" | sed -E 's/([0-9]+)\..*/\1/'
+    preconditions:
+      - sh: test -n "{{.VERSION}}" || test -n "{{.V}}"
+        msg: "VERSION|V argument is required"
+    silent: true

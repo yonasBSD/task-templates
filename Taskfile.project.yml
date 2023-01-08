@@ -7,7 +7,40 @@ vars:
 
 tasks:
 
-  10-pre-commit:
+  10-RF-test:
+    desc: "[PROJECT] Robot Framework tests. Arguments: [IMG|I=jfxs/robot-framework:latest] [PULL|P=<n|N>] (*)"
+    summary: |
+      [PROJECT] Robot Framework tests.
+      If robot command is in the path and IMG/I argument is not set, the local robot command is executed,
+      otherwise an Robot Framework Docker image is used.
+      Usage: task 00:10-RF-test [IMG|I=<robotframework_image:tag>] [PULL|P=<n|N>]
+
+      Arguments:
+       IMG    | I  Docker Robot Framework image to use (optional, by default {{.IMAGE_RF}})
+       PULL   | P  Pull docker image (optional, by default yes)
+    vars:
+      IMAGE_RF: jfxs/robot-framework:latest
+      IMG: '{{default .I .IMG}}'
+      IMG_D: '{{default .IMAGE_RF .IMG}}'
+      PULL: '{{default .P .PULL}}'
+      EXEC: robot
+    cmds:
+      - mkdir -p reports
+      - |
+        if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
+          {{.EXEC}} --outputdir reports tests/RF
+        else
+          if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
+          chmod 777 reports
+          docker run --user root -t --rm -v $(pwd):/tests "{{.IMG_D}}" /bin/sh -c "apk --no-cache add go-task jq skopeo && {{.EXEC}} -v TASK_BIN:go-task --outputdir /tests/reports  /tests/tests/RF"
+          chmod 755 reports
+        fi
+    preconditions:
+      - sh: command -v docker || command -v robot
+        msg: "robot-framework or docker are not installed"
+    silent: true
+
+  20-pre-commit:
     desc: "[PROJECT] Pre-commit checks."
     cmds:
       - date > {{.FILE_TASK_START}}

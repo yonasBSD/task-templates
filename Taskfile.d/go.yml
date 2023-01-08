@@ -17,8 +17,8 @@ tasks:
       Usage: task go:format-check [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
-       PULL | P  Pull docker image (optional, by default yes)
+        IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
+        PULL | P  Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
       IMG_D: '{{default .IMAGE_GO .IMG}}'
@@ -45,14 +45,15 @@ tasks:
       Usage: task go:mod-clean [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
-       PULL | P  Pull docker image (optional, by default yes)
+        IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
+        PULL | P  Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
       PULL: '{{default .P .PULL}}'
       CMD: "go mod tidy"
     cmds:
-      - task go:exec-local-docker-go IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
+      - task: exec-local-docker-go
+        vars: {IMG: "{{.IMG}}", PULL: "{{.PULL}}", CMD: "{{.CMD}}"}
     silent: true
 
   mod-download:
@@ -64,14 +65,15 @@ tasks:
       Usage: task go:mod-clean [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
-       PULL | P  Pull docker image (optional, by default yes)
+        IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
+        PULL | P  Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
       PULL: '{{default .P .PULL}}'
       CMD: "go mod download"
     cmds:
-      - task go:exec-local-docker-go IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
+      - task: exec-local-docker-go
+        vars: {IMG: "{{.IMG}}", PULL: "{{.PULL}}", CMD: "{{.CMD}}"}
     silent: true
 
   mod-outdated:
@@ -83,8 +85,8 @@ tasks:
       Usage: task go:mod-outdated [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG | I Docker Go image to use (optional, by default {{.IMAGE_GO}})
-       PULL | P Pull docker image (optional, by default yes)
+        IMG | I Docker Go image to use (optional, by default {{.IMAGE_GO}})
+        PULL | P Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
       IMG_D: '{{default .IMAGE_GO .IMG}}'
@@ -111,14 +113,15 @@ tasks:
       Usage: task go:test-unit [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG | I Docker Go image to use (optional, by default {{.IMAGE_GO}})
-       PULL | P Pull docker image (optional, by default yes)
+        IMG | I Docker Go image to use (optional, by default {{.IMAGE_GO}})
+        PULL | P Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
       PULL: '{{default .P .PULL}}'
       CMD: go test ./... -cover
     cmds:
-      - task go:exec-local-docker-go IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
+      - task: exec-local-docker-go
+        vars: {IMG: "{{.IMG}}", PULL: "{{.PULL}}", CMD: "{{.CMD}}"}
     silent: true
 
   test-unit-verbose:
@@ -130,14 +133,15 @@ tasks:
       Usage: task go:test-unit-verbose [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
-       PULL | P  Pull docker image (optional, by default yes)
+        IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
+        PULL | P  Pull docker image (optional, by default yes)
     vars:
       IMG: '{{default .I .IMG}}'
       PULL: '{{default .P .PULL}}'
       CMD: go test ./... -v -cover | sed '/PASS/s//$(printf "\033[32mPASS\033[0m")/' | sed '/FAIL/s//$(printf "\033[31mFAIL\033[0m")/'
     cmds:
-      - task go:exec-local-docker-go IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
+      - task: exec-local-docker-go
+        vars: {IMG: "{{.IMG}}", PULL: "{{.PULL}}", CMD: "{{.CMD}}"}
     silent: true
 
   exec-local-docker-go:

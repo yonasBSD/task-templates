@@ -1,5 +1,6 @@
 /.node_cache/
 /node_modules/
 /.vscode/
+/reports/
 .DS_Store
 *.log

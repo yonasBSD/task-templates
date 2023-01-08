@@ -17,9 +17,9 @@ tasks:
       Usage: task ansible:command CMD|C=<ansible_command> [IMG|I=<docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       CMD  | C  Ansible command to run (required)
-       IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
-       PULL | P  Pull docker image (optional, by default yes)
+        CMD  | C  Ansible command to run (required)
+        IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL | P  Pull docker image (optional, by default yes)
     vars:
       CMD: '{{default .C .CMD}}'
       IMG: '{{default .I .IMG}}'
@@ -40,10 +40,10 @@ tasks:
       Usage: task ansible:galaxy-install FILE|F=<file_path> [FORCE|F=<y|Y>] [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       REQ   | R  Requirements file path (required)
-       FORCE | F  Force to install the last version of collections (optional, by default no)
-       IMG   | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
-       PULL  | P  Pull docker image (optional, by default yes)
+        REQ   | R  Requirements file path (required)
+        FORCE | F  Force to install the last version of collections (optional, by default no)
+        IMG   | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL  | P  Pull docker image (optional, by default yes)
     vars:
       REQ: '{{default .R .REQ}}'
       FORCE: '{{default .F .FORCE}}'
@@ -70,9 +70,9 @@ tasks:
       Usage: task ansible:lint ARG|A=<arguments_list> [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       ARG  | A  Arguments of the ansible-lint (required)
-       IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
-       PULL | P  Pull docker image (optional, by default yes)
+        ARG  | A  Arguments of the ansible-lint (required)
+        IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL | P  Pull docker image (optional, by default yes)
     vars:
       ARG: '{{default .A .NAME}}'
       IMG: '{{default .I .IMG}}'
@@ -94,9 +94,9 @@ tasks:
       Usage: task ansible:ping ARG|A=<arguments_list> [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       ARG  | A  Arguments of the command to run (required)
-       IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
-       PULL | P  Pull docker image (optional, by default yes)
+        ARG  | A  Arguments of the command to run (required)
+        IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL | P  Pull docker image (optional, by default yes)
     vars:
       ARG: '{{default .A .NAME}}'
       IMG: '{{default .I .IMG}}'
@@ -118,9 +118,9 @@ tasks:
       Usage: task ansible:playbook ARG|A=<arguments_list> [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       ARG  | A  Arguments of the playbook to run (required)
-       IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
-       PULL | P  Pull docker image (optional, by default yes)
+        ARG  | A  Arguments of the playbook to run (required)
+        IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL | P  Pull docker image (optional, by default yes)
     vars:
       ARG: '{{default .A .NAME}}'
       IMG: '{{default .I .IMG}}'
@@ -142,10 +142,10 @@ tasks:
       Usage: task ansible:vault FILE|F=<file_path> ACTION|A=<ENC|DEC|EDIT> [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-       FILE   | F  Path of the file (required)
-       ACTION | F  Action ENC: encrypt, DEC: decrypt, EDIT: edit the file (required)
-       IMG    | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
-       PULL   | P  Pull docker image (optional, by default yes)
+        FILE   | F  Path of the file (required)
+        ACTION | F  Action ENC: encrypt, DEC: decrypt, EDIT: edit the file (required)
+        IMG    | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL   | P  Pull docker image (optional, by default yes)
     vars:
       FILE: '{{default .F .FILE}}'
       ACTION: '{{default .A .ACTION}}'
