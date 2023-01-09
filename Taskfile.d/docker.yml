@@ -175,32 +175,30 @@ tasks:
     cmds:
       - |
         if [ -x "$(command -v skopeo)" ]; then
-          if ! skopeo_output=$(skopeo list-tags "docker://{{.IMG}}"); then
-            printf "\033[0;31m[ERROR] Command skopeo list-tags docker://%s failed!\033[0m\n" "{{.IMG}}"
-            exit 1
-          fi
+          skopeo_output=$(skopeo list-tags "docker://{{.IMG}}") || true
         else
-          if ! skopeo_output=$(docker run -t --rm "{{.IMAGE_SKOPEO}}" list-tags "docker://{{.IMG}}"); then
-            printf "\033[0;31m[ERROR] Command skopeo list-tags docker://%s failed!\033[0m\n" "{{.IMG}}"
-            exit 1
-          fi
+          skopeo_output=$(docker run -t --rm "{{.IMAGE_SKOPEO}}" list-tags "docker://{{.IMG}}") || true
         fi
-        tags=$(echo $skopeo_output | jq .Tags | grep "{{.VERSION}}-" | cat)
-        index=0
-        for tag in $tags
-        do
-          tag_index=$(echo "$tag" | sed 's/^.*-\([0-9]*\).*/\1/')
-          if [ "$tag_index" -gt "$index" ] 2>/dev/null; then
-            index=$tag_index;
-          fi
-        done
-        index=$((index + 1))
-        if [ "$index" -lt "10" ] 2>/dev/null; then
-          echo "00$index"
-        elif [ "$index" -lt "100" ] 2>/dev/null; then
-          echo "0$index"
+        if [ -z "$skopeo_output" ]; then
+          echo "001"
         else
-          echo "$index"
+          tags=$(echo $skopeo_output | jq .Tags | grep "{{.VERSION}}-" | cat)
+          index=0
+          for tag in $tags
+          do
+            tag_index=$(echo "$tag" | sed 's/^.*-\([0-9]*\).*/\1/')
+            if [ "$tag_index" -gt "$index" ] 2>/dev/null; then
+              index=$tag_index;
+            fi
+          done
+          index=$((index + 1))
+          if [ "$index" -lt "10" ] 2>/dev/null; then
+            echo "00$index"
+          elif [ "$index" -lt "100" ] 2>/dev/null; then
+            echo "0$index"
+          else
+            echo "$index"
+          fi
         fi
     preconditions:
       - sh: command -v jq
