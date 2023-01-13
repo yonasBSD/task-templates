@@ -24,6 +24,9 @@ with curl:
 
 ```shell
 curl --progress-bar -o Taskfile.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.dist.yml
+```
+
+```shell
 curl --progress-bar -o Taskfile.project.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.project.dist.yml
 ```
 
@@ -31,6 +34,9 @@ or with wget:
 
 ```shell
 wget -cq --show-progress -O Taskfile.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.dist.yml
+```
+
+```shell
 wget -cq --show-progress -O Taskfile.project.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.project.dist.yml
 ```
 
