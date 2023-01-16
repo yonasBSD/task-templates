@@ -65,6 +65,35 @@ tasks:
         msg: "OUTPUT|O argument is required"
     silent: true
 
+  get-docker-apk-version:
+    desc: "[VERSION] Get version of an APK package of an Alpine docker image: IMG|I=jfxs/alpine-task APK|A=squid (*)"
+    summary: |
+      [VERSION] Get version of an APK package:
+      Usage: task version:get-docker-apk-version IMG|I=<image> APK|A=<package>
+
+      Arguments:
+        APK | A  Alpine package (required)
+        IMG | I  Image to run (required)
+
+      Requirements:
+        - docker
+    vars:
+      APK: '{{default .A .APK}}'
+      IMG: '{{default .I .IMG}}'
+      APK_OUTPUT:
+        sh: docker run --rm "{{.IMG}}" /bin/sh -c "apk --no-cache add squid" | grep "Installing {{.APK}}" | sed 's/.*(\(.*\)-.*)/\1/'
+    cmds:
+      - task: format-semver
+        vars: {VERSION: "{{.APK_OUTPUT}}"}
+    preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
+      - sh: test -n "{{.APK}}" || test -n "{{.A}}"
+        msg: "APK|A argument is required"
+      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+        msg: "IMG|I argument is required"
+    silent: true
+
   get-docker-cli-version:
     desc: "[VERSION] Get version from CLI output command of a Docker container: IMG|I=jfxs/alpine-task CMD|C=task --version (*)"
     summary: |

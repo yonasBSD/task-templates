@@ -97,6 +97,7 @@ tasks:
       # - task download-template TEMPLATE=multipass-lite.yml
       # - task download-template TEMPLATE=multipass.yml
       # - task download-template TEMPLATE=system.yml
+      # - task download-template TEMPLATE=version.yml
       # - task download-template TEMPLATE=yarn.yml
       - echo "Download Start $(cat {{.FILE_TASK_START}}) - End $(date)"
     preconditions:
