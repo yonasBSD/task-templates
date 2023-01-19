@@ -12,97 +12,49 @@ vars:
 
 includes:
   00:
-    taskfile: "./Taskfile.project.yml"
+    taskfile: "Taskfile.project.yml"
     optional: true
-# ansible:
-#   taskfile: "./Taskfile.d/ansible.yml"
-#   optional: true
-# docker:
-#   taskfile: "./Taskfile.d/docker.yml"
-#   optional: true
-# git:
-#   taskfile: "./Taskfile.d/git.yml"
-#   optional: true
-# go:
-#   taskfile: "./Taskfile.d/go.yml"
-#   optional: true
-# lint:
-#   taskfile: "./Taskfile.d/lint.yml"
-#   optional: true
-# multipass-lite:
-#   taskfile: "./Taskfile.d/multipass-lite.yml"
-#   optional: true
-# multipass:
-#   taskfile: "./Taskfile.d/multipass.yml"
-#   optional: true
-# sbom:
-#   taskfile: "./Taskfile.d/sbom.yml"
-#   optional: true
-# system:
-#   taskfile: "./Taskfile.d/system.yml"
-#   optional: true
-# version:
-#   taskfile: "./Taskfile.d/version.yml"
-#   optional: true
-# yarn:
-#   taskfile: "./Taskfile.d/yarn.yml"
-#   optional: true
+    # BEGIN-INCLUDES-TEMPLATES
+  RUN_00:00-install-templates_TO_UPDATE:
+    taskfile: "RUN_00:00-install-templates_TO_UPDATE.yml"
+    optional: true
+    # END-INCLUDES-TEMPLATES
 
 tasks:
 
-  10-t-activate:
-    summary: |
-      [CORE] Activate Tasks templates.
-      Usage: task [-t Taskfile.dist.yml] 10-t-activate TEMPLATE|T=<template1-name>,<template2-name> [FILE|F=Taskfile.dist.yml]
-
-      Arguments:
-       TEMPLATE | T List of the templates to activate separated by comma (required)
-       FILE | F     Taskfile path (optional, by default Taskfile.yml)
+  10-install-templates:
+    #  summary: |
+    #    [CORE] Activate Tasks templates.
+    #    Usage: task [-t Taskfile.dist.yml] 10-t-activate TEMPLATE|T=<template1-name>,<template2-name> [FILE|F=Taskfile.dist.yml]
+    #
+    #    Arguments:
+    #    TEMPLATE | T List of the templates to activate separated by comma (required)
+    #     FILE | F     Taskfile path (optional, by default Taskfile.yml)
     vars:
       TEMPLATE: '{{default .T .TEMPLATE}}'
       FILE: '{{default .F .FILE}}'
-      FILE_DEFAULT: "Taskfile.yml"
-      FILE_PATH: '{{default .FILE_DEFAULT .FILE}}'
+      D_FILE: '{{default "Taskfile.yml" .FILE}}'
+      BEGIN: "    # BEGIN-INCLUDES-TEMPLATES"
+      PATTERN_BEGIN: "^{{.BEGIN}}"
+      PATTERN_END: "^    # END-INCLUDES-TEMPLATES"
     cmds:
       - mkdir -p "{{.DIR_TASKFILES}}"
+      - defer: rm -f "{{.D_FILE}}".bu
+      - sed -i'.bu' '/{{.PATTERN_BEGIN}}/,//{/{{.PATTERN_BEGIN}}/!{/^    \# END-INCLUDES-TEMPLATES/!d;};}' "{{.D_FILE}}"
+      - |
+        includes="{{.BEGIN}}"
+        for t in $(echo "{{.TEMPLATE}}" | tr "," " "); do
+          includes="$includes\\n  ${t}:\\n    taskfile: {{.DIR_TASKFILES}}/${t}.yml\\n    optional: true"
+        done
+        sed -i'.bu' "s={{.PATTERN_BEGIN}}=${includes}=g" "{{.D_FILE}}"
       - |
         for t in $(echo "{{.TEMPLATE}}" | tr "," " "); do
-          if ! grep -Fq "Taskfile.d/${t}.yml" "{{.FILE_PATH}}"
-          then
-            printf "\e[33m [WARNING]: %s template does not exist.\033[0m Please upgrade your Taskfile.yml file!\n" "${t}"
-          else
-            sed -i.bu "/${t}:$/s/^#/ /" "{{.FILE_PATH}}"
-            sed -i.bu "/${t}:$/{n;s/^#/ /;}" "{{.FILE_PATH}}"
-            sed -i.bu "/${t}:$/{n;n;s/^#/ /;}" "{{.FILE_PATH}}"
-            sed -i.bu "/TEMPLATE=${t}\.yml/s/# - task download-template/- task download-template/" "{{.FILE_PATH}}"
-          fi
+          echo "Download template ${t}..."
+          task download-template TEMPLATE=${t}.yml
         done
-      - defer: rm -f "{{.FILE_PATH}}".bu
     preconditions:
       - sh: test -n "{{.TEMPLATE}}" || test -n "{{.T}}"
         msg: "TEMPLATE|T argument is required"
-    silent: true
-
-  20-t-download:
-    # TODO: Add optional proxy arguments
-    cmds:
-      - date > {{.FILE_TASK_START}}
-      - defer: rm -f {{.FILE_TASK_START}}
-      - mkdir -p "{{.DIR_TASKFILES}}"
-      # - task download-template TEMPLATE=ansible.yml
-      # - task download-template TEMPLATE=docker.yml
-      # - task download-template TEMPLATE=git.yml
-      # - task download-template TEMPLATE=go.yml
-      # - task download-template TEMPLATE=lint.yml
-      # - task download-template TEMPLATE=multipass-lite.yml
-      # - task download-template TEMPLATE=multipass.yml
-      # - task download-template TEMPLATE=system.yml
-      # - task download-template TEMPLATE=version.yml
-      # - task download-template TEMPLATE=yarn.yml
-      - echo "Download Start $(cat {{.FILE_TASK_START}}) - End $(date)"
-    preconditions:
-      - sh: command -v curl || command -v wget
-        msg: "curl or wget are not installed"
     silent: true
 
   usage:
@@ -152,7 +104,7 @@ tasks:
           if [ "$first_char" = "*" ]; then
              task=$(echo "{{ $line }}" | cut -d ' ' -f2)
              desc=$(echo "{{ $line }}" | sed -e "s/^\* $task//" | sed 's/^[[:space:]]*//g')
-             printf "\e[32m%-25s \033[0m %s\n" "* $task" "$desc"
+             printf "\e[32m%-26s \033[0m %s\n" "* $task" "$desc"
           else
             echo "{{ $line }}"
           fi

@@ -14,15 +14,15 @@ vars:
 
 tasks:
 
-  00-init-task:
-  # TODO: Proxy usage arguments
+  00-install-templates:
+    # TODO: Proxy usage arguments
     desc: "[PROJECT] Init and download tasks templates."
     cmds:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}
       - mkdir -p "{{.DIR_TASKFILES}}"
-      - task 10-t-activate TEMPLATE={{.TASK_TEMPLATES}}
-      - task 20-t-download
+      - task 10-install-templates TEMPLATE={{.TASK_TEMPLATES}}
+      - echo "Install templates Start $(cat {{.FILE_TASK_START}}) - End $(date)"
     silent: true
 
   # Task example
