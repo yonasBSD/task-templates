@@ -12,9 +12,9 @@ vars:
 tasks:
 
   all:
-    desc: '[QA] Linter for files, markdown, yaml extensions. Arguments: [FIX|F=y|Y] [MEX|M=\"#node_modules\"] (*)'
+    desc: '[LINT] Linter for files, markdown, yaml extensions. Arguments: [FIX|F=y|Y] [MEX|M=\"#node_modules\"] (*)'
     summary: |
-      [QA] Linter for files.
+      [LINT] Linter for files.
       Usage: task lint:file [FIX|F=<y|Y>] [MEX='"#node_modules"']
 
       Arguments:
@@ -39,9 +39,9 @@ tasks:
     silent: true
 
   docker:
-    desc: "[QA] Linter for Dockerfiles. Arguments: [FILE|F=Dockerfile] [IMG|I=hadolint/hadolint] [PULL|P=n|N] (*)"
+    desc: "[LINT] Linter for Dockerfiles. Arguments: [FILE|F=Dockerfile] [IMG|I=hadolint/hadolint] [PULL|P=n|N] (*)"
     summary: |
-      [QA] Linter for Dockerfiles.
+      [LINT] Linter for Dockerfiles.
       Usage: task lint:markdown [FILE|F=Dockerfile] [IMG|I=hadolint/hadolint] [PULL|P=<n|N>]
 
       Arguments:
@@ -69,9 +69,9 @@ tasks:
     silent: true
 
   file:
-    desc: "[QA] Linter for files. Arguments: [FIX|F=y|Y] (*)"
+    desc: "[LINT] Linter for files. Arguments: [FIX|F=y|Y] (*)"
     summary: |
-      [QA] Linter for files.
+      [LINT] Linter for files.
       Usage: task lint:file [FIX|F=<y|Y>]
 
       Arguments:
@@ -91,17 +91,17 @@ tasks:
     silent: true
 
   file-cr:
-    desc: "[QA] Linter CR (Carriage Return). Arguments: [FIX|F=y|Y] (*)"
-    summary: |
-      [QA] Linter CR (Carriage Return).
-      Usage: task lint:file-cr [FIX|F=<y|Y>]
-
-      Arguments:
-        FIX | F  Fix files (optional, by default no)
-
-      Notes:
-       - Only git tracked files are checked,
-       - add "# Exclude" to lines you want to exclude from lint.
+    # desc: "[LINT] Linter CR (Carriage Return). Arguments: [FIX|F=y|Y] (*)"
+    # summary: |
+    #   [LINT] Linter CR (Carriage Return).
+    #   Usage: task lint:file-cr [FIX|F=<y|Y>]
+    #
+    #   Arguments:
+    #     FIX | F  Fix files (optional, by default no)
+    #
+    #   Notes:
+    #    - Only git tracked files are checked,
+    #    - add "# Exclude" to lines you want to exclude from lint.
     vars:
       FIX: '{{default .F .FIX}}'
       GREP_RE: "\r"  # Exclude
@@ -113,16 +113,16 @@ tasks:
     silent: true
 
   file-nleof:
-    desc: "[QA] Linter for one new line at the end of a file. Arguments: [FIX|F=y|Y] (*)"
-    summary: |
-      [QA] Linter for one new line at the end of a file.
-      Usage: task lint:file-nleof [FIX|F=<y|Y>]
-
-      Arguments:
-        FIX | F  Fix files (optional, by default no)
-
-      Notes:
-       - Only git tracked files are checked.
+    # desc: "[LINT] Linter for one new line at the end of a file. Arguments: [FIX|F=y|Y] (*)"
+    # summary: |
+    #   [LINT] Linter for one new line at the end of a file.
+    #   Usage: task lint:file-nleof [FIX|F=<y|Y>]
+    #
+    #   Arguments:
+    #     FIX | F  Fix files (optional, by default no)
+    #
+    #   Notes:
+    #    - Only git tracked files are checked.
     cmds:
       - |
         count_all=0
@@ -161,17 +161,17 @@ tasks:
     silent: true
 
   file-tws:
-    desc: "[QA] Linter for trailing whitespaces at the end of a line. Arguments: [FIX|F=y|Y] (*)"
-    summary: |
-      [QA] Linter trailing whitespace line at the end of a line.
-      Usage: task lint:file-tws [FIX|F=<y|Y>]
-
-      Arguments:
-        FIX | F  Fix files (optional, by default no)
-
-      Notes:
-       - Only git tracked files are checked,
-       - add "# Exclude" to lines you want to exclude from lint.
+    # desc: "[LINT] Linter for trailing whitespaces at the end of a line. Arguments: [FIX|F=y|Y] (*)"
+    # summary: |
+    #   [LINT] Linter trailing whitespace line at the end of a line.
+    #   Usage: task lint:file-tws [FIX|F=<y|Y>]
+    #
+    #   Arguments:
+    #     FIX | F  Fix files (optional, by default no)
+    #
+    #   Notes:
+    #    - Only git tracked files are checked,
+    #    - add "# Exclude" to lines you want to exclude from lint.
     vars:
       FIX: '{{default .F .FIX}}'
       GREP_RE: "[[:space:]]$"  # Exclude
@@ -183,13 +183,13 @@ tasks:
     silent: true
 
   file-utf8:
-    desc: "[QA] Check if text files are utf-8 encoded. (*)"
-    summary: |
-      [QA] Check if text files are utf-8 encoded.
-      Usage: task lint:file-utf8
-
-      Notes:
-       - Only git tracked files are checked.
+    # desc: "[LINT] Check if text files are utf-8 encoded. (*)"
+    # summary: |
+    #   [LINT] Check if text files are utf-8 encoded.
+    #   Usage: task lint:file-utf8
+    #
+    #   Notes:
+    #    - Only git tracked files are checked.
     cmds:
       - |
         count_all=0
@@ -221,9 +221,9 @@ tasks:
     silent: true
 
   markdown:
-    desc: "[QA] Linter for Mardown files. Arguments: [GLOB|G='\"**/*.md\"'] [IMG|I=tmknom/markdownlint] [PULL|P=n|N] (*)"
+    desc: "[LINT] Linter for Mardown files. Arguments: [GLOB|G='\"**/*.md\"'] [IMG|I=tmknom/markdownlint] [PULL|P=n|N] (*)"
     summary: |
-      [QA] Linter for Markdown files.
+      [LINT] Linter for Markdown files.
       Usage: task lint:markdown [GLOB|G='"**/*.md" "#node_modules"'] [IMG|I=tmknom/markdownlint] [PULL|P=<n|N>]
 
       Arguments:
@@ -254,9 +254,9 @@ tasks:
     silent: true
 
   shell:
-    desc: "[QA] Linter for bash/sh shell files. Arguments: FILES|F=\"myscripts/*.sh\" [IMG|I=koalaman/shellcheck:stable] [PULL|P=n|N] (*)"
+    desc: "[LINT] Linter for bash/sh shell files. Arguments: FILES|F=\"myscripts/*.sh\" [IMG|I=koalaman/shellcheck:stable] [PULL|P=n|N] (*)"
     summary: |
-      [QA] Linter for bash/sh shell files.
+      [LINT] Linter for bash/sh shell files.
       If shellcheck command is in the path and IMG/I argument is not set, the local shellcheck command is executed,
       otherwise a shellcheck Docker image is used.
       Usage: task lint:shell FILES|F="myscripts/*.sh" [IMG|I=<koalaman/shellcheck:stable>] [PULL|P=<n|N>]
@@ -288,9 +288,9 @@ tasks:
     silent: true
 
   yaml:
-    desc: "[QA] Linter for YAML files. Arguments: [FILES|F=\".\"] [IMG|I=jfxs/ansible] [PULL|P=n|N] (*)"
+    desc: "[LINT] Linter for YAML files. Arguments: [FILES|F=\".\"] [IMG|I=jfxs/ansible] [PULL|P=n|N] (*)"
     summary: |
-      [QA] Linter for YAML files.
+      [LINT] Linter for YAML files.
       If yamllint command is in the path and IMG/I argument is not set, the local yamllint command is executed,
       otherwise a yamllint Docker image is used.
       You can configure rules and exclude directories with a .yamlint configuration file:

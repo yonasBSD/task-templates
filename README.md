@@ -16,6 +16,12 @@ In order to use:
 * curl or wget
 * [Docker](https://docs.docker.com/engine/install/) (recommended): Many templates use Docker images to avoid installing software.
 
+### Structure
+
+* `Taskfile.d`: Directory of the task template files
+* `Taskfile.project.yml`: Task file for the project that contains the `TASK_TEMPLATES` variable
+* `Taskfile.yml`: Core Task file with generic tasks (must not be edited)
+
 ### Installation
 
 * Download the main `Taskfile.yml` and the project file template `Taskfile.project.yml`:
@@ -57,6 +63,15 @@ and run:
 task 00:00-install-templates
 ```
 
+A specific version of a template can be specify as follow:
+
+example for go:
+
+```yaml
+vars:
+  TASK_TEMPLATES: go[1.7.3],lint
+```
+
 * Git:
 
 `Taskfile.project.yml` is the file that contains your specific project tasks. It should probably be commited.
@@ -66,7 +81,7 @@ If you always want the last version of the task templates, add this following li
 /Taskfile.d/
 ```
 
-Otherwise, if you prefer stability you should also commit the content of the `Taskfile.d` directory.
+Otherwise, if you prefer stability you should also commit the content of the `Taskfile.d` directory or specify the versions of the templates.
 
 * Available tasks are shown by execute `task` command without any parameter:
 ![Available tasks](tasks-list.png "Available tasks")

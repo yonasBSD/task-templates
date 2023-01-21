@@ -8,7 +8,7 @@ version: '3'
 vars:
   DIR_TASKFILES: "Taskfile.d"
   FILE_TASK_START: "task-start-{{.TASK}}.txt"
-  TT_GIT_REPO: "https://gitlab.com/op_so/task/task-templates/-/raw/main"
+  TT_GIT_REPO: "https://gitlab.com/op_so/task/task-templates/-/raw"
 
 includes:
   00:
@@ -44,13 +44,26 @@ tasks:
       - |
         includes="{{.BEGIN}}"
         for t in $(echo "{{.TEMPLATE}}" | tr "," " "); do
-          includes="$includes\\n  ${t}:\\n    taskfile: {{.DIR_TASKFILES}}/${t}.yml\\n    optional: true"
+          if echo "$t" | grep -q "\[" 2>/dev/null; then
+            task=$(echo "$t" | cut -d '[' -f 1)
+          else
+            task="$t"
+          fi
+          includes="$includes\\n  ${task}:\\n    taskfile: {{.DIR_TASKFILES}}/${task}.yml\\n    optional: true"
         done
         sed -i'.bu' "s={{.PATTERN_BEGIN}}=${includes}=g" "{{.D_FILE}}"
       - |
         for t in $(echo "{{.TEMPLATE}}" | tr "," " "); do
-          echo "Download template ${t}..."
-          task download-template TEMPLATE=${t}.yml
+          if echo "$t" | grep -q "\[" 2>/dev/null; then
+            task=$(echo "$t" | cut -d '[' -f 1)
+            v=$(echo "$t" | sed -e 's/.*\[\(.*\)\]/\1/')
+            version="v${v}"
+          else
+            task="$t"
+            version="main"
+          fi
+          echo "Download template: $task version: $version"
+          task download-template TEMPLATE=${task}.yml VERSION=$version
         done
     preconditions:
       - sh: test -n "{{.TEMPLATE}}" || test -n "{{.T}}"
@@ -118,13 +131,15 @@ tasks:
     cmds:
       - |
         if [ -x "$(command -v curl)" ]; then
-          curl --progress-bar -o "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
+          curl --progress-bar -o "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.VERSION}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
         else
-          wget -cq -O "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
+          wget -cq -O "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.VERSION}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
         fi
     preconditions:
       - sh: test -n "{{.TEMPLATE}}"
         msg: "TEMPLATE argument is required"
+      - sh: test -n "{{.VERSION}}"
+        msg: "VERSION argument is required"
       - sh: command -v curl || command -v wget
         msg: "curl or wget are not installed"
     silent: true
