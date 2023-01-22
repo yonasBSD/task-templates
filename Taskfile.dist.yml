@@ -63,7 +63,7 @@ tasks:
             version="main"
           fi
           echo "Download template: $task version: $version"
-          task download-template TEMPLATE=${task}.yml VERSION=$version
+          task download-template TEMPLATE=${task}.yml VERSION=$version PROXY={{.PROXY}} PROXY_CREDENTIALS={{.PROXY_CREDENTIALS}}
         done
     preconditions:
       - sh: test -n "{{.TEMPLATE}}" || test -n "{{.T}}"
@@ -131,9 +131,32 @@ tasks:
     cmds:
       - |
         if [ -x "$(command -v curl)" ]; then
-          curl --progress-bar -o "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.VERSION}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
+          if [ -z "{{.PROXY}}" ]; then
+            curl --progress-bar -o "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.VERSION}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
+          else
+            if [ -z "{{.PROXY_CREDENTIALS}}" ]; then
+              echo "Proxy: {{.PROXY}}"
+              curl -x "{{.PROXY}}" --progress-bar -o "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.VERSION}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
+            else
+              echo "Proxy with auth: {{.PROXY}}"
+              curl -U "{{.PROXY_CREDENTIALS}}" -x "{{.PROXY}}" --progress-bar -o "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.VERSION}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}" --proxy-anyauth
+            fi
+          fi
         else
-          wget -cq -O "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.VERSION}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
+          if [ -z "{{.PROXY}}" ]; then
+            wget -cq -O "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.VERSION}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
+          else
+            if [ -z "{{.PROXY_CREDENTIALS}}" ]; then
+              proxy={{.PROXY}}
+              echo "Proxy: $proxy"
+            else
+              proto=$(echo {{.PROXY}} | sed -e's,^\(.*://\).*,\1,g')
+              url=$(echo {{.PROXY}} | sed -e's,^.*://\(.*\),\1,g')
+              proxy="${proto}{{.PROXY_CREDENTIALS}}@${url}"
+              echo "Proxy: ${proto}****:****@${url}"
+            fi
+            export use_proxy=on && export http_proxy=$proxy && export https_proxy=$proxy && wget -cq -O "{{.DIR_TASKFILES}}/{{.TEMPLATE}}" "{{.TT_GIT_REPO}}/{{.VERSION}}/{{.DIR_TASKFILES}}/{{.TEMPLATE}}"
+          fi
         fi
     preconditions:
       - sh: test -n "{{.TEMPLATE}}"

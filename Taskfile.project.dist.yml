@@ -11,17 +11,22 @@ vars:
   # TO MODIFY: Task templates to download separated by comma
   # Example: TASK_TEMPLATES: go,lint,yarn
   TASK_TEMPLATES: lint
+  # Proxy URL can be configure bellow or as an argument of 00-install-templates
+  TASK_PROXY: ""
 
 tasks:
 
   00-install-templates:
-    # TODO: Proxy usage arguments
-    desc: "[PROJECT] Init and download tasks templates."
+    desc: "[PROJECT] Init and download tasks templates. Arguments: [PROXY|P=http://proxy:8080] [PROXY_CREDENTIALS|PC=username:password]"
+    vars:
+      PROXY: '{{default .P .PROXY}}'
+      D_PROXY: '{{default .TASK_PROXY .PROXY}}'
+      PROXY_CREDENTIALS: '{{default .PC .PROXY_CREDENTIALS}}'
     cmds:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}
       - mkdir -p "{{.DIR_TASKFILES}}"
-      - task 10-install-templates TEMPLATE={{.TASK_TEMPLATES}}
+      - task 10-install-templates TEMPLATE={{.TASK_TEMPLATES}} PROXY={{.D_PROXY}} PROXY_CREDENTIALS={{.PROXY_CREDENTIALS}}
       - echo "Install templates Start $(cat {{.FILE_TASK_START}}) - End $(date)"
     silent: true
 
