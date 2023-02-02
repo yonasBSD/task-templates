@@ -172,7 +172,7 @@ tasks:
         REPO | R  Repository in format: <owner>/<repo> (required)
 
       Requirements:
-        - curl
+        - curl or wget
         - jq
     vars:
       REPO: '{{default .R .REPO}}'
@@ -190,6 +190,36 @@ tasks:
         msg: "jq is not installed"
       - sh: test -n "{{.REPO}}" || test -n "{{.R}}"
         msg: "REPO|R argument is required"
+    silent: true
+
+  get-latest-pypi:
+    desc: "[VERSION] Get latest version from PyPI: PACKAGE|P=ansible-core (*)"
+    summary: |
+      [VERSION] Get latest version from PyPI:
+      Usage: task version:get-latest-github PACKAGE|P=<package_name>
+
+      Arguments:
+        PACKAGE | P  Package name (required)
+
+      Requirements:
+        - curl or wget
+        - jq
+    vars:
+      PACKAGE: '{{default .P .PACKAGE}}'
+    cmds:
+      - |
+        if [ -x "$(command -v curl)" ]; then
+          curl -sL "https://pypi.org/pypi/{{.PACKAGE}}/json" | jq -r '.info.version'
+        else
+          wget -qO- "https://pypi.org/pypi/{{.PACKAGE}}/json" | jq -r '.info.version'
+        fi
+    preconditions:
+      - sh: command -v curl || command -v wget
+        msg: "curl or wget are not installed"
+      - sh: command -v jq
+        msg: "jq is not installed"
+      - sh: test -n "{{.PACKAGE}}" || test -n "{{.P}}"
+        msg: "PACKAGE|P argument is required"
     silent: true
 
   get-major-minor-version:

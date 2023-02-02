@@ -4,110 +4,323 @@
 version: '3'
 
 vars:
+  DIR_CONFIG: config
+  DIR_HOST: ".host"
+  DIR_SSH: "{{.DIR_HOST}}/ssh"
+  DEFAULT_CONFIG_PATH: "{{.DIR_CONFIG}}/multipass.yml"
+  DEFAULT_NAME: multipass-default
+  DEFAULT_UUSER: ubuntu
+  DEFAULT_CPU: 1
+  DEFAULT_MEM: 1G
+  DEFAULT_DISK: 5G
+  DEFAULT_IMG: lts
+  DEFAULT_CONFIG: |
+    ---
+    instances:
+      - name: {{.DEFAULT_NAME}}
+        user: {{.DEFAULT_UUSER}}
+        image: {{.DEFAULT_IMG}}
+        cpu: {{.DEFAULT_CPU}}
+        mem: {{.DEFAULT_MEM}}
+        disk: {{.DEFAULT_DISK}}
+        mounts:
+          - /users/my_home_dir
+        metadata:
+          - metadata1: "my metadata"
 
 tasks:
 
-  list:
-    desc: "[MULTIPASS] List instances."
+  create-from-config:
+    desc: "[MULTIPASS] Create instances from a config file. Arguments: [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] (*)"
+    summary: |
+      [MULTIPASS] Create instances from a config file.
+      A default multipass.yml file is created, if it does not exist.
+      Usage: task multipass:create-from-config [CONFIG|C={{.DEFAULT_CONFIG_PATH}}]
+
+      Arguments:
+       CONFIG | C  Config file path (optional, by default {{.DEFAULT_CONFIG_PATH}})
     vars:
-      MULTIPASS_HOSTS:
-        sh: multipass list
+      CONFIG: '{{default .C .CONFIG}}'
+      D_CONFIG: '{{default .DEFAULT_CONFIG_PATH .CONFIG}}'
     cmds:
+      - if [ ! -f "{{.D_CONFIG}}" ]; then echo "{{.DEFAULT_CONFIG}}" > "{{.D_CONFIG}}" && printf "\033[0;32mConfig file \"%s\" is created.\033[0m\n" "{{.D_CONFIG}}"; fi
       - |
-        printf "%-21s %-21s %-21s %s\n" "Name" "State" "IP" "Mounts"
-        {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
-          {{ if $line }}
-            {{ $name := ($line | mustFromJson).name }}
-            {{ if contains $name $.MULTIPASS_HOSTS }}
-              {{ range $j, $line_host := $.MULTIPASS_HOSTS | splitLines -}}
-                {{ if contains $name $line_host }}
-                  {{ $state := (split " " (regexReplaceAll " +" $line_host " "))._1 }}
-                  {{if eq $state "Running"}}
-                    {{ $ip := (split " " (regexReplaceAll " +" $line_host " "))._2 }}
-                    printf "\033[32m%-21s %-21s %-21s %s\033[0m\n" {{$name}} {{$state}} {{$ip}} $(task multipass:get-mounts H={{$name}})
-                  {{ else }}
-                    printf "\033[33m%-21s %-21s %-21s %s\033[0m\n" {{$name}} {{$state}} "-" $(task multipass:get-mounts H={{$name}})
-                  {{ end }}
-                {{ end }}
-              {{ end -}}
-            {{ else }}
-              printf "\033[31m%-21s %s\033[0m\n" {{$name}} "Missing"
-            {{ end }}
-          {{ end }}
-        {{ end -}}
+        block_start_list=$(awk '/^  - name: .*$/{ print NR}' "{{.D_CONFIG}}")
+        block_count=$(printf "%s" "$block_start_list" | grep -c "^")
+        n=0
+        printf '%s\n' "$block_start_list" |
+        while IFS= read -r start; do
+          n=$((n+1))
+          if [ "$n" = "$block_count" ]; then
+            end=$(wc -l < "{{.D_CONFIG}}" | tr -d ' ')
+          else
+            line_next_block=$(echo "$block_start_list" | head -n $((n+1)) | tail -1)
+            end=$((line_next_block-1))
+          fi
+          block=$(head -n "$end" "{{.D_CONFIG}}" | tail -$((end-start+1)))
+
+          if ! (echo "$block" | grep -q " name: "); then
+            printf "\033[0;31m[ERROR] name attribute is not defined for the instance %s!\033[0m\n" "$n"
+            exit 1
+          fi
+          name=$(echo "$block" | grep " name: " | awk -F ":" '{print $2}' | tr -d ' ')
+          user=$(echo "$block" | grep " user: " | awk -F ":" '{print $2}' | tr -d ' ')
+          image=$(echo "$block" | grep " image: " | awk -F ":" '{print $2}' | tr -d ' ')
+          cpu=$(echo "$block" | grep " cpu: " | awk -F ":" '{print $2}' | tr -d ' ')
+          mem=$(echo "$block" | grep " mem: " | awk -F ":" '{print $2}' | tr -d ' ')
+          disk=$(echo "$block" | grep " disk: " | awk -F ":" '{print $2}' | tr -d ' ')
+          if [ -z "$user" ]; then
+            arg_user=""
+          else
+            arg_user="U_USER=$user"
+          fi
+          if [ -z "$image" ]; then
+            arg_image=""
+          else
+            arg_image="IMG=$image"
+          fi
+          if [ -z "$cpu" ]; then
+            arg_cpu=""
+          else
+            arg_cpu="CPU=$cpu"
+          fi
+          if [ -z "$mem" ]; then
+            arg_mem=""
+          else
+            arg_mem="MEM=$mem"
+          fi
+          if [ -z "$disk" ]; then
+            arg_disk=""
+          else
+            arg_disk="DISK=$disk"
+          fi
+          task multipass:create-instance "NAME=$name" "$arg_user" "$arg_image" "$arg_cpu" "$arg_mem" "$arg_disk"
+        done
+    silent: true
+
+  create-instance:
+    desc: "[MULTIPASS] Create an instance. Arguments: NAME|N=instance_name [U_USER|U=ubuntu] [CPU|C=1] [MEM|M=1G] [DISK|D=5G] [IMG|I=jammy] (*)"
+    summary: |
+      [MULTIPASS] Create an instance.
+      A key pair k-<instance_name>-1.pem is generated for every instance in {{.DIR_SSH}}/ directory.
+      A default cloud-init file will be used except if a file named cloud-init-<instance_name>.yml
+      exists in the {{.DIR_CONFIG}}/ directory.
+      Usage: task multipass:create-instance NAME|N=<instance_name> [U_USER|U=ubuntu] [CPU|C=1] [MEM|M=1G] [DISK|D=5G] [IMG|I=jammy]
+
+      Arguments:
+       NAME   | N  Name for the instance (required)
+       U_USER | U  Username (optional, by default {{.DEFAULT_USER}})
+       CPU    | C  Number of CPUs to allocate (optional, by default {{.DEFAULT_CPU}})
+       MEM    | M  Amount of memory to allocate (optional, by default {{.DEFAULT_MEM}})
+       DISK   | D  Disk space to allocate (optional, by default {{.DEFAULT_DISK}})
+       IMG    | I  Image to launch (optional, by default {{.DEFAULT_IMG}})
+    vars:
+      NAME: '{{default .N .NAME}}'
+      U_USER: '{{default .U .U_USER}}'
+      CPU: '{{default .C .CPU}}'
+      MEM: '{{default .M .MEM}}'
+      DISK: '{{default .D .DISK}}'
+      IMG: '{{default .I .IMG}}'
+      D_UUSER: '{{default .DEFAULT_UUSER .U_USER}}'
+      D_CPU: '{{default .DEFAULT_CPU .CPU}}'
+      D_MEM: '{{default .DEFAULT_MEM .MEM}}'
+      D_DISK: '{{default .DEFAULT_DISK .DISK}}'
+      D_IMG: '{{default .DEFAULT_IMG .IMG}}'
+      DEFAULT_CLOUD_INIT: |
+        ---
+        users:
+          - name: {{.D_UUSER}}
+            sudo: ALL=(ALL) NOPASSWD:ALL
+            ssh-authorized-keys:
+              - __SSH_KEY__
+        write_files:
+          - path: /etc/systemd/timesyncd.conf
+            content: |
+              [Time]
+              PollIntervalMinSec=16
+              PollIntervalMaxSec=32
+        runcmd:
+          - timedatectl set-ntp true
+          - systemctl restart systemd-timesyncd
+
+      FILE_REF_CLOUD_INIT_PREFIX: "{{.DIR_CONFIG}}/cloud-init"
+      FILE_CLOUD_INIT: "{{.DIR_HOST}}/cloud-init.yml"
+      KEY_PATH: "{{.DIR_SSH}}/k-{{.NAME}}-1.pem"
+      MULTIPASS_TIMEOUT: 600
+    cmds:
+      - task system:generate-key KEY={{.KEY_PATH}}
+      - if test -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}-{{.NAME}}.yml"; then cp -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}-{{.NAME}}.yml" "{{.FILE_CLOUD_INIT}}"; else echo "{{.DEFAULT_CLOUD_INIT}}" > "{{.FILE_CLOUD_INIT}}"; fi
+      - KEY_PUB=$(cat "{{.KEY_PATH}}.pub") && sed -i.bu "s#__SSH_KEY__#${KEY_PUB}#g" "{{.FILE_CLOUD_INIT}}"
+      - rm -f "{{.FILE_CLOUD_INIT}}.bu"
+      - multipass launch "{{.D_IMG}}" --name "{{.NAME}}" --cpus "{{.D_CPU}}" --memory "{{.D_MEM}}" --disk "{{.D_DISK}}" --cloud-init "{{.FILE_CLOUD_INIT}}" --timeout "{{.MULTIPASS_TIMEOUT}}"
+      - rm "{{.FILE_CLOUD_INIT}}"
+      - multipass stop "{{.NAME}}"
+      - sleep 5 && multipass start "{{.NAME}}"
+    status:
+      - if multipass list | grep -q "^{{.NAME}} "; then exit 0; else exit 1; fi
     preconditions:
       - sh: command -v multipass
         msg: "multipass is not installed"
-    silent: true
-
-  # TODO: Add a task list-all to list all instances and mount points.
-
-  create:
-    desc: "[MULTIPASS] Create instances."
-    cmds:
-      - |
-        {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
-          {{ if $line }} task multipass:create-instance "IMAGE={{ ($line | mustFromJson).image }}" "NAME={{ ($line | mustFromJson).name }}" "CPU={{ ($line | mustFromJson).cpu }}" "MEM={{ ($line | mustFromJson).mem }}" "DISK={{ ($line | mustFromJson).disk }}" "KEY={{ ($line | mustFromJson).ansible_ssh_private_key_file }}" "MOUNT={{ ($line | fromJson).mounts }}" {{ end }}
-        {{ end -}}
+      - sh: test -n "{{.NAME}}" || test -n "{{.N}}"
+        msg: "NAME|N argument is required"
     silent: true
 
   start:
-    desc: "[MULTIPASS] Start instances."
+    desc: "[MULTIPASS] Start instances. Arguments: [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] (*)"
+    summary: |
+      [MULTIPASS] Start an instance by its name or start all instances of the config file if NAME is not set.
+      Usage: task multipass:start [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}]
+
+      Arguments:
+        NAME   | N  Name for the instance (optional)
+        CONFIG | C  Config file path (optional, by default {{.DEFAULT_CONFIG_PATH}})
+    vars:
+      CONFIG: '{{default .C .CONFIG}}'
+      D_CONFIG: '{{default .DEFAULT_CONFIG_PATH .CONFIG}}'
+      NAME: '{{default .N .NAME}}'
     cmds:
+      - if [ ! -f "{{.D_CONFIG}}" ]; then printf "\033[0;31m[ERROR] Config file \"%s\" is not found!\033[0m\n" "{{.D_CONFIG}}" && exit 1; fi
       - |
-        {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
-          {{ if $line }} multipass start "{{ ($line | mustFromJson).name }}" {{ end }}
-        {{ end -}}
+        instances=$(cat "{{.D_CONFIG}}" | grep " name: " | awk -F ":" '{print $2}' | tr -d ' ')
+        if [ -z "{{.NAME}}" ]; then
+          printf '%s\n' "$instances" |
+          while IFS= read -r instance; do
+            multipass start "$instance"
+          done
+        else
+          if echo "${instances}" | grep -q "^{{.NAME}}$" 2>/dev/null; then
+            multipass start "{{.NAME}}"
+          else
+            printf "\033[0;31m[ERROR] Instance name \"%s\" is not found in the config file \"%s\"!\033[0m\n" "{{.NAME}}" "{{.D_CONFIG}}" && exit 1
+          fi
+        fi
     preconditions:
       - sh: command -v multipass
         msg: "multipass is not installed"
     silent: true
 
   stop:
-    desc: "[MULTIPASS] Stop instances."
+    desc: "[MULTIPASS] Stop instances. Arguments: [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] (*)"
+    summary: |
+      [MULTIPASS] Stop an instance by its name or stop all instances of the config file if NAME is not set.
+      Usage: task multipass:stop [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}]
+
+      Arguments:
+        NAME   | N  Name for the instance (optional)
+        CONFIG | C  Config file path (optional, by default {{.DEFAULT_CONFIG_PATH}})
+    vars:
+      CONFIG: '{{default .C .CONFIG}}'
+      D_CONFIG: '{{default .DEFAULT_CONFIG_PATH .CONFIG}}'
+      NAME: '{{default .N .NAME}}'
     cmds:
+      - if [ ! -f "{{.D_CONFIG}}" ]; then printf "\033[0;31m[ERROR] Config file \"%s\" is not found!\033[0m\n" "{{.D_CONFIG}}" && exit 1; fi
       - |
-        {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
-          {{ if $line }} multipass stop "{{ ($line | mustFromJson).name }}" {{ end }}
-        {{ end -}}
+        instances=$(cat "{{.D_CONFIG}}" | grep " name: " | awk -F ":" '{print $2}' | tr -d ' ')
+        if [ -z "{{.NAME}}" ]; then
+          printf '%s\n' "$instances" |
+          while IFS= read -r instance; do
+            multipass stop "$instance"
+          done
+        else
+          if echo "${instances}" | grep -q "^{{.NAME}}$" 2>/dev/null; then
+            multipass stop "{{.NAME}}"
+          else
+            printf "\033[0;31m[ERROR] Instance name \"%s\" is not found in the config file \"%s\"!\033[0m\n" "{{.NAME}}" "{{.D_CONFIG}}" && exit 1
+          fi
+        fi
     preconditions:
       - sh: command -v multipass
         msg: "multipass is not installed"
     silent: true
 
-  del:
-    desc: "[MULTIPASS] Delete instances. Arguments: [FORCE|F=y|Y] (*)"
+  ssh:
+    desc: "[MULTIPASS] ssh connection. Arguments: NAME|N=docker [U_USER|U=ubuntu] (*)"
     summary: |
-      [MULTIPASS] Delete instances.
-      Usage: task multipass:del [FORCE|F=<y|Y>]
+      [SYSTEM] ssh connection.
+      Usage: task multipass:ssh NAME|N=<hostname> [U_USER|U=<username>]
 
       Arguments:
-       FORCE | F  Delete instances without confirmation (optional, by default no)
+       NAME   | N  Name of the instance (required)
+       U_USER | U  Username (optional, by default {{.DEFAULT_UUSER}})
     vars:
+      NAME: '{{default .N .NAME}}'
+      IP:
+        sh: multipass list | grep "^{{.NAME}} " | awk '{print $3}'
+      KEY_PATH: "{{.DIR_SSH}}/k-{{.NAME}}-1.pem"
+      U_USER: '{{default .U .U_USER}}'
+      D_UUSER: '{{default .DEFAULT_UUSER .U_USER}}'
+      SSH_ARGS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+    cmds:
+      - ssh -i '{{.KEY_PATH}}' {{.SSH_ARGS}} {{.D_UUSER}}@{{.IP}}
+    preconditions:
+      - sh: command -v multipass
+        msg: "multipass is not installed"
+      - sh: test -n "{{.NAME}}" || test -n "{{.N}}"
+        msg: "NAME|N argument is required"
+      - sh: test -f "{{.KEY_PATH}}"
+        msg: "Key file {{.KEY_PATH}} not found"
+    interactive: true
+    silent: true
+
+  delete:
+    desc: "[MULTIPASS] Delete instances. Arguments: [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] [FORCE|F=y|Y] (*)"
+    summary: |
+      [MULTIPASS] Stop an instance by its name or delete all instances of the config file if NAME is not set.
+      Usage: task multipass:stop [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] [FORCE|F=y|Y]
+
+      Arguments:
+        NAME   | N  Name for the instance (optional)
+        CONFIG | C  Config file path (optional, by default {{.DEFAULT_CONFIG_PATH}})
+        FORCE  | F  Delete instances without confirmation (optional, by default no)
+    vars:
+      CONFIG: '{{default .C .CONFIG}}'
+      D_CONFIG: '{{default .DEFAULT_CONFIG_PATH .CONFIG}}'
+      NAME: '{{default .N .NAME}}'
       FORCE: '{{default .F .FORCE}}'
     cmds:
-      - cmd: |
-             if [ "{{.FORCE}}" == "y" ] || [ "{{.FORCE}}" == "Y" ]; then
-               {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
-                 {{ if $line }} ( multipass delete "{{ ($line | mustFromJson).name }}" && echo "Instance {{ ($line | mustFromJson).name }} deleted." ) || true {{ end }}
-               {{ end -}}
-             else
-               read -p "Are you sure to delete instances? (y/[n]) " -r
-               echo
-               if [[ $REPLY =~ ^[Yy]$ ]]
-               then
-                 {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
-                   {{ if $line }} ( multipass delete "{{ ($line | mustFromJson).name }}" && echo "Instance {{ ($line | mustFromJson).name }} deleted." ) || true {{ end }}
-                 {{ end -}}
-               fi
-             fi
-        ignore_error: true
+      - if [ ! -f "{{.D_CONFIG}}" ]; then printf "\033[0;31m[ERROR] Config file \"%s\" is not found!\033[0m\n" "{{.D_CONFIG}}" && exit 1; fi
+      - |
+        instances=$(cat "{{.D_CONFIG}}" | grep " name: " | awk -F ":" '{print $2}' | tr -d ' ')
+        if [ -z "{{.NAME}}" ]; then
+          if [ "{{.FORCE}}" == "y" ] || [ "{{.FORCE}}" == "Y" ]; then
+            printf '%s\n' "$instances" |
+            while IFS= read -r instance; do
+              multipass delete "$instance"
+            done
+          else
+            echo "$instances"
+            read -p "Are you sure to delete these instances? (y/[n]) " -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+              printf '%s\n' "$instances" |
+              while IFS= read -r instance; do
+                multipass delete "$instance"
+              done
+            fi
+          fi
+        else
+          if echo "$instances" | grep -q "^{{.NAME}}$" 2>/dev/null; then
+            if [ "{{.FORCE}}" == "y" ] || [ "{{.FORCE}}" == "Y" ]; then
+              multipass delete "{{.NAME}}"
+            else
+              read -p "Are you sure to delete \"{{.NAME}}\"? (y/[n]) " -r
+              echo
+              if [[ $REPLY =~ ^[Yy]$ ]]; then
+                multipass delete "{{.NAME}}"
+              fi
+            fi
+          else
+            printf "\033[0;31m[ERROR] Instance name \"%s\" is not found in the config file \"%s\"!\033[0m\n" "{{.NAME}}" "{{.D_CONFIG}}" && exit 1
+          fi
+        fi
       - multipass purge
     preconditions:
       - sh: command -v multipass
         msg: "multipass is not installed"
     interactive: true
     silent: true
+
+
 
   mount:
     desc: "[MULTIPASS] Mount a local directory inside an instance. Arguments: HOST|H=docker [SOURCE|S=<path>] (*)"
@@ -156,7 +369,6 @@ tasks:
     cmds:
       - |
         full_path=$(readlink -f "{{.D_SOURCE}}")
-        if [ -z "${full_path}" ]; then echo "Error: directory \"{{.D_SOURCE}}\" not found" && exit 1; fi
         multipass umount "{{.HOST}}:${full_path}"
         echo "${full_path} is now unmounted."
     preconditions:
@@ -215,6 +427,44 @@ tasks:
         msg: "HOST|H argument is required"
     silent: true
 
+
+# TODO: Add status not found
+
+  list:
+    desc: "[MULTIPASS] List instances."
+    vars:
+      MULTIPASS_HOSTS:
+        sh: multipass list
+    cmds:
+      - |
+        printf "%-21s %-21s %-21s %s\n" "Name" "State" "IP" "Mounts"
+        {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
+          {{ if $line }}
+            {{ $name := ($line | mustFromJson).name }}
+            {{ if contains $name $.MULTIPASS_HOSTS }}
+              {{ range $j, $line_host := $.MULTIPASS_HOSTS | splitLines -}}
+                {{ if contains $name $line_host }}
+                  {{ $state := (split " " (regexReplaceAll " +" $line_host " "))._1 }}
+                  {{if eq $state "Running"}}
+                    {{ $ip := (split " " (regexReplaceAll " +" $line_host " "))._2 }}
+                    printf "\033[32m%-21s %-21s %-21s %s\033[0m\n" {{$name}} {{$state}} {{$ip}} $(task multipass:get-mounts H={{$name}})
+                  {{ else }}
+                    printf "\033[33m%-21s %-21s %-21s %s\033[0m\n" {{$name}} {{$state}} "-" $(task multipass:get-mounts H={{$name}})
+                  {{ end }}
+                {{ end }}
+              {{ end -}}
+            {{ else }}
+              printf "\033[31m%-21s %s\033[0m\n" {{$name}} "Missing"
+            {{ end }}
+          {{ end }}
+        {{ end -}}
+    preconditions:
+      - sh: command -v multipass
+        msg: "multipass is not installed"
+    silent: true
+
+  # TODO: Add a task list-all to list all instances and mount points.
+
   # TODO: Kill not only hyperkit but qemu, use argument.
   reset:
     desc: "[MULTIPASS] Restart multipass daemon and kill all hyperkit instances"
@@ -227,71 +477,6 @@ tasks:
       - sh: command -v multipass
         msg: "multipass is not installed"
     interactive: true
-    silent: true
-
-  ssh:
-    desc: "[MULTIPASS] ssh connection. Arguments: HOST=docker (*)"
-    summary: |
-      [SYSTEM] ssh connection.
-      Usage: task system:ssh HOST|H=<hostname>
-
-      Arguments:
-       HOST | H  Hostname (required)
-
-      The following error:
-      template: :1:17: executing "" at <mustFromJson>: error calling mustFromJson: unexpected end of JSON input
-      occured when the hostname is probably not found in the multipass config file.
-    vars:
-      HOST: '{{default .H .HOST}}'
-      REGEX_HOST: "{ *\"name\": *\"{{.HOST}}\".*}"
-      LINE_HOST: '{{ mustRegexFind .REGEX_HOST .MULTIPASS_CONFIG }}'
-      KEY_PATH: "{{ (.LINE_HOST | mustFromJson).ansible_ssh_private_key_file }}"
-      USER: "{{ (.LINE_HOST | mustFromJson).ansible_user }}"
-      SSH_ARGS: "{{ (.LINE_HOST | mustFromJson).ansible_ssh_common_args }}"
-    cmds:
-      - ssh -i '{{.KEY_PATH}}' {{.SSH_ARGS}} {{.USER}}@{{.HOST}}.local
-    preconditions:
-      - sh: command -v multipass
-        msg: "multipass is not installed"
-      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
-        msg: "HOST|H argument is required"
-      - sh: test -f "{{.KEY_PATH}}"
-        msg: "Key file {{.KEY_PATH}} not found"
-      - sh: test -n "{{.USER}}"
-        msg: "ansible_user not found in {{.LINE_HOST}}"
-    interactive: true
-    silent: true
-
-  generate-keys:
-    desc: "[MULTIPASS] generate keys for all multipass instances."
-    cmds:
-      - |
-        {{ range $i, $line := .MULTIPASS_CONFIG | splitLines -}}
-          {{ if $line }} task system:generate-key "KEY={{ ($line | mustFromJson).ansible_ssh_private_key_file  }}" {{ end }}
-        {{ end -}}
-    silent: true
-
-  create-instance:
-    vars:
-      PUB_KEY:
-        sh: cat "{{.KEY}}.pub"
-      FILE_REF_CLOUD_INIT_PREFIX: "{{.DIR_FILES}}/cloud-init"
-      FILE_CLOUD_INIT: "{{.DIR_SSH}}/cloud-init.yml"
-      MULTIPASS_TIMEOUT: 600
-    cmds:
-      - if test -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}-{{.NAME}}.yml"; then cp -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}-{{.NAME}}.yml" "{{.FILE_CLOUD_INIT}}"; else cp -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}.yml" "{{.FILE_CLOUD_INIT}}"; fi
-      - sed -i.bu "s#__SSH_KEY__#{{.PUB_KEY}}#g" "{{.FILE_CLOUD_INIT}}"
-      - rm -f "{{.FILE_CLOUD_INIT}}.bu"
-      - multipass launch "{{.IMAGE}}" --name "{{.NAME}}" --cpus "{{.CPU}}" --mem "{{.MEM}}" --disk "{{.DISK}}" --cloud-init "{{.FILE_CLOUD_INIT}}" --timeout "{{.MULTIPASS_TIMEOUT}}"
-      - rm "{{.FILE_CLOUD_INIT}}"
-      - multipass stop "{{.NAME}}"
-      - sleep 5 && multipass start "{{.NAME}}"
-      - task multipass:mount-all HOST="{{.HOST}}"
-    status:
-      - if multipass list | grep -q "{{.NAME}}"; then exit 0; else exit 1; fi
-    preconditions:
-      - sh: command -v multipass
-        msg: "multipass is not installed"
     silent: true
 
   get-mounts:
