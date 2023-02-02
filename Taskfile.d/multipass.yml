@@ -320,8 +320,7 @@ tasks:
     interactive: true
     silent: true
 
-
-
+  # TODO: Use yaml config
   mount:
     desc: "[MULTIPASS] Mount a local directory inside an instance. Arguments: HOST|H=docker [SOURCE|S=<path>] (*)"
     summary: |
@@ -428,8 +427,7 @@ tasks:
     silent: true
 
 
-# TODO: Add status not found
-
+  # TODO: Add status not found
   list:
     desc: "[MULTIPASS] List instances."
     vars:
