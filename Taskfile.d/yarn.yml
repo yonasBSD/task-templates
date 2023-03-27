@@ -10,13 +10,16 @@ vars:
 tasks:
 
   install:
-    desc: "[YARN] Install nodejs modules with yarn. Arguments: [PULL|P=n|N] (*)"
+    desc: "Install nodejs modules with yarn. Arguments: [PULL|P=n|N] (*)"
     summary: |
       [YARN] Install nodejs modules with yarn.
       Usage: task yarn:install [PULL|P=<n|N>]
 
       Arguments:
        PULL | P  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - docker
     vars:
       PULL: '{{default .P .PULL}}'
     cmds:
@@ -28,13 +31,16 @@ tasks:
     silent: true
 
   outdated:
-    desc: "[YARN] Check outdated npm packages. Arguments: [PULL|P=n|N] (*)"
+    desc: "Check outdated npm packages. Arguments: [PULL|P=n|N] (*)"
     summary: |
       [YARN] Check outdated npm packages.
       Usage: task yarn:outdated [PULL|P=<n|N>]
 
       Arguments:
        PULL | P  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - docker
     vars:
       PULL: '{{default .P .PULL}}'
     cmds:
@@ -46,13 +52,16 @@ tasks:
     silent: true
 
   upgrade:
-    desc: "[YARN] Upgrade npm packages. Arguments: [PULL|P=n|N] (*)"
+    desc: "Upgrade npm packages. Arguments: [PULL|P=n|N] (*)"
     summary: |
       [YARN] Upgrade npm packages.
       Usage: task yarn:upgrade [PULL|P=<n|N>]
 
       Arguments:
        PULL | P  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - docker
     vars:
       PULL: '{{default .P .PULL}}'
     cmds:
@@ -64,7 +73,7 @@ tasks:
     silent: true
 
   clean:
-    desc: "[YARN] Remove node_modules and .node_cache directories"
+    desc: "Remove node_modules and .node_cache directories"
     cmds:
       - rm -rf .node_cache
       - rm -rf node_modules

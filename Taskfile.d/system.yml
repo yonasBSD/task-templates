@@ -8,13 +8,18 @@ vars:
 tasks:
 
   generate-key:
-    desc: "[SYSTEM] Generate a SSH key pair. Arguments: KEY_PATH|K=key_path (*)"
+    desc: "Generate a SSH key pair. Arguments: KEY_PATH|K=key_path (*)"
     summary: |
       [SYSTEM] Generate a SSH key pair.
       Usage: task system:generate-key KEY|K=<key_path>
 
       Arguments:
        KEY | K  Path to the private key file (required)
+
+      Requirements:
+        - ssh-keygen
+    vars:
+      KEY: '{{default .K .KEY}}'
     cmds:
       - mkdir -p .ssh
       - chmod 700 .ssh

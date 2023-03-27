@@ -6,7 +6,7 @@ version: '3'
 tasks:
 
   attach-sbom-attest:
-    desc: "[SBOM] Adding an SBOM to an image as an attestation: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 KEY|K=/home/my_dir/cosign.key [DIR|D=.] (*)"
+    desc: "Adding an SBOM to an image as an attestation: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 KEY|K=/home/my_dir/cosign.key [DIR|D=.] (*)"
     summary: |
       [SBOM] Adding an SBOM to an image as an attestation in registry.
       Usage: task sbom:attach-sbom-attest IMG|I=<image> KEY|K=<private_key_path> DIR|D=<temporary_directory>
@@ -44,7 +44,7 @@ tasks:
     silent: true
 
   diff-sbom:
-    desc: "[SBOM] Compare a subset of 2 SBOM files in syft table format: INPUT1|I1=sbom1.table.txt INPUT2|I2=sbom2.table.txt [GREP|G=^github.com/go-task/task/v3 |^curl ] (*)"
+    desc: "Compare a subset of 2 SBOM files in syft table format: INPUT1|I1=sbom1.table.txt INPUT2|I2=sbom2.table.txt [GREP|G=^github.com/go-task/task/v3 |^curl ] (*)"
     summary: |
       [SBOM] Compare a subset of 2 SBOM files in syft table format.
       Usage: task sbom:diff-sbom INPUT1|I1=<input_file_1> INPUT2|I2=<input_file_2> [GREP|G=<subset_to_extract>]
@@ -93,7 +93,7 @@ tasks:
     silent: true
 
   get-docker-sbom:
-    desc: "[SBOM] Get the SBOM with Docker daemon: IMG|I=jfxs/alpine-task [FORMAT|F=cyclonedx-json] (*)"
+    desc: "Get the SBOM with Docker daemon: IMG|I=jfxs/alpine-task [FORMAT|F=cyclonedx-json] (*)"
     summary: |
       [SBOM] Get the SBOM with Docker daemon.
       Usage: task sbom:get-docker-sbom IMG|I=<image> [FORMAT|F=<output_format>]
@@ -124,7 +124,7 @@ tasks:
     silent: true
 
   get-sbom-attest:
-    desc: "[SBOM] Get and verify an SBOM attestation: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 KEY|K=/home/my_dir/cosign.key OUTPUT|O=sbom.json [FORMAT|F=cyclonedx-json] (*)"
+    desc: "Get and verify an SBOM attestation: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 KEY|K=/home/my_dir/cosign.key OUTPUT|O=sbom.json [FORMAT|F=cyclonedx-json] (*)"
     summary: |
       [SBOM] Get and verify an SBOM attestation.
       Usage: task sbom:get-sbom-attest IMG|I=<image> KEY|K=<public_key_path> OUTPUT|O=<sbom_file_path> [FORMAT|F=<output_format>]
@@ -166,7 +166,7 @@ tasks:
     silent: true
 
   get-sbom-subset:
-    desc: "[SBOM] Get an SBOM subset in table format: INPUT|I=sbom-table.txt OUTPUT|O=sbom-subset.txt [GREP|G=^github.com/go-task/task/v3 |^curl ] (*)"
+    desc: "Get an SBOM subset in table format: INPUT|I=sbom-table.txt OUTPUT|O=sbom-subset.txt [GREP|G=^github.com/go-task/task/v3 |^curl ] (*)"
     summary: |
       [SBOM] Get an SBOM subset in table format.
       Usage: task sbom:get-sbom-subset INPUT|I=<sbom_file_path> OUTPUT|O=<subset_file_path> [GREP|G=<subset_to_extract>]
@@ -196,7 +196,7 @@ tasks:
     silent: true
 
   set-sbom-in-file:
-    desc: "[SBOM] Insert an SBOM table in README file: SBOM|S=sbom-table.txt [README|R=README.md] [PATTERN|P=--SBOM-TABLE--] (*)"
+    desc: "Insert an SBOM table in README file: SBOM|S=sbom-table.txt [README|R=README.md] [PATTERN|P=--SBOM-TABLE--] (*)"
     summary: |
       [SBOM] Insert an SBOM table in README file.
       Usage: task sbom:set-sbom-in-file SBOM|S=<sbom_file_path> [README|R=<readme_file_path>] [PATTERN|P=<pattern_to_replace>]

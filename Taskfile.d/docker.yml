@@ -9,7 +9,7 @@ vars:
 tasks:
 
   build-local:
-    desc: "[DOCKER] Build an image locally: TAG|T=image:tag VERSION|V=1.2.3 [VCS_REF|C=110f273aad1cc] [FILE|F=Dockerfile] (*)"
+    desc: "Build an image locally: TAG|T=image:tag VERSION|V=1.2.3 [VCS_REF|C=110f273aad1cc] [FILE|F=Dockerfile] (*)"
     summary: |
       [DOCKER] Build an image locally.
       Usage: task docker:build-local TAG|T=<image[:tag]> VERSION|V=<version> [VCS_REF|C=<commit_sha>] [FILE|F=<Dockerfile_path>]
@@ -39,7 +39,7 @@ tasks:
     silent: true
 
   build-push-multiarch:
-    desc: "[DOCKER] Build and push a docker image: DOCKER_USER|U=username DOCKER_PASS|P=password TAG|T=image:tag VERSION|V=1.2.3 [REGISTRY|R=docker.io] [VCS_REF|C=110f273aad1cc] [FILE|F=Dockerfile] [ARCH|A=linux/amd64,linux/arm64] (*)"
+    desc: "Build and push a docker image: DOCKER_USER|U=username DOCKER_PASS|P=password TAG|T=image:tag VERSION|V=1.2.3 [REGISTRY|R=docker.io] [VCS_REF|C=110f273aad1cc] [FILE|F=Dockerfile] [ARCH|A=linux/amd64,linux/arm64] (*)"
     summary: |
       [DOCKER] Build and push a docker image.
       Usage: task docker:build-push DOCKER_USER|U=<username> DOCKER_PASS|P=<password> TAG|T=<image[:tag]> VERSION|V=<version> [REGISTRY|R=<registry_url>] [VCS_REF|C=<commit_sha>] [FILE|F=<Dockerfile_path>] [ARCH|A=<architecture_list>]
@@ -86,7 +86,7 @@ tasks:
     silent: true
 
   get-digest:
-    desc: "[DOCKER] Get the digest of an image: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 (*)"
+    desc: "Get the digest of an image: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 (*)"
     summary: |
       [DOCKER] Get the digest of an image.
       Usage: task docker:get-digest IMG|I=<image>
@@ -121,7 +121,7 @@ tasks:
     silent: true
 
   get-digest-layer0:
-    desc: "[DOCKER] Get the digest of the layer 0 (base image) of an image: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 (*)"
+    desc: "Get the digest of the layer 0 (base image) of an image: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 (*)"
     summary: |
       [DOCKER] Get the digest of the layer 0 (base image) of an image.
       Usage: task docker:get-digest-layer0 IMG|I=<image>
@@ -156,7 +156,7 @@ tasks:
     silent: true
 
   get-next-tag-index:
-    desc: "[DOCKER] Get the next index for a tag: IMG|I=index.docker.io/jfxs/alpine-task VERSION|V=1.2.3 (*)"
+    desc: "Get the next index for a tag: IMG|I=index.docker.io/jfxs/alpine-task VERSION|V=1.2.3 (*)"
     summary: |
       [DOCKER] Get the next index.
       Usage: task docker:get-next-tag-index IMG|I=<image> VERSION|V=<version>
@@ -212,7 +212,13 @@ tasks:
     silent: true
 
   rm:
-    desc: "[DOCKER] Remove all unused containers"
+    desc: "Remove all unused containers (*)"
+    summary: |
+      [DOCKER] Remove all unused containers.
+      Usage: task docker:rm
+
+      Requirements:
+        - docker
     cmds:
       - docker container prune -f
     preconditions:
@@ -221,7 +227,13 @@ tasks:
     silent: true
 
   rmi:
-    desc: "[DOCKER] Remove all untagged images"
+    desc: "Remove all untagged images (*)"
+    summary: |
+      [DOCKER] Remove untagged images.
+      Usage: task docker:rmi
+
+      Requirements:
+        - docker
     cmds:
       - docker container prune -f
       - docker image prune -f

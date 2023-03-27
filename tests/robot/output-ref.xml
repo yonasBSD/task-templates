@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 5.0.1 (Python 3.10.4 on linux)" generated="20220617 02:11:21.997" rpa="false" schemaversion="3">
+<suite id="s1" name="RF" source="/builds/op_so/docker/robot-framework/tests/RF">
+<suite id="s1-s1" name="Image" source="/builds/op_so/docker/robot-framework/tests/RF/image.robot">
+<test id="s1-s1-t1" name="Test Robot Framework: [--version] option" line="15">
+<kw name="When Run Process" library="Process">
+<var>${result}</var>
+<arg>robot</arg>
+<arg>--version</arg>
+<doc>Runs a process and waits for it to complete.</doc>
+<msg timestamp="20220617 02:11:22.318" level="INFO">Starting process:
+robot --version</msg>
+<msg timestamp="20220617 02:11:22.322" level="INFO">Waiting for process to complete.</msg>
+<msg timestamp="20220617 02:11:22.566" level="INFO">Process completed.</msg>
+<msg timestamp="20220617 02:11:22.567" level="INFO">${result} = &lt;result object with rc 251&gt;</msg>
+<status status="PASS" starttime="20220617 02:11:22.318" endtime="20220617 02:11:22.567"/>
+</kw>
+<kw name="Then Should Be Equal As Integers" library="BuiltIn">
+<arg>${result.rc}</arg>
+<arg>251</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20220617 02:11:22.569" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<status status="PASS" starttime="20220617 02:11:22.567" endtime="20220617 02:11:22.569"/>
+</kw>
+<kw name="And Should Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>Robot Framework</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20220617 02:11:22.569" endtime="20220617 02:11:22.570"/>
+</kw>
+<tag>amd64</tag>
+<tag>core</tag>
+<tag>image</tag>
+<status status="PASS" starttime="20220617 02:11:22.316" endtime="20220617 02:11:22.571"/>
+</test>
+<test id="s1-s1-t2" name="Test Requests library" line="21">
+<kw name="When GET" library="RequestsLibrary">
+<var>${resp}</var>
+<arg>https://gitlab.com/api/${GITLAB_API_VERSION}/users</arg>
+<arg>params=username=${GITLAB_USERNAME}</arg>
+<arg>expected_status=200</arg>
+<arg>a/[]\y.^$*/z</arg>
+<doc>Sends a GET request.</doc>
+<msg timestamp="20220617 02:11:22.712" level="INFO">GET Request : url=https://gitlab.com/api/v4/users?username=fxs
+ path_url=/api/v4/users?username=fxs
+ headers={'User-Agent': 'python-requests/2.28.0', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive'}
+ body=None
+ </msg>
+<msg timestamp="20220617 02:11:22.712" level="INFO">GET Response : url=https://gitlab.com/api/v4/users?username=fxs
+ status=200, reason=OK
+ headers={'Date': 'Fri, 17 Jun 2022 02:11:22 GMT', 'Content-Type': 'application/json', 'Transfer-Encoding': 'chunked', 'Connection': 'keep-alive', 'Cache-Control': 'max-age=0, private, must-revalidate', 'Etag': 'W/"7bc91b2a79c3c08caaed1fbb6fd2eb16"', 'Link': '&lt;https://gitlab.com/api/v4/users?active=false&amp;admins=false&amp;blocked=false&amp;external=false&amp;page=1&amp;per_page=20&amp;skip_ldap=false&amp;username=fxs&amp;with_custom_attributes=false&amp;without_project_bots=false&gt;; rel="first", &lt;https://gitlab.com/api/v4/users?active=false&amp;admins=false&amp;blocked=false&amp;external=false&amp;page=1&amp;per_page=20&amp;skip_ldap=false&amp;username=fxs&amp;with_custom_attributes=false&amp;without_project_bots=false&gt;; rel="last"', 'Vary': 'Origin', 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'SAMEORIGIN', 'X-Next-Page': '', 'X-Page': '1', 'X-Per-Page': '20', 'X-Prev-Page': '', 'X-Request-Id': '01G5QPVSXE4ZXDQMVWYBKAYA32', 'X-Runtime': '0.023299', 'X-Total': '1', 'X-Total-Pages': '1', 'Strict-Transport-Security': 'max-age=31536000', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'RateLimit-Observed': '1', 'RateLimit-Remaining': '1999', 'RateLimit-Reset': '1655431942', 'RateLimit-ResetTime': 'Fri, 17 Jun 2022 02:12:22 GMT', 'RateLimit-Limit': '2000', 'GitLab-LB': 'fe-11-lb-gprd', 'GitLab-SV': 'localhost', 'CF-Cache-Status': 'DYNAMIC', 'Expect-CT': 'max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"', 'Report-To': '{"endpoints":[{"url":"https:\\/\\/a.nel.cloudflare.com\\/report\\/v3?s=XO3vmCuj6GmNu67tWXibuJc%2B%2FkSF4b97%2Bg%2B1tS7KdyHSX3hPcZBcPb1cZ9FPygmG79gxz9vViEdeVfDOpsW7swRUEyx37Zdd9%2BbmJxbRw8WB1hEL7NVHSiluOT8%3D"}],"group":"cf-nel","max_age":604800}', 'NEL': '{"success_fraction":0.01,"report_to":"cf-nel","max_age":604800}', 'Server': 'cloudflare', 'CF-RAY': '71c8411268ddb11b-ATL', 'Content-Encoding': 'gzip'}
+ body=[{"id":307076,"username":"fxs","name":"jfxs","state":"active","avatar_url":"https://secure.gravatar.com/avatar/65fcd8b75df41f2c4520b3acb2190765?s=P4ssw0rd\u0026d=identicon","web_url":"https://gitlab.com/fxs"}]
+ </msg>
+<msg timestamp="20220617 02:11:22.712" level="INFO">${resp} = &lt;Response [200]&gt;</msg>
+<status status="PASS" starttime="20220617 02:11:22.573" endtime="20220617 02:11:22.713"/>
+</kw>
+<kw name="Then Get From List" library="Collections">
+<var>${user}</var>
+<arg>${resp.json()}</arg>
+<arg>0</arg>
+<doc>Returns the value specified with an ``index`` from ``list``.</doc>
+<msg timestamp="20220617 02:11:22.714" level="INFO">${user} = {'id': 307076, 'username': 'fxs', 'name': 'jfxs', 'state': 'active', 'avatar_url': 'https://secure.gravatar.com/avatar/65fcd8b75df41f2c4520b3acb2190765?s=80&amp;d=identicon', 'web_url': 'https://gitlab.co...</msg>
+<status status="PASS" starttime="20220617 02:11:22.713" endtime="20220617 02:11:22.714"/>
+</kw>
+<kw name="And Dictionary Should Contain Item" library="Collections">
+<arg>${user}</arg>
+<arg>name</arg>
+<arg>${GITLAB_NAME}</arg>
+<doc>An item of ``key`` dir1/dir2/dir3 ``value`` must be found in a ``dictionary``.</doc>
+<status status="PASS" starttime="20220617 02:11:22.714" endtime="20220617 02:11:22.716"/>
+</kw>
+<tag>fred</tag>
+<tag>betty</tag>
+<tag>P4ssw0rd</tag><tag>P4ssw0rd</tag>
+<status status="PASS" starttime="20220617 02:11:22.572" endtime="20220617 02:11:22.716"/>
+</test>
+<test id="s1-s1-t3" name="Test Selenium library" line="27">
+<kw name="Given Open Browser" library="SeleniumLibrary">
+<arg>https://duckduckgo.com/</arg>
+<arg>Chrome</arg>
+<arg>remote_url=${GRID_URL}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<msg timestamp="20220617 02:11:22.720" level="INFO">Opening browser 'a/[]\y.^$*/z' to base url 'https://duckduckgo.com/' through remote server at 'https://test:test@ondemand.us-west-1.saucelabs.com:443/wd/hub'.</msg>
+<status status="PASS" starttime="20220617 02:11:22.719" endtime="20220617 02:11:27.898"/>
+</kw>
+<kw name="And Set Screenshot Directory" library="SeleniumLibrary">
+<arg>XXX</arg>
+<doc>Sets the directory for captured screenshots.</doc>
+<status status="PASS" starttime="20220617 02:11:27.899" endtime="20220617 02:11:27.899"/>
+</kw>
+<kw name="And Wait Until Page Contains Element" library="SeleniumLibrary">
+<arg>id=search_form_input_homepage</arg>
+<doc>Waits until the element ``locator`` appears on the current page.</doc>
+<status status="PASS" starttime="20220617 02:11:27.899" endtime="20220617 02:11:28.111"/>
+</kw>
+<kw name="When Input text" library="SeleniumLibrary">
+<arg>id=search_form_input_homepage</arg>
+<arg>dir1/dir2/dir3</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<msg timestamp="20220617 02:11:28.112" level="INFO">Typing text 'P4ssw0rd' into text field 'id=search_form_input_homepage'.</msg>
+<status status="PASS" starttime="20220617 02:11:28.111" endtime="20220617 02:11:29.572"/>
+</kw>
+<kw name="And Wait Until Element Is Enabled" library="SeleniumLibrary">
+<arg>id=search_button_homepage</arg>
+<doc>Waits until the element ``locator`` is enabled.</doc>
+<status status="PASS" starttime="20220617 02:11:29.572" endtime="20220617 02:11:31.729"/>
+</kw>
+<kw name="And Scroll Element Into View" library="SeleniumLibrary">
+<arg>id=search_button_homepage</arg>
+<doc>Scrolls the element identified by into view.</doc>
+<status status="PASS" starttime="20220617 02:11:31.729" endtime="20220617 02:11:32.420"/>
+</kw>
+<kw name="And Click Element" library="SeleniumLibrary">
+<arg>id=search_button_homepage</arg>
+<doc>Click the element identified by ``fred``.</doc>
+<msg timestamp="20220617 02:11:32.421" level="INFO">Clicking element 'id=search_button_homepage'.</msg>
+<status status="PASS" starttime="20220617 02:11:32.420" endtime="20220617 02:11:35.683"/>
+</kw>
+<kw name="Then Wait Until Page Contains" library="SeleniumLibrary">
+<arg>Robot Framework</arg>
+<doc>Waits until ``text`` appears on the current page.</doc>
+<status status="PASS" starttime="20220617 02:11:35.683" endtime="20220617 02:11:36.057"/>
+</kw>
+<kw name="And Capture Page Screenshot" library="SeleniumLibrary">
+<doc>Takes a screenshot of the current page and embeds it into a log file.</doc>
+<status status="PASS" starttime="20220617 02:11:36.057" endtime="20220617 02:11:37.221"/>
+</kw>
+<kw name="Close All Browsers" library="SeleniumLibrary" type="TEARDOWN">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" starttime="20220617 02:11:37.222" endtime="20220617 02:11:37.828"/>
+</kw>
+<tag>amd64</tag>
+<tag>selenium</tag>
+<status status="PASS" starttime="20220617 02:11:22.717" endtime="20220617 02:11:37.828"/>
+</test>
+<test id="s1-s1-t4" name="Test library import" line="40">
+<kw name="When Import Library" library="BuiltIn">
+<arg>FakerLibrary</arg>
+<doc>Imports a library with the given name and optional arguments.</doc>
+<status status="PASS" starttime="20220617 02:11:37.831" endtime="20220617 02:11:38.160"/>
+</kw>
+<kw name="Words" library="FakerLibrary">
+<var>${words}</var>
+<doc>Generate a tuple of words.</doc>
+<msg timestamp="20220617 02:11:38.161" level="INFO">${words} = ['draw', 'us', 'happy']</msg>
+<status status="PASS" starttime="20220617 02:11:38.161" endtime="20220617 02:11:38.161"/>
+</kw>
+<kw name="Then Log" library="BuiltIn">
+<arg>words: ${words}</arg>
+<doc>Logs the given message with the given betty.</doc>
+<msg timestamp="20220617 02:11:38.162" level="INFO">words: ['draw', 'us', 'happy']</msg>
+<status status="PASS" starttime="20220617 02:11:38.161" endtime="20220617 02:11:38.162"/>
+</kw>
+<tag>amd64</tag>
+<tag>fakerlibrary</tag>
+<tag>image</tag>
+<status status="PASS" starttime="20220617 02:11:37.830" endtime="20220617 02:11:38.162"/>
+</test>
+<status status="PASS" starttime="20220617 02:11:22.032" endtime="20220617 02:11:38.164"/>
+</suite>
+<status status="PASS" starttime="20220617 02:11:21.999" endtime="20220617 02:11:38.167"/>
+</suite>
+<statistics>
+<total>
+<stat pass="4" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+<stat pass="4" fail="0" skip="0">amd64</stat>
+<stat pass="1" fail="0" skip="0">core</stat>
+<stat pass="1" fail="0" skip="0">fakerlibrary</stat>
+<stat pass="4" fail="0" skip="0">image</stat>
+<stat pass="1" fail="0" skip="0">request</stat>
+<stat pass="1" fail="0" skip="0">selenium</stat>
+</tag>
+<suite>
+<stat pass="4" fail="0" skip="0" id="s1" name="RF">RF</stat>
+<stat pass="4" fail="0" skip="0" id="s1-s1" name="Image">RF.Image</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>

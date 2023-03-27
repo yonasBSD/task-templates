@@ -4,7 +4,7 @@
 version: '3'
 
 vars:
-  DIR_TASKFILES: "Taskfile.d"
+  DIR_TASKFILES: Taskfile.d
   FILE_TASK_START: "task-start-{{.TASK}}.tmp"
   MAT_GIT_REPO: "https://gitlab.com/jfxs-multipass/multipass-ansible-toolkit/-/raw/main"
 
@@ -32,47 +32,44 @@ tasks:
     vars:
       TSK: '{{default .T .TSK}}'
       FILE: '{{default .F .FILE}}'
-      FILE_DEFAULT: "Taskfile.yml"
-      FILE_PATH: '{{default .FILE_DEFAULT .FILE}}'
+      D_FILE: '{{default "Taskfile.yml" .FILE}}'
     cmds:
       - |
-        if [ ! -f "{{.FILE_PATH}}" ]; then
-          echo "{{.FILE_PATH}} does not exist!"
+        if [ ! -f "{{.D_FILE}}" ]; then
+          echo "{{.D_FILE}} does not exist!"
           exit 1
         fi
-      - task -t "{{.FILE_PATH}}" --summary "{{.TSK}}" | sed '/^dependencies:$/,$d' | sed '/^commands:$/,$d'
+      - task -t "{{.D_FILE}}" --summary "{{.TSK}}" | sed '/^dependencies:$/,$d' | sed '/^commands:$/,$d'
     preconditions:
       - sh: test -n "{{.TSK}}" || test -n "{{.T}}"
         msg: "TSK|T argument is required"
     silent: true
 
   default:
-    desc: "[CORE] List of available tasks. Arguments: [FILE|F=Taskfile.dist.yml] (*)"
+    desc: "[CORE] List of available tasks. Arguments: [FILE|F=Taskfile.project.yml] (*)"
     summary: |
       [CORE] Show the list of available tasks.
-      Usage: task [-t Taskfile.dist.yml] [FILE|F=Taskfile.dist.yml]
+      Usage: task [FILE|F=Taskfile.project.yml]
 
       Arguments:
-       FILE | F Taskfile path (optional, by default Taskfile.yml)
+       FILE | F Taskfile project path (optional, by default Taskfile.project.yml)
     vars:
       FILE: '{{default .F .FILE}}'
-      FILE_DEFAULT: "Taskfile.yml"
-      FILE_PATH: '{{default .FILE_DEFAULT .FILE}}'
-      TASKS_LIST:
-        sh: task -t "{{.FILE_PATH}}" --list
+      D_FILE: '{{default "Taskfile.project.yml" .FILE}}'
     cmds:
       - |
-        {{ range $i, $line := .TASKS_LIST | splitLines -}}
-          first_char="$(printf '%s' "{{ $line }}" | cut -c1)"
-          if [ "$first_char" = "*" ]; then
-             task=$(echo "{{ $line }}" | cut -d ' ' -f2)
-             desc=$(echo "{{ $line }}" | sed -e "s/^\* $task//" | sed 's/^[[:space:]]*//g')
-             printf "\e[32m%-25s \033[0m %s\n" "* $task" "$desc"
-          else
-            echo "{{ $line }}"
-          fi
-        {{ end -}}
-      - echo ""
-      - echo " (*) task usage TSK=<task-name> will show the usage of the task."
-      - echo ""
+        if [ -d "{{.DIR_TASKFILES}}" ]; then
+          ls -1 {{.DIR_TASKFILES}}/*.yml |
+          while IFS= read -r template; do
+            template_name=$(basename "$template")
+            printf "\033[0;33m[ %s: ]\033[0m " "${template_name%.yml}" && task --list -t "$template" || true
+            echo ""
+          done
+        fi
+      - |
+        if [ ! -z "{{.D_FILE}}" ]; then
+            printf "\033[0;33m[ %s: ]\033[0m " "00" && task --list -t "{{.D_FILE}}" || true
+        fi
+        echo ""
+      - echo " (*) <task usage TSK=task-name> will show the usage of the task."
     silent: true

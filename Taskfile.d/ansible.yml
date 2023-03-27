@@ -9,7 +9,7 @@ vars:
 tasks:
 
   command:
-    desc: "[ANSIBLE] Run an Ansible command. Arguments: CMD|C=\"ansible --version\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
+    desc: "Run an Ansible command. Arguments: CMD|C=\"ansible --version\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [ANSIBLE] Run an Ansible command.
       If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
@@ -20,19 +20,23 @@ tasks:
         CMD  | C  Ansible command to run (required)
         IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
         PULL | P  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - ansible or docker
     vars:
       CMD: '{{default .C .CMD}}'
       IMG: '{{default .I .IMG}}'
       PULL: '{{default .P .PULL}}'
     cmds:
-      - task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
+      - task: exec-local-docker-ansible
+        vars: {CMD: "{{.CMD}}", IMG: "{{.IMG}}", PULL: "{{.PULL}}"}
     preconditions:
       - sh: test -n "{{.CMD}}" || test -n "{{.C}}"
         msg: "CMD|C argument is required"
     silent: true
 
   galaxy-install:
-    desc: "[ANSIBLE] Ansible Galaxy install requirements. Arguments: REQ|R=\"provision/requirements.txt\" [FORCE|F=<y|Y>] [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
+    desc: "Ansible Galaxy install requirements. Arguments: REQ|R=\"provision/requirements.txt\" [FORCE|F=<y|Y>] [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [ANSIBLE] Ansible Galaxy install requirements.
       If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
@@ -44,6 +48,9 @@ tasks:
         FORCE | F  Force to install the last version of collections (optional, by default no)
         IMG   | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
         PULL  | P  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - ansible or docker
     vars:
       REQ: '{{default .R .REQ}}'
       FORCE: '{{default .F .FORCE}}'
@@ -62,7 +69,7 @@ tasks:
     silent: true
 
   lint:
-    desc: "[ANSIBLE] Lint Ansible playbooks and roles. Arguments: ARG|A=\"--force-color --offline -p playbook.yml\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
+    desc: "Lint Ansible playbooks and roles. Arguments: ARG|A=\"--force-color --offline -p playbook.yml\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [ANSIBLE] Lint Ansible playbook and roles.
       If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
@@ -73,20 +80,24 @@ tasks:
         ARG  | A  Arguments of the ansible-lint (required)
         IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
         PULL | P  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - ansible or docker
     vars:
       ARG: '{{default .A .NAME}}'
       IMG: '{{default .I .IMG}}'
       PULL: '{{default .P .PULL}}'
       CMD: "ansible-lint {{.ARG}}"
     cmds:
-      - task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
+      - task: exec-local-docker-ansible
+        vars: {CMD: "{{.CMD}}", IMG: "{{.IMG}}", PULL: "{{.PULL}}"}
     preconditions:
       - sh: test -n "{{.ARG}}" || test -n "{{.A}}"
         msg: "ARG|A argument is required"
     silent: true
 
   ping:
-    desc: "[ANSIBLE] Run Ansible ping. Arguments: ARG|A=\"-i inventory all\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
+    desc: "Run Ansible ping. Arguments: ARG|A=\"-i inventory all\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
     summary: |
       [ANSIBLE] Run Ansible ping.
       If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
@@ -97,20 +108,24 @@ tasks:
         ARG  | A  Arguments of the command to run (required)
         IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
         PULL | P  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - ansible or docker
     vars:
       ARG: '{{default .A .NAME}}'
       IMG: '{{default .I .IMG}}'
       PULL: '{{default .P .PULL}}'
       CMD: "ansible {{.ARG}} -m ansible.builtin.ping"
     cmds:
-      - task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
+      - task: exec-local-docker-ansible
+        vars: {CMD: "{{.CMD}}", IMG: "{{.IMG}}", PULL: "{{.PULL}}"}
     preconditions:
       - sh: test -n "{{.ARG}}" || test -n "{{.A}}"
         msg: "ARG|A argument is required"
     silent: true
 
   playbook:
-    desc: "[ANSIBLE] Run Ansible playbook. Arguments: ARG|A=\"-i inventory playbook.yml\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
+    desc: "Run Ansible playbook. Arguments: ARG|A=\"-i inventory playbook.yml\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
     summary: |
       [ANSIBLE] Run Ansible playbook.
       If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
@@ -121,20 +136,24 @@ tasks:
         ARG  | A  Arguments of the playbook to run (required)
         IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
         PULL | P  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - ansible or docker
     vars:
       ARG: '{{default .A .NAME}}'
       IMG: '{{default .I .IMG}}'
       PULL: '{{default .P .PULL}}'
       CMD: "ansible-playbook {{.ARG}}"
     cmds:
-      - task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="{{.CMD}}"
+      - task: exec-local-docker-ansible
+        vars: {CMD: "{{.CMD}}", IMG: "{{.IMG}}", PULL: "{{.PULL}}"}
     preconditions:
       - sh: test -n "{{.ARG}}" || test -n "{{.A}}"
         msg: "ARG|A argument is required"
     silent: true
 
   vault:
-    desc: "[ANSIBLE] Operation on a file with Ansible Vault. Arguments: FILE|F=key.pem ACTION|A=ENC|DEC|EDIT [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
+    desc: "Operation on a file with Ansible Vault. Arguments: FILE|F=key.pem ACTION|A=ENC|DEC|EDIT [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
     summary: |
       [ANSIBLE] Operation on a file with Ansible Vault.
       If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
@@ -146,6 +165,9 @@ tasks:
         ACTION | F  Action ENC: encrypt, DEC: decrypt, EDIT: edit the file (required)
         IMG    | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
         PULL   | P  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - ansible or docker
     vars:
       FILE: '{{default .F .FILE}}'
       ACTION: '{{default .A .ACTION}}'

@@ -83,8 +83,24 @@ If you always want the last version of the task templates, add this following li
 
 Otherwise, if you prefer stability you should also commit the content of the `Taskfile.d` directory or specify the versions of the templates.
 
-* Available tasks are shown by execute `task` command without any parameter:
+* Available installed tasks are shown by execute `task` command without any parameter:
 ![Available tasks](tasks-list.png "Available tasks")
+
+## Available templates
+
+* `age.yml`: Encrypt/Decrypt with [age](https://github.com/FiloSottile/age)
+* `ansible.yml`: Ansible common tasks
+* `docker.yml`: Docker common tasks
+* `git.yml`: Git signed commit and [commitizen](http://commitizen.github.io/cz-cli/) tasks
+* `go.yml`: Go task
+* `lint.yml`: General lint text files tasks for every project
+* `multipass.yml`: [Multipass](https://multipass.run/) tasks
+* `python.yml`: Python tasks
+* `robot.yml`: [Robot Frameworks](https://robotframework.org/) usefull tasks
+* `sbom.yml`: Software Bill of Materials commands with [syft](https://github.com/anchore/syft) and [cosign](https://github.com/sigstore/cosign)
+* `system.yml`: Generation of ssh key
+* `version.yml`: Usefull version tasks like get last version on Github, pypi ...
+* `yarn.yml`: Yarn tasks
 
 ### Upgrade
 

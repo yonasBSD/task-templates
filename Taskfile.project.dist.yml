@@ -26,7 +26,7 @@ tasks:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}
       - mkdir -p "{{.DIR_TASKFILES}}"
-      - task 10-install-templates TEMPLATE={{.TASK_TEMPLATES}} PROXY={{.D_PROXY}} PROXY_CREDENTIALS={{.PROXY_CREDENTIALS}}
+      - task install-templates TEMPLATE={{.TASK_TEMPLATES}} PROXY={{.D_PROXY}} PROXY_CREDENTIALS={{.PROXY_CREDENTIALS}}
       - echo "Install templates Start $(cat {{.FILE_TASK_START}}) - End $(date)"
     silent: true
 

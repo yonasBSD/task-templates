@@ -10,7 +10,7 @@ vars:
 tasks:
 
   commit-signed:
-    desc: "[GIT] Signed commit. Arguments: KEY_PATH|K=key_full_path MESSAGE|M=message [OPTION|O=\"--amend\"] [PULL|P=n|N] (*)"
+    desc: "Signed commit. Arguments: KEY_PATH|K=key_full_path MESSAGE|M=message [OPTION|O=\"--amend\"] [PULL|P=n|N] (*)"
     summary: |
       [GIT] Signed commit.
       Usage: task git:commit KEY_PATH|K=<key_full_path> MESSAGE|M=<message> [OPTION|O=\"<options>\"] [PULL|P=<n|N>]
@@ -26,6 +26,9 @@ tasks:
         MESSAGE  | M  Commit message (required)
         OPTIONS  | O  Git options (optional, by default -S --signoff)
         PULL     | P  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - docker
     vars:
       KEY_MOUNT_POINT: /Private
       SRC_MOUNT_POINT: /data
@@ -46,6 +49,8 @@ tasks:
       - docker exec -it commit /bin/sh -c 'export GPG_TTY=$(tty); git config --global --add safe.directory /data && git commit {{.D_OPTIONS}} -m "{{.MESSAGE}}"'
       - echo "Signed commit succeeded!"
     preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
       - sh: test -n "{{.KEY_PATH}}" || test -n "{{.K}}"
         msg: "KEY_PATH|K argument is required"
       - sh: test -n "{{.MESSAGE}}" || test -n "{{.M}}"
@@ -53,7 +58,7 @@ tasks:
     silent: true
 
   commitizen:
-    desc: "[GIT] Signed commit with Commitizen. Arguments: KEY_PATH|K=key_full_path [PULL|P=n|N] (*)"
+    desc: "Signed commit with Commitizen. Arguments: KEY_PATH|K=key_full_path [PULL|P=n|N] (*)"
     summary: |
       [GIT] Signed commit with Commitizen.
       Usage: task git:commit KEY_PATH|K=<key_full_path> [PULL|P=<n|N>]
@@ -65,6 +70,9 @@ tasks:
       Arguments:
         KEY_PATH | K  Absolute path to the private key file (required)
         PULL     | P  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - docker
     vars:
       KEY_MOUNT_POINT: /Private
       SRC_MOUNT_POINT: /data
@@ -79,9 +87,11 @@ tasks:
       - docker run -d --name node-commit -v "{{.KEY_PATH_DIR}}:{{.KEY_MOUNT_POINT}}" -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" "{{.IMAGE_NODE}}" sleep infinity
       - defer: echo "Waiting for the container to stop..." && docker stop node-commit && docker rm node-commit
       - docker exec -it node-commit /bin/sh -c 'gpg --import "{{.KEY_MOUNT_POINT}}/{{.KEY_NAME}}"'
-      - docker exec -it node-commit /bin/sh -c 'export GPG_TTY=$(tty); yarn commit'
+      - docker exec -it node-commit /bin/sh -c 'export GPG_TTY=$(tty); git config --global --add safe.directory /data && yarn commit'
       - echo "Signed commit succeeded!"
     preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
       - sh: test -n "{{.KEY_PATH}}" || test -n "{{.K}}"
         msg: "KEY_PATH|K argument is required"
       - sh: test -f yarn.lock

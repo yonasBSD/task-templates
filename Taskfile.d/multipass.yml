@@ -31,7 +31,7 @@ vars:
 tasks:
 
   create-from-config:
-    desc: "[MULTIPASS] Create instances from a config file. Arguments: [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] (*)"
+    desc: "Create instances from a config file. Arguments: [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] (*)"
     summary: |
       [MULTIPASS] Create instances from a config file.
       A default multipass.yml file is created, if it does not exist.
@@ -99,7 +99,7 @@ tasks:
     silent: true
 
   create-instance:
-    desc: "[MULTIPASS] Create an instance. Arguments: NAME|N=instance_name [U_USER|U=ubuntu] [CPU|C=1] [MEM|M=1G] [DISK|D=5G] [IMG|I=jammy] (*)"
+    desc: "Create an instance. Arguments: NAME|N=instance_name [U_USER|U=ubuntu] [CPU|C=1] [MEM|M=1G] [DISK|D=5G] [IMG|I=jammy] (*)"
     summary: |
       [MULTIPASS] Create an instance.
       A key pair k-<instance_name>-1.pem is generated for every instance in {{.DIR_SSH}}/ directory.
@@ -166,7 +166,7 @@ tasks:
     silent: true
 
   start:
-    desc: "[MULTIPASS] Start instances. Arguments: [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] (*)"
+    desc: "Start instances. Arguments: [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] (*)"
     summary: |
       [MULTIPASS] Start an instance by its name or start all instances of the config file if NAME is not set.
       Usage: task multipass:start [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}]
@@ -200,7 +200,7 @@ tasks:
     silent: true
 
   stop:
-    desc: "[MULTIPASS] Stop instances. Arguments: [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] (*)"
+    desc: "Stop instances. Arguments: [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] (*)"
     summary: |
       [MULTIPASS] Stop an instance by its name or stop all instances of the config file if NAME is not set.
       Usage: task multipass:stop [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}]
@@ -234,7 +234,7 @@ tasks:
     silent: true
 
   ssh:
-    desc: "[MULTIPASS] ssh connection. Arguments: NAME|N=docker [U_USER|U=ubuntu] (*)"
+    desc: "ssh connection. Arguments: NAME|N=docker [U_USER|U=ubuntu] (*)"
     summary: |
       [SYSTEM] ssh connection.
       Usage: task multipass:ssh NAME|N=<hostname> [U_USER|U=<username>]
@@ -263,7 +263,7 @@ tasks:
     silent: true
 
   delete:
-    desc: "[MULTIPASS] Delete instances. Arguments: [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] [FORCE|F=y|Y] (*)"
+    desc: "Delete instances. Arguments: [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] [FORCE|F=y|Y] (*)"
     summary: |
       [MULTIPASS] Stop an instance by its name or delete all instances of the config file if NAME is not set.
       Usage: task multipass:stop [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] [FORCE|F=y|Y]
@@ -322,7 +322,7 @@ tasks:
 
   # TODO: Use yaml config
   mount:
-    desc: "[MULTIPASS] Mount a local directory inside an instance. Arguments: HOST|H=docker [SOURCE|S=<path>] (*)"
+    desc: "Mount a local directory inside an instance. Arguments: HOST|H=docker [SOURCE|S=<path>] (*)"
     summary: |
       [MULTIPASS] Mount a local directory inside an instance.
       Usage: task multipass:mount HOST|H=<hostname> [SOURCE|S=<path>]
@@ -353,7 +353,7 @@ tasks:
     silent: true
 
   umount:
-    desc: "[MULTIPASS] Unmount a directory from an instance. Arguments: HOST|H=docker [SOURCE|S=<path>] (*)"
+    desc: "Unmount a directory from an instance. Arguments: HOST|H=docker [SOURCE|S=<path>] (*)"
     summary: |
       [MULTIPASS] Unmount a directory from an instance.
       Usage: task multipass:umount HOST|H=<hostname> [SOURCE|S=<path>]
@@ -378,7 +378,7 @@ tasks:
     silent: true
 
   mount-all:
-    desc: "[MULTIPASS] Mount all local directories declared in the multipass config file. Arguments: HOST|H=docker (*)"
+    desc: "Mount all local directories declared in the multipass config file. Arguments: HOST|H=docker (*)"
     summary: |
       [MULTIPASS] Mount all local directories declared in the multipass config file.
       Usage: task multipass:mount-all HOST|H=<hostname>
@@ -403,7 +403,7 @@ tasks:
     silent: true
 
   umount-all:
-    desc: "[MULTIPASS] Unmount all directories from an instance. Arguments: HOST|H=docker (*)"
+    desc: "Unmount all directories from an instance. Arguments: HOST|H=docker (*)"
     summary: |
       [MULTIPASS] Unmount all directories from an instance.
       Usage: task multipass:umount-all HOST|H=<hostname>
@@ -429,7 +429,7 @@ tasks:
 
   # TODO: Add status not found
   list:
-    desc: "[MULTIPASS] List instances."
+    desc: "List instances."
     vars:
       MULTIPASS_HOSTS:
         sh: multipass list
@@ -465,7 +465,7 @@ tasks:
 
   # TODO: Kill not only hyperkit but qemu, use argument.
   reset:
-    desc: "[MULTIPASS] Restart multipass daemon and kill all hyperkit instances"
+    desc: "Restart multipass daemon and kill all hyperkit instances"
     cmds:
       - sudo launchctl stop com.canonical.multipassd
       - sudo pkill hyperkit && sleep 2 || true

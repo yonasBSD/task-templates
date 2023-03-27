@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 5.0.1 (Python 3.10.4 on linux)" generated="20220615 16:49:34.358" rpa="false" schemaversion="3">
+<suite id="s1" name="RF" source="/builds/op_so/docker/robot-framework/tests/RF">
+<suite id="s1-s1" name="Image" source="/builds/op_so/docker/robot-framework/tests/RF/image.robot">
+<test id="s1-s1-t1" name="Test Robot Framework: [--version] option" line="15">
+<kw name="When Run Process" library="Process">
+<var>${result}</var>
+<arg>robot</arg>
+<arg>--version</arg>
+<doc>Runs a process and waits for it to complete.</doc>
+<msg timestamp="20220615 16:49:34.682" level="INFO">Starting process:
+robot --version</msg>
+<msg timestamp="20220615 16:49:34.685" level="INFO">Waiting for process to complete.</msg>
+<msg timestamp="20220615 16:49:34.925" level="INFO">Process completed.</msg>
+<msg timestamp="20220615 16:49:34.926" level="INFO">${result} = &lt;result object with rc 251&gt;</msg>
+<status status="PASS" starttime="20220615 16:49:34.681" endtime="20220615 16:49:34.926"/>
+</kw>
+<kw name="Then Should Be Equal As Integers" library="BuiltIn">
+<arg>${result.rc}</arg>
+<arg>251</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<msg timestamp="20220615 16:49:34.928" level="INFO">Argument types are:
+&lt;class 'int'&gt;
+&lt;class 'str'&gt;</msg>
+<status status="PASS" starttime="20220615 16:49:34.926" endtime="20220615 16:49:34.928"/>
+</kw>
+<kw name="And Should Contain" library="BuiltIn">
+<arg>${result.stdout}</arg>
+<arg>Robot Framework</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" starttime="20220615 16:49:34.928" endtime="20220615 16:49:34.929"/>
+</kw>
+<tag>amd64</tag>
+<tag>core</tag>
+<tag>image</tag>
+<status status="PASS" starttime="20220615 16:49:34.679" endtime="20220615 16:49:34.930"/>
+</test>
+<test id="s1-s1-t2" name="Test Requests library" line="21">
+<kw name="When GET" library="RequestsLibrary">
+<var>${resp}</var>
+<arg>https://gitlab.com/api/${GITLAB_API_VERSION}/users</arg>
+<arg>params=username=${GITLAB_USERNAME}</arg>
+<arg>expected_status=200</arg>
+<doc>Sends a GET request.</doc>
+<msg timestamp="20220615 16:49:35.071" level="INFO">GET Request : url=https://gitlab.com/api/v4/users?username=fxs
+ path_url=/api/v4/users?username=fxs
+ headers={'User-Agent': 'python-requests/2.28.0', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive'}
+ body=None
+ </msg>
+<msg timestamp="20220615 16:49:35.071" level="INFO">GET Response : url=https://gitlab.com/api/v4/users?username=fxs
+ status=200, reason=OK
+ headers={'Date': 'Wed, 15 Jun 2022 16:49:35 GMT', 'Content-Type': 'application/json', 'Transfer-Encoding': 'chunked', 'Connection': 'keep-alive', 'Cache-Control': 'max-age=0, private, must-revalidate', 'Etag': 'W/"7bc91b2a79c3c08caaed1fbb6fd2eb16"', 'Link': '&lt;https://gitlab.com/api/v4/users?active=false&amp;admins=false&amp;blocked=false&amp;external=false&amp;page=1&amp;per_page=20&amp;skip_ldap=false&amp;username=fxs&amp;with_custom_attributes=false&amp;without_project_bots=false&gt;; rel="first", &lt;https://gitlab.com/api/v4/users?active=false&amp;admins=false&amp;blocked=false&amp;external=false&amp;page=1&amp;per_page=20&amp;skip_ldap=false&amp;username=fxs&amp;with_custom_attributes=false&amp;without_project_bots=false&gt;; rel="last"', 'Vary': 'Origin', 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'SAMEORIGIN', 'X-Next-Page': '', 'X-Page': '1', 'X-Per-Page': '20', 'X-Prev-Page': '', 'X-Request-Id': '01G5M4AD9Q1298S8XT981XNJG0', 'X-Runtime': '0.020824', 'X-Total': '1', 'X-Total-Pages': '1', 'Strict-Transport-Security': 'max-age=31536000', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'RateLimit-Observed': '1', 'RateLimit-Remaining': '1999', 'RateLimit-Reset': '1655311835', 'RateLimit-ResetTime': 'Wed, 15 Jun 2022 16:50:35 GMT', 'RateLimit-Limit': '2000', 'GitLab-LB': 'fe-03-lb-gprd', 'GitLab-SV': 'localhost', 'CF-Cache-Status': 'DYNAMIC', 'Expect-CT': 'max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"', 'Report-To': '{"endpoints":[{"url":"https:\\/\\/a.nel.cloudflare.com\\/report\\/v3?s=hhohrpyTdY3I98ldI%2BlBxaiOau7ZsObH9V5Lz5C33zi2KYlVI6UOjbO2JVFNaNeYFBEX6LG9yxcg0EHsDDB7nA%2FKI1RDkLBDRm567aIBijuPkePICkNroVp2rpI%3D"}],"group":"cf-nel","max_age":604800}', 'NEL': '{"success_fraction":0.01,"report_to":"cf-nel","max_age":604800}', 'Server': 'cloudflare', 'CF-RAY': '71bcccc1ad73b100-ATL', 'Content-Encoding': 'gzip'}
+ body=[{"id":307076,"username":"fxs","name":"jfxs","state":"active","avatar_url":"https://secure.gravatar.com/avatar/65fcd8b75df41f2c4520b3acb2190765?s=80\u0026d=identicon","web_url":"https://gitlab.com/fxs"}]
+ </msg>
+<msg timestamp="20220615 16:49:35.072" level="INFO">${resp} = &lt;Response [200]&gt;</msg>
+<status status="PASS" starttime="20220615 16:49:34.933" endtime="20220615 16:49:35.072"/>
+</kw>
+<kw name="Then Get From List" library="Collections">
+<var>${user}</var>
+<arg>${resp.json()}</arg>
+<arg>0</arg>
+<doc>Returns the value specified with an ``index`` from ``list``.</doc>
+<msg timestamp="20220615 16:49:35.073" level="INFO">${user} = {'id': 307076, 'username': 'fxs', 'name': 'jfxs', 'state': 'active', 'avatar_url': 'https://secure.gravatar.com/avatar/65fcd8b75df41f2c4520b3acb2190765?s=80&amp;d=identicon', 'web_url': 'https://gitlab.co...</msg>
+<status status="PASS" starttime="20220615 16:49:35.072" endtime="20220615 16:49:35.073"/>
+</kw>
+<kw name="And Dictionary Should Contain Item" library="Collections">
+<arg>${user}</arg>
+<arg>name</arg>
+<arg>${GITLAB_NAME}</arg>
+<doc>An item of ``key`` / ``value`` must be found in a ``dictionary``.</doc>
+<status status="PASS" starttime="20220615 16:49:35.073" endtime="20220615 16:49:35.074"/>
+</kw>
+<tag>amd64</tag>
+<tag>image</tag>
+<tag>request</tag>
+<status status="PASS" starttime="20220615 16:49:34.931" endtime="20220615 16:49:35.074"/>
+</test>
+<test id="s1-s1-t3" name="Test Selenium library" line="27">
+<kw name="Given Open Browser" library="SeleniumLibrary">
+<arg>https://duckduckgo.com/</arg>
+<arg>Chrome</arg>
+<arg>remote_url=${GRID_URL}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<msg timestamp="20220615 16:49:35.078" level="INFO">Opening browser 'Chrome' to base url 'https://duckduckgo.com/' through remote server at 'http://selenium__standalone-chrome:4444/wd/hub'.</msg>
+<status status="PASS" starttime="20220615 16:49:35.077" endtime="20220615 16:49:37.921"/>
+</kw>
+<kw name="And Set Screenshot Directory" library="SeleniumLibrary">
+<arg>EMBED</arg>
+<doc>Sets the directory for captured screenshots.</doc>
+<status status="PASS" starttime="20220615 16:49:37.922" endtime="20220615 16:49:37.922"/>
+</kw>
+<kw name="And Wait Until Page Contains Element" library="SeleniumLibrary">
+<arg>id=search_form_input_homepage</arg>
+<doc>Waits until the element ``locator`` appears on the current page.</doc>
+<status status="PASS" starttime="20220615 16:49:37.922" endtime="20220615 16:49:38.027"/>
+</kw>
+<kw name="When Input text" library="SeleniumLibrary">
+<arg>id=search_form_input_homepage</arg>
+<arg>robot framework</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<msg timestamp="20220615 16:49:38.028" level="INFO">Typing text 'robot framework' into text field 'id=search_form_input_homepage'.</msg>
+<status status="PASS" starttime="20220615 16:49:38.028" endtime="20220615 16:49:38.241"/>
+</kw>
+<kw name="And Wait Until Element Is Enabled" library="SeleniumLibrary">
+<arg>id=search_button_homepage</arg>
+<doc>Waits until the element ``locator`` is enabled.</doc>
+<status status="PASS" starttime="20220615 16:49:38.241" endtime="20220615 16:49:38.402"/>
+</kw>
+<kw name="And Scroll Element Into View" library="SeleniumLibrary">
+<arg>id=search_button_homepage</arg>
+<doc>Scrolls the element identified by ``locator`` into view.</doc>
+<status status="PASS" starttime="20220615 16:49:38.402" endtime="20220615 16:49:38.706"/>
+</kw>
+<kw name="And Click Element" library="SeleniumLibrary">
+<arg>id=search_button_homepage</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<msg timestamp="20220615 16:49:38.707" level="INFO">Clicking element 'id=search_button_homepage'.</msg>
+<status status="PASS" starttime="20220615 16:49:38.707" endtime="20220615 16:49:39.849"/>
+</kw>
+<kw name="Then Wait Until Page Contains" library="SeleniumLibrary">
+<arg>Robot Framework</arg>
+<doc>Waits until ``text`` appears on the current page.</doc>
+<status status="PASS" starttime="20220615 16:49:39.850" endtime="20220615 16:49:39.906"/>
+</kw>
+<kw name="And Capture Page Screenshot" library="SeleniumLibrary">
+<doc>Takes a screenshot of the current page and embeds it into a log file.</doc>
+<msg timestamp="20220615 16:49:39.986" level="WARN">Keyword 'Capture Page Screenshot' could not be run on failure: Message: unknown error: cannot activate web view
+  (Session info: chrome=102.0.5005.61)
+Stacktrace:
+#0 0x555b3de5ff33 &lt;unknown&gt;
+#1 0x555b3dbaa118 &lt;unknown&gt;
+#2 0x555b3db99fd3 &lt;unknown&gt;
+#3 0x555b3db8d779 &lt;unknown&gt;
+#4 0x555b3dc1d829 &lt;unknown&gt;
+#5 0x555b3dbfdf72 &lt;unknown&gt;
+#6 0x555b3dc112e4 &lt;unknown&gt;
+#7 0x555b3dbfde63 &lt;unknown&gt;
+#8 0x555b3dbd382a &lt;unknown&gt;
+#9 0x555b3dbd4985 &lt;unknown&gt;
+#10 0x555b3dea44cd &lt;unknown&gt;
+#11 0x555b3dea85ec &lt;unknown&gt;
+#12 0x555b3de8e71e &lt;unknown&gt;
+#13 0x555b3dea9238 &lt;unknown&gt;
+#14 0x555b3de83870 &lt;unknown&gt;
+#15 0x555b3dec5608 &lt;unknown&gt;
+#16 0x555b3dec5788 &lt;unknown&gt;
+#17 0x555b3dedff1d &lt;unknown&gt;
+#18 0x7f9642456609 &lt;unknown&gt;
+</msg>
+<msg timestamp="20220615 16:49:39.988" level="FAIL">WebDriverException: Message: unknown error: cannot activate web view
+  (Session info: chrome=102.0.5005.61)
+Stacktrace:
+#0 0x555b3de5ff33 &lt;unknown&gt;
+#1 0x555b3dbaa118 &lt;unknown&gt;
+#2 0x555b3db99fd3 &lt;unknown&gt;
+#3 0x555b3db8d779 &lt;unknown&gt;
+#4 0x555b3dc1d829 &lt;unknown&gt;
+#5 0x555b3dbfdf72 &lt;unknown&gt;
+#6 0x555b3dc112e4 &lt;unknown&gt;
+#7 0x555b3dbfde63 &lt;unknown&gt;
+#8 0x555b3dbd382a &lt;unknown&gt;
+#9 0x555b3dbd4985 &lt;unknown&gt;
+#10 0x555b3dea44cd &lt;unknown&gt;
+#11 0x555b3dea85ec &lt;unknown&gt;
+#12 0x555b3de8e71e &lt;unknown&gt;
+#13 0x555b3dea9238 &lt;unknown&gt;
+#14 0x555b3de83870 &lt;unknown&gt;
+#15 0x555b3dec5608 &lt;unknown&gt;
+#16 0x555b3dec5788 &lt;unknown&gt;
+#17 0x555b3dedff1d &lt;unknown&gt;
+#18 0x7f9642456609 &lt;unknown&gt;
+</msg>
+<status status="FAIL" starttime="20220615 16:49:39.906" endtime="20220615 16:49:39.991"/>
+</kw>
+<kw name="Close All Browsers" library="SeleniumLibrary" type="TEARDOWN">
+<doc>Closes all open browsers and resets the browser cache.</doc>
+<status status="PASS" starttime="20220615 16:49:39.993" endtime="20220615 16:49:40.132"/>
+</kw>
+<tag>amd64</tag>
+<tag>image</tag>
+<tag>selenium</tag>
+<status status="FAIL" starttime="20220615 16:49:35.075" endtime="20220615 16:49:40.132">WebDriverException: Message: unknown error: cannot activate web view
+  (Session info: chrome=102.0.5005.61)
+Stacktrace:
+#0 0x555b3de5ff33 &lt;unknown&gt;
+#1 0x555b3dbaa118 &lt;unknown&gt;
+#2 0x555b3db99fd3 &lt;unknown&gt;
+#3 0x555b3db8d779 &lt;unknown&gt;
+#4 0x555b3dc1d829 &lt;unknown&gt;
+#5 0x555b3dbfdf72 &lt;unknown&gt;
+#6 0x555b3dc112e4 &lt;unknown&gt;
+#7 0x555b3dbfde63 &lt;unknown&gt;
+#8 0x555b3dbd382a &lt;unknown&gt;
+#9 0x555b3dbd4985 &lt;unknown&gt;
+#10 0x555b3dea44cd &lt;unknown&gt;
+#11 0x555b3dea85ec &lt;unknown&gt;
+#12 0x555b3de8e71e &lt;unknown&gt;
+#13 0x555b3dea9238 &lt;unknown&gt;
+#14 0x555b3de83870 &lt;unknown&gt;
+#15 0x555b3dec5608 &lt;unknown&gt;
+#16 0x555b3dec5788 &lt;unknown&gt;
+#17 0x555b3dedff1d &lt;unknown&gt;
+#18 0x7f9642456609 &lt;unknown&gt;
+</status>
+</test>
+<test id="s1-s1-t4" name="Test library import" line="40">
+<kw name="When Import Library" library="BuiltIn">
+<arg>FakerLibrary</arg>
+<doc>Imports a library with the given name and optional arguments.</doc>
+<status status="PASS" starttime="20220615 16:49:40.135" endtime="20220615 16:49:40.459"/>
+</kw>
+<kw name="Words" library="FakerLibrary">
+<var>${words}</var>
+<doc>Generate a tuple of words.</doc>
+<msg timestamp="20220615 16:49:40.460" level="INFO">${words} = ['light', 'manage', 'truth']</msg>
+<status status="PASS" starttime="20220615 16:49:40.460" endtime="20220615 16:49:40.460"/>
+</kw>
+<kw name="Then Log" library="BuiltIn">
+<arg>words: ${words}</arg>
+<doc>Logs the given message with the given level.</doc>
+<msg timestamp="20220615 16:49:40.461" level="INFO">words: ['light', 'manage', 'truth']</msg>
+<status status="PASS" starttime="20220615 16:49:40.460" endtime="20220615 16:49:40.461"/>
+</kw>
+<tag>amd64</tag>
+<tag>fakerlibrary</tag>
+<tag>image</tag>
+<status status="PASS" starttime="20220615 16:49:40.134" endtime="20220615 16:49:40.461"/>
+</test>
+<status status="FAIL" starttime="20220615 16:49:34.391" endtime="20220615 16:49:40.463"/>
+</suite>
+<status status="FAIL" starttime="20220615 16:49:34.360" endtime="20220615 16:49:40.466"/>
+</suite>
+<statistics>
+<total>
+<stat pass="2" fail="1" skip="1">All Tests</stat>
+</total>
+<tag>
+<stat pass="2" fail="1" skip="1">amd64</stat>
+<stat pass="1" fail="0" skip="0">core</stat>
+<stat pass="1" fail="0" skip="0">fakerlibrary</stat>
+<stat pass="2" fail="1" skip="1">image</stat>
+<stat pass="0" fail="0" skip="1">request</stat>
+<stat pass="0" fail="1" skip="0">selenium</stat>
+</tag>
+<suite>
+<stat pass="2" fail="1" skip="1" id="s1" name="RF">RF</stat>
+<stat pass="2" fail="1" skip="1" id="s1-s1" name="Image">RF.Image</stat>
+</suite>
+</statistics>
+<errors>
+<msg timestamp="20220615 16:49:39.986" level="WARN">Keyword 'Capture Page Screenshot' could not be run on failure: Message: unknown error: cannot activate web view
+  (Session info: chrome=102.0.5005.61)
+Stacktrace:
+#0 0x555b3de5ff33 &lt;unknown&gt;
+#1 0x555b3dbaa118 &lt;unknown&gt;
+#2 0x555b3db99fd3 &lt;unknown&gt;
+#3 0x555b3db8d779 &lt;unknown&gt;
+#4 0x555b3dc1d829 &lt;unknown&gt;
+#5 0x555b3dbfdf72 &lt;unknown&gt;
+#6 0x555b3dc112e4 &lt;unknown&gt;
+#7 0x555b3dbfde63 &lt;unknown&gt;
+#8 0x555b3dbd382a &lt;unknown&gt;
+#9 0x555b3dbd4985 &lt;unknown&gt;
+#10 0x555b3dea44cd &lt;unknown&gt;
+#11 0x555b3dea85ec &lt;unknown&gt;
+#12 0x555b3de8e71e &lt;unknown&gt;
+#13 0x555b3dea9238 &lt;unknown&gt;
+#14 0x555b3de83870 &lt;unknown&gt;
+#15 0x555b3dec5608 &lt;unknown&gt;
+#16 0x555b3dec5788 &lt;unknown&gt;
+#17 0x555b3dedff1d &lt;unknown&gt;
+#18 0x7f9642456609 &lt;unknown&gt;
+</msg>
+</errors>
+</robot>

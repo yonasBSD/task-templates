@@ -8,7 +8,7 @@ vars:
 tasks:
 
   format-semver:
-    desc: "[VERSION] generate a version in semver format : VERSION|V=5.7 (*)"
+    desc: "Generate a version in semver format : VERSION|V=5.7 (*)"
     summary: |
       [VERSION] format-semver:
       Usage: task version:format-semver VERSION|V=<version>
@@ -49,7 +49,7 @@ tasks:
     silent: true
 
   get-cli-version:
-    desc: "[VERSION] Get version from CLI output of a --version option: OUTPUT|O='Task version: v3.19.0 (h1:jS1s2...' (*)"
+    desc: "Get version from CLI output of a --version option: OUTPUT|O='Task version: v3.19.0 (h1:jS1s2...' (*)"
     summary: |
       [VERSION] Get version from CLI output:
       Usage: task version:get-cli-version OUTPUT|O=<cli_output>/<repo>
@@ -66,7 +66,7 @@ tasks:
     silent: true
 
   get-docker-apk-version:
-    desc: "[VERSION] Get version of an APK package of an Alpine docker image: IMG|I=jfxs/alpine-task APK|A=squid (*)"
+    desc: "Get version of an APK package of an Alpine docker image: IMG|I=jfxs/alpine-task APK|A=squid (*)"
     summary: |
       [VERSION] Get version of an APK package:
       Usage: task version:get-docker-apk-version IMG|I=<image> APK|A=<package>
@@ -95,7 +95,7 @@ tasks:
     silent: true
 
   get-docker-cli-version:
-    desc: "[VERSION] Get version from CLI output command of a Docker container: IMG|I=jfxs/alpine-task CMD|C=task --version (*)"
+    desc: "Get version from CLI output command of a Docker container: IMG|I=jfxs/alpine-task CMD|C=task --version (*)"
     summary: |
       [VERSION] Get version from CLI output command of a Docker container:
       Usage: task version:get-docker-cli-version IMG|I=<image> CMD|C=<shell_command>
@@ -124,7 +124,7 @@ tasks:
     silent: true
 
   get-docker-manifest-version:
-    desc: "[VERSION] Get version from docker manifest with skopeo: IMG|I=index.docker.io/jfxs/alpine-task [LABEL|L=org.opencontainers.image.version] (*)"
+    desc: "Get version from docker manifest with skopeo: IMG|I=index.docker.io/jfxs/alpine-task [LABEL|L=org.opencontainers.image.version] (*)"
     summary: |
       [VERSION] get-manifest-version:
       Usage: task version:get-manifest-version IMG|I=<image> [LABEL|L=<label_of_version>]
@@ -163,7 +163,7 @@ tasks:
     silent: true
 
   get-latest-github:
-    desc: "[VERSION] Get latest version from Github: REPO|R=go-task/task (*)"
+    desc: "Get latest version from Github: REPO|R=go-task/task (*)"
     summary: |
       [VERSION] Get latest version from Github:
       Usage: task version:get-latest-github REPO|R=<owner>/<repo>
@@ -193,7 +193,7 @@ tasks:
     silent: true
 
   get-latest-pypi:
-    desc: "[VERSION] Get latest version from PyPI: PACKAGE|P=ansible-core (*)"
+    desc: "Get latest version from PyPI: PACKAGE|P=ansible-core (*)"
     summary: |
       [VERSION] Get latest version from PyPI:
       Usage: task version:get-latest-github PACKAGE|P=<package_name>
@@ -223,7 +223,7 @@ tasks:
     silent: true
 
   get-major-minor-version:
-    desc: "[VERSION] Get majeur and minor version number from full version: VERSION|V=3.19.1 (*)"
+    desc: "Get majeur and minor version number from full version: VERSION|V=3.19.1 (*)"
     summary: |
       [VERSION] Get majeurand minor  version number from full version:
       Usage: task version:get-major-minor-version VERSION|V=<full_version>/<repo>
@@ -241,7 +241,7 @@ tasks:
     silent: true
 
   get-major-version:
-    desc: "[VERSION] Get majeur version number from full version: VERSION|V=3.19.1 (*)"
+    desc: "Get majeur version number from full version: VERSION|V=3.19.1 (*)"
     summary: |
       [VERSION] Get majeur version number from full version:
       Usage: task version:get-major-version VERSION|V=<full_version>/<repo>

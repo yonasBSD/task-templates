@@ -1,0 +1,80 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  IMAGE_BLACK: pyfound/black:latest_release
+  IMAGE_PYTHON: python:3-bullseye
+
+tasks:
+
+  black:
+    desc: "Black formater. Arguments: [ARG|A=--check] [IMG|I=pyfound/black] [PULL|P=n|N] (*)"
+    summary: |
+      [PYTHON] Black formater.
+      Usage: task python:black [ARG|A=--check] [IMG|I=pyfound/black] [PULL|P=<n|N>]
+
+      Arguments:
+        ARG  | A  Arguments or options to passto black CLI (optional, by default current directory)
+        IMG  | I  Docker black image to use (optional, by default {{.IMAGE_BLACK}})
+        PULL | P  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - black or docker
+    vars:
+      ARG: '{{default .A .ARG}}'
+      ARG_D: '{{default "." .ARG}}'
+      IMG: '{{default .I .IMG}}'
+      IMG_D: '{{default .IMAGE_BLACK .IMG}}'
+      PULL: '{{default .P .PULL}}'
+      EXEC: black
+    cmds:
+      - task: exec-local-docker
+        vars: {EXEC: "{{.EXEC}}", ARG: "{{.ARG_D}}", IMG: "{{.IMG_D}}", PULL: "{{.PULL}}"}
+    silent: true
+
+  lint:
+    desc: "Python lint with flake8. Arguments: [ARG|A=path/to/code/] (*)"
+    summary: |
+      [PYTHON] Linter with flake8.
+      Usage: task python:lint [ARG|A=path/to/code/]
+
+      Arguments:
+        ARG  | A  Arguments or options to pass to flake CLI (optional, by default current directory)
+
+      Requirements:
+        - python or docker
+    vars:
+      ARG: '{{default .A .ARG}}'
+      ARG_D: '{{default "." .ARG}}'
+      IMG: '{{default .I .IMG}}'
+      IMG_D: '{{default .IMAGE_PYTHON .IMG}}'
+      PULL: '{{default .P .PULL}}'
+      EXEC: flake8
+      EXEC_DOCKER: 'python3 -m pip install flake8 && python3 -m flake8'
+    cmds:
+      - task: exec-local-docker
+        vars: {EXEC: "{{.EXEC}}", EXEC_DOCKER: "{{.EXEC_DOCKER}}", ARG: "{{.ARG_D}}", IMG: "{{.IMG_D}}", PULL: "{{.PULL}}"}
+    silent: true
+
+  exec-local-docker:
+    vars:
+      EXEC_DOCKER: '{{default .EXEC .EXEC_DOCKER}}'
+    cmds:
+      - |
+        if (command -v "{{.EXEC}}" 2>&1 >/dev/null); then
+          {{.EXEC}} {{.ARG}}
+        else
+          if ! command -v docker 2>&1 >/dev/null; then
+            echo "docker and {{.EXEC}} are not installed!" && exit 1
+          fi
+          if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG}}"; fi
+          docker run -t --rm -v $(pwd):/src --workdir /src "{{.IMG}}" /bin/sh -c "{{.EXEC_DOCKER}} {{.ARG}}"
+        fi
+    preconditions:
+      - sh: command -v docker || command -v python
+        msg: "python or docker are not installed"
+      - sh: test -n "{{.EXEC}}"
+        msg: "EXEC argument is required"
+    silent: true

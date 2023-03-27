@@ -6,13 +6,12 @@ Documentation     version:format-semver tests
 Library           Process
 
 *** Variables ***
-${TESTS_DIR}   tests
 ${TASKFILE_PATH}   ${CURDIR}/../../Taskfile.d/version.yml
 ${TASK_BIN}   task
 
 *** Test Cases ***
 [VERSION] option missing
-    [Tags]    docker    get-next-tag-index       simple
+    [Tags]    docker    format-semver       simple
     Run task format-semver   DUMMY=1.2.3    1    ${EMPTY}    VERSION|V argument is required
 
 Successfull identical return with VERSION argument
