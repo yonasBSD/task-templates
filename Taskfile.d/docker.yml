@@ -112,7 +112,7 @@ tasks:
             exit 1
           fi
         fi
-        echo $skopeo_output | grep -Fo sha | wc -l | awk '{ print $1 }'
+        echo $skopeo_output | grep -o sha | wc -l | awk '{ print $1 }'
     preconditions:
       - sh: command -v docker || command -v skopeo
         msg: "skopeo or docker are not installed"
