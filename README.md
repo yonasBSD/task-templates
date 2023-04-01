@@ -96,10 +96,10 @@ Otherwise, if you prefer stability you should also commit the content of the `Ta
 * `lint.yml`: General lint text files tasks for every project
 * `multipass.yml`: [Multipass](https://multipass.run/) tasks
 * `python.yml`: Python tasks
-* `robot.yml`: [Robot Frameworks](https://robotframework.org/) usefull tasks
+* `robot.yml`: [Robot Frameworks](https://robotframework.org/) useful tasks
 * `sbom.yml`: Software Bill of Materials commands with [syft](https://github.com/anchore/syft) and [cosign](https://github.com/sigstore/cosign)
 * `system.yml`: Generation of ssh key
-* `version.yml`: Usefull version tasks like get last version on Github, pypi ...
+* `version.yml`: Useful version tasks like get last version on Github, pypi ...
 * `yarn.yml`: Yarn tasks
 
 ### Upgrade

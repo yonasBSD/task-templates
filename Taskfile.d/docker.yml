@@ -85,6 +85,58 @@ tasks:
         msg: "docker is not installed"
     silent: true
 
+  count-layer:
+    desc: "Count number of layer of an image: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 (*)"
+    summary: |
+      [DOCKER] Count number of layer of an image.
+      Usage: task docker:count-layer IMG|I=<image>
+
+      Arguments:
+        IMG | I  Image to analyze (required)
+
+      Requirements:
+        - docker or skopeo
+    vars:
+      IMG: '{{default .I .IMG}}'
+      IMAGE_SKOPEO: quay.io/skopeo/stable
+    cmds:
+      - |
+        if [ -x "$(command -v skopeo)" ]; then
+          if ! skopeo_output=$(skopeo inspect --format "{{ `{{ .Layers }}` }}" "docker://{{.IMG}}"); then
+            printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{ .Layers }}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
+            exit 1
+          fi
+        else
+          if ! skopeo_output=$(docker run -t --rm "{{.IMAGE_SKOPEO}}" inspect --format "{{ `{{ .Layers }}` }}" "docker://{{.IMG}}"); then
+            printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{ .Layers }}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
+            exit 1
+          fi
+        fi
+        echo $skopeo_output | grep -Fo sha | wc -l | awk '{ print $1 }'
+    preconditions:
+      - sh: command -v docker || command -v skopeo
+        msg: "skopeo or docker are not installed"
+      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+        msg: "IMG|I argument is required"
+    silent: true
+
+  get-base-image:
+    desc: "Get the base image of a Dockerfile: [FILE|F=Dockerfile] (*)"
+    summary: |
+      [DOCKER] Get the base image of a Dockerfile.
+      Usage: task docker:get-digest [FILE|F=<Dockerfile_path>]
+
+      Arguments:
+        FILE | F  Dockerfile path (optional, by default Dockerfile)
+
+      Requirements:
+    vars:
+      FILE: '{{default .F .FILE}}'
+      D_FILE: '{{default "Dockerfile" .FILE}}'
+    cmds:
+      - grep FROM "{{.D_FILE}}" | tail -n 1 | awk '{print $2}'
+    silent: true
+
   get-digest:
     desc: "Get the digest of an image: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 (*)"
     summary: |
@@ -120,30 +172,31 @@ tasks:
         msg: "IMG|I argument is required"
     silent: true
 
-  get-digest-layer0:
-    desc: "Get the digest of the layer 0 (base image) of an image: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 (*)"
+  get-digest-layerN:
+    desc: "Get the digest of the layer N of an image: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 NUM|N=0 (*)"
     summary: |
-      [DOCKER] Get the digest of the layer 0 (base image) of an image.
+      [DOCKER] Get the digest of the layer N of an image.
       Usage: task docker:get-digest-layer0 IMG|I=<image>
 
       Arguments:
         IMG | I  Image to analyze (required)
-
+        NUM | N  Layer to get. Start at 0 (required)
       Requirements:
         - docker or skopeo
     vars:
       IMG: '{{default .I .IMG}}'
       IMAGE_SKOPEO: quay.io/skopeo/stable
+      NUM: '{{default .N .NUM}}'
     cmds:
       - |
         if [ -x "$(command -v skopeo)" ]; then
-          if ! skopeo_output=$(skopeo inspect --format "{{ `{{index .Layers 0}}` }}" "docker://{{.IMG}}"); then
-            printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{index .Layers 0}}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
+          if ! skopeo_output=$(skopeo inspect --format "{{ `{{index .Layers ` }} {{.NUM}} {{ `}}` }}" "docker://{{.IMG}}"); then
+            printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{index .Layers N}}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
             exit 1
           fi
         else
-          if ! skopeo_output=$(docker run -t --rm "{{.IMAGE_SKOPEO}}" inspect --format "{{ `{{index .Layers 0}}` }}" "docker://{{.IMG}}"); then
-            printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{index .Layers 0}}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
+          if ! skopeo_output=$(docker run -t --rm "{{.IMAGE_SKOPEO}}" inspect --format "{{ `{{index .Layers ` }} {{.NUM}} {{ `}}` }}" "docker://{{.IMG}}"); then
+            printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{index .Layers N}}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
             exit 1
           fi
         fi

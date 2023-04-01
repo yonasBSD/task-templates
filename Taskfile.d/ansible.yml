@@ -36,18 +36,19 @@ tasks:
     silent: true
 
   galaxy-install:
-    desc: "Ansible Galaxy install requirements. Arguments: REQ|R=\"provision/requirements.txt\" [FORCE|F=<y|Y>] [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
+    desc: "Ansible Galaxy install requirements. Arguments: REQ|R=\"provision/requirements.txt\" [FORCE|F=<y|Y>] [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] [PROXY|PX=http://url:port] (*)"
     summary: |
       [ANSIBLE] Ansible Galaxy install requirements.
       If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
       otherwise an Ansible Docker image is used.
-      Usage: task ansible:galaxy-install FILE|F=<file_path> [FORCE|F=<y|Y>] [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
+      Usage: task ansible:galaxy-install FILE|F=<file_path> [FORCE|F=<y|Y>] [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>] [PROXY|PX=<proxy_url>]
 
       Arguments:
         REQ   | R  Requirements file path (required)
         FORCE | F  Force to install the last version of collections (optional, by default no)
         IMG   | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
         PULL  | P  Pull docker image (optional, by default yes)
+        PROXY | PX Proxy (optional)
 
       Requirements:
         - ansible or docker
@@ -56,12 +57,21 @@ tasks:
       FORCE: '{{default .F .FORCE}}'
       IMG: '{{default .I .IMG}}'
       PULL: '{{default .P .PULL}}'
+      PROXY: '{{default .PX .PROXY}}'
     cmds:
       - |
         if [ "{{.FORCE}}" = "Y" ] || [ "{{.F}}" = "y" ]; then
-          task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="ansible-galaxy install --force -r {{.REQ}}"
+          if [ -z "{{.PROXY}}" ]; then
+            task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="ansible-galaxy install --force -r {{.REQ}}"
+          else
+            task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="export http_proxy={{.PROXY}} && export https_proxy={{.PROXY}} && ansible-galaxy install --force -r {{.REQ}}"
+          fi
         else
-          task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="ansible-galaxy install -r {{.REQ}}"
+          if [ -z "{{.PROXY}}" ]; then
+            task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="ansible-galaxy install -r {{.REQ}}"
+          else
+            task ansible:exec-local-docker-ansible IMG="{{.IMG}}" PULL="{{.PULL}}" CMD="export http_proxy={{.PROXY}} && export https_proxy={{.PROXY}} && ansible-galaxy install -r {{.REQ}}"
+          fi
         fi
     preconditions:
       - sh: test -n "{{.REQ}}" || test -n "{{.R}}"
