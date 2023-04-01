@@ -176,7 +176,7 @@ tasks:
     desc: "Get the digest of the layer N of an image: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 NUM|N=0 (*)"
     summary: |
       [DOCKER] Get the digest of the layer N of an image.
-      Usage: task docker:get-digest-layer0 IMG|I=<image>
+      Usage: task docker:get-digest-layerN IMG|I=<image>
 
       Arguments:
         IMG | I  Image to analyze (required)
@@ -206,6 +206,8 @@ tasks:
         msg: "skopeo or docker are not installed"
       - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
         msg: "IMG|I argument is required"
+      - sh: test -n "{{.NUM}}" || test -n "{{.N}}"
+        msg: "NUM|N argument is required"
     silent: true
 
   get-next-tag-index:
