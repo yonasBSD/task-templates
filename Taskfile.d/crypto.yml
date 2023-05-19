@@ -1,0 +1,129 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+
+tasks:
+
+  generate-csr:
+    desc: "Generate a private key pair and csr. Arguments: CONFIG|C=server_config.cnf NAME|N=hostname (*)"
+    summary: |
+      [CRYPTO] Generate a private key pair and Certificate Signing Request csr.
+      Usage: task crypto:generate-csr CONFIG|K=<config_path> NAME|N=<server_name>
+
+      Arguments:
+       CONFIG | C  Config file path (required)
+       NAME   | N  Server name (required)
+
+      Configuration file Example:
+      [ req ]
+      default_md = sha256
+      distinguished_name = req_dn
+      req_extensions = req_ext
+      prompt = no
+
+      [ req_ext ]
+      subjectAltName = @alt_names
+
+      [ req_dn ]
+      countryName = FR
+      stateOrProvinceName = Ile-de-France
+      localityName = Paris
+      organizationName = organization
+      organizationalUnitName = unit
+      commonName = server_name.example.com
+
+      [ alt_names ]
+      DNS.0 = server_name.example.com
+
+      Requirements:
+        - openssl
+    vars:
+      CONFIG: '{{default .C .CONFIG}}'
+      NAME: '{{default .N .NAME}}'
+    cmds:
+      - openssl req -new -newkey rsa:2048 -nodes -config "{{.CONFIG}}" -out "{{.NAME}}.csr" -keyout "{{.NAME}}.key"
+      - chmod 600 "{{.NAME}}.key"
+      - echo "Key {{.NAME}}.key and csr {{.NAME}}.csr generated"
+    status:
+      - test -f "{{.NAME}}.key"
+      - test -f "{{.NAME}}.csr"
+    preconditions:
+      - sh: command -v openssl
+        msg: "openssl is not installed"
+      - sh: test -n "{{.CONFIG}}" || test -n "{{.C}}"
+        msg: "CONFIG|C argument is required"
+      - sh: test -n "{{.NAME}}" || test -n "{{.N}}"
+        msg: "NAME|N argument is required"
+    silent: true
+
+  generate-htpasswd:
+    desc: "Generate or add an entry in htpasswd file. Arguments: FILE|F=relative_file_path UUSER|U=user PASS|P=password (*)"
+    summary: |
+      [CRYPTO] Generate a Basic Auth file or add an entry in htpasswd file.
+      Usage: task crypto:generate-htpasswd FILE|F=<file_relative_path> UUSER|U=<username> PASS|P=<password>
+
+      Arguments:
+       FILE  | F  Relative file path to the Basic Auth file (required)
+       UUSER | U  Username (required)
+       PASS  | P  Password of the username (required)
+
+      Requirements:
+        - docker
+    vars:
+      FILE: '{{default .F .FILE}}'
+      PASS: '{{default .P .PASS}}'
+      UUSER: '{{default .U .UUSER}}'
+      DEFAULT_IMAGE: alpine:latest
+    cmds:
+      - |
+        if test -f "{{.FILE}}"; then
+          htpasswd_options="-Bb"
+        else
+          htpasswd_options="-cBb"
+        fi
+        docker run -t --rm --name generate-passwd -v "$(pwd):/file" "{{.DEFAULT_IMAGE}}" /bin/sh -c "apk --no-cache add apache2-utils && htpasswd $htpasswd_options /file/{{.FILE}} {{.UUSER}} {{.PASS}}"
+      - chmod 600 "{{.FILE}}"
+      - echo "File {{.FILE}} created/updated"
+    preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
+      - sh: test -n "{{.FILE}}" || test -n "{{.F}}"
+        msg: "FILE|F argument is required"
+      - sh: test -n "{{.UUSER}}" || test -n "{{.U}}"
+        msg: "UUSER|U argument is required"
+      - sh: test -n "{{.PASS}}" || test -n "{{.P}}"
+        msg: "PASS|P argument is required"
+    silent: true
+
+  generate-key:
+    desc: "Generate a SSH key pair. Arguments: KEY|K=key_path (*)"
+    summary: |
+      [CRYPTO] Generate a SSH key pair.
+      Usage: task crypto:generate-key KEY|K=<key_path>
+
+      Arguments:
+       KEY | K  Path to the private key file (required)
+
+      Requirements:
+        - ssh-keygen
+    vars:
+      KEY: '{{default .K .KEY}}'
+    cmds:
+      - dir=$(dirname "{{.KEY}}") && mkdir -p "$dir" && chmod 700 "$dir"
+      - |
+        key_name=$(basename -- "{{.KEY}}")
+        now=$(date +"%Y%m%d")
+        ssh-keygen -q -N "" -m PEM -t rsa -b 4096 -f "{{.KEY}}" -C "$key_name - $now"
+      - chmod 600 "{{.KEY}}"
+      - echo "Key {{.KEY}} generated"
+    status:
+      - test -f "{{.KEY}}"
+    preconditions:
+      - sh: command -v ssh-keygen
+        msg: "ssh-keygen is not installed"
+      - sh: test -n "{{.KEY}}" || test -n "{{.K}}"
+        msg: "KEY|K argument is required"
+    silent: true

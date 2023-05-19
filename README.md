@@ -60,7 +60,7 @@ vars:
 and run:
 
 ```shell
-task 00:00-install-templates
+task install-templates
 ```
 
 A specific version of a template can be specify as follow:
@@ -90,6 +90,7 @@ Otherwise, if you prefer stability you should also commit the content of the `Ta
 
 * `age.yml`: Encrypt/Decrypt with [age](https://github.com/FiloSottile/age)
 * `ansible.yml`: Ansible common tasks
+* `crypto.yml`: Cryptographic tasks, generate keys, certificates ...
 * `docker.yml`: Docker common tasks
 * `git.yml`: Git signed commit and [commitizen](http://commitizen.github.io/cz-cli/) tasks
 * `go.yml`: Go task
@@ -98,14 +99,14 @@ Otherwise, if you prefer stability you should also commit the content of the `Ta
 * `python.yml`: Python tasks
 * `robot.yml`: [Robot Frameworks](https://robotframework.org/) useful tasks
 * `sbom.yml`: Software Bill of Materials commands with [syft](https://github.com/anchore/syft) and [cosign](https://github.com/sigstore/cosign)
-* `system.yml`: Generation of ssh key
+* `system.yml`: System interaction
 * `version.yml`: Useful version tasks like get last version on Github, pypi ...
 * `yarn.yml`: Yarn tasks
 
 ### Upgrade
 
-* To upgrade your existing templates, just run the command: `task 00:00-install-templates`,
-* To add a new template, add it to the variable `TASK_TEMPLATES` and run `task 00:00-install-templates`.
+* To upgrade your existing templates, just run the command: `task install-templates`,
+* To add a new template, add it to the variable `TASK_TEMPLATES` and run `task install-templates`.
 
 ## Authors
 

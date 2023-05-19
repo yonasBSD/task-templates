@@ -84,7 +84,7 @@ tasks:
         sh: basename "{{.KEY_PATH}}"
     cmds:
       - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_NODE}}"; fi
-      - docker run -d --name node-commit -v "{{.KEY_PATH_DIR}}:{{.KEY_MOUNT_POINT}}" -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" "{{.IMAGE_NODE}}" sleep infinity
+      - docker run -d --name node-commit -v "{{.KEY_PATH_DIR}}:{{.KEY_MOUNT_POINT}}" -v "$(pwd):{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" "{{.IMAGE_NODE}}" sleep infinity
       - defer: echo "Waiting for the container to stop..." && docker stop node-commit && docker rm node-commit
       - docker exec -it node-commit /bin/sh -c 'gpg --import "{{.KEY_MOUNT_POINT}}/{{.KEY_NAME}}"'
       - docker exec -it node-commit /bin/sh -c 'export GPG_TTY=$(tty); git config --global --add safe.directory /data && yarn commit'

@@ -148,7 +148,7 @@ tasks:
       KEY_PATH: "{{.DIR_SSH}}/k-{{.NAME}}-1.pem"
       MULTIPASS_TIMEOUT: 600
     cmds:
-      - task system:generate-key KEY={{.KEY_PATH}}
+      - task crypto:generate-key KEY={{.KEY_PATH}}
       - if test -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}-{{.NAME}}.yml"; then cp -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}-{{.NAME}}.yml" "{{.FILE_CLOUD_INIT}}"; else echo "{{.DEFAULT_CLOUD_INIT}}" > "{{.FILE_CLOUD_INIT}}"; fi
       - KEY_PUB=$(cat "{{.KEY_PATH}}.pub") && sed -i.bu "s#__SSH_KEY__#${KEY_PUB}#g" "{{.FILE_CLOUD_INIT}}"
       - rm -f "{{.FILE_CLOUD_INIT}}.bu"

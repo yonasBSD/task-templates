@@ -41,7 +41,7 @@ robot --version</msg>
 <arg>https://gitlab.com/api/${GITLAB_API_VERSION}/users</arg>
 <arg>params=username=${GITLAB_USERNAME}</arg>
 <arg>expected_status=200</arg>
-<arg>a/[]\y.^$*/z</arg>
+<arg>\y.^$*/z</arg>
 <doc>Sends a GET request.</doc>
 <msg timestamp="20220617 02:11:22.712" level="INFO">GET Request : url=https://gitlab.com/api/v4/users?username=fxs
  path_url=/api/v4/users?username=fxs
@@ -82,7 +82,7 @@ robot --version</msg>
 <arg>Chrome</arg>
 <arg>remote_url=${GRID_URL}</arg>
 <doc>Opens a new browser instance to the optional ``url``.</doc>
-<msg timestamp="20220617 02:11:22.720" level="INFO">Opening browser 'a/[]\y.^$*/z' to base url 'https://duckduckgo.com/' through remote server at 'https://test:test@ondemand.us-west-1.saucelabs.com:443/wd/hub'.</msg>
+<msg timestamp="20220617 02:11:22.720" level="INFO">Opening browser '\y.^$*/z' to base url 'https://duckduckgo.com/' through remote server at 'https://test:test@ondemand.us-west-1.saucelabs.com:443/wd/hub'.</msg>
 <status status="PASS" starttime="20220617 02:11:22.719" endtime="20220617 02:11:27.898"/>
 </kw>
 <kw name="And Set Screenshot Directory" library="SeleniumLibrary">

@@ -7,30 +7,28 @@ vars:
 
 tasks:
 
-  generate-key:
-    desc: "Generate a SSH key pair. Arguments: KEY_PATH|K=key_path (*)"
+  check-url:
+    desc: "Check response code of URL. Arguments: URL|U=http://url (*)"
     summary: |
-      [SYSTEM] Generate a SSH key pair.
-      Usage: task system:generate-key KEY|K=<key_path>
-
+      [SYSTEM] Check response code of URL.
+      Usage: task system:check-url URL|U=http://url
       Arguments:
-       KEY | K  Path to the private key file (required)
+        URL | U  Url to check (required)
 
       Requirements:
-        - ssh-keygen
+        - curl
     vars:
-      KEY: '{{default .K .KEY}}'
+      URL: '{{default .U .URL}}'
     cmds:
-      - mkdir -p .ssh
-      - chmod 700 .ssh
-      # TODO: Set basename and date at generation in comment.
-      - ssh-keygen -q -N "" -m PEM -t rsa -b 4096 -f "{{.KEY}}" -C "{{.KEY}}"
-      - echo "Key {{.KEY}} generated"
-    status:
-      - test -f "{{.KEY}}"
+      - |
+        http_code=$(curl -L -s -o /dev/null -w "%{http_code}" {{.URL}})
+        if [ "${http_code}" != "200" ]; then
+          printf "[\033[0;31m[KO] HTTP code: %s\033[0m\n" "${http_code}"
+          exit 1
+        else
+          printf "\033[0;32m[OK] %s - %s \033[0m\n" "${http_code}" {{.URL}}
+        fi
     preconditions:
-      - sh: command -v ssh-keygen
-        msg: "ssh-keygen is not installed"
-      - sh: test -n "{{.KEY}}" || test -n "{{.K}}"
-        msg: "KEY|K argument is required"
+      - sh: test -n "{{.URL}}" || test -n "{{.U}}"
+        msg: "ARG|A argument is required"
     silent: true

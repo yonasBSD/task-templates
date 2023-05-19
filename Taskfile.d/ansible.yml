@@ -92,9 +92,9 @@ tasks:
         PULL | P  Pull docker image (optional, by default yes)
 
       Requirements:
-        - ansible or docker
+        - ansible-lint or docker
     vars:
-      ARG: '{{default .A .NAME}}'
+      ARG: '{{default .A .ARG}}'
       IMG: '{{default .I .IMG}}'
       PULL: '{{default .P .PULL}}'
       CMD: "ansible-lint {{.ARG}}"

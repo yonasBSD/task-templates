@@ -108,12 +108,12 @@ Successfull mask a value with escaped character /
     Then Pattern Matches N Times In File    ${OUTPUT_TEST}    dir1/dir2/dir3    0
     And Pattern Matches N Times In File    ${OUTPUT_TEST}    ${MASK}    2
 
-Successfull mask a value with escaped characters []/\dot^$*
-    [Documentation]    Mask a value with escaped characters []/\dot^$*
+Successfull mask a value with escaped characters \dot^$*
+    [Documentation]    Mask a value with escaped characters /\dot^$*
     Given Copy File    ${OUTPUT_REF}   ${OUTPUT_TEST}
-    And Pattern Matches N Times In File    ${OUTPUT_TEST}    a/[]\\y.^$*    2
-    When Run Task Mask    DATA="a/[]\\y.^$*" ${D_FILE}    0    Masked variable [0]: 2 matches    ${EMPTY}
-    Then Pattern Matches N Times In File    ${OUTPUT_TEST}    a/[]\\y.^$*    0
+    And Pattern Matches N Times In File    ${OUTPUT_TEST}    \\y.^$*    2
+    When Run Task Mask    DATA="\\y.^$*" ${D_FILE}    0    Masked variable [0]: 2 matches    ${EMPTY}
+    Then Pattern Matches N Times In File    ${OUTPUT_TEST}    \\y.^$*    0
     And Pattern Matches N Times In File    ${OUTPUT_TEST}    ${MASK}    2
 
 

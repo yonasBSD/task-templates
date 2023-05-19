@@ -15,7 +15,7 @@ tasks:
     desc: 'Linter for files, markdown, yaml extensions. Arguments: [FIX|F=y|Y] [MEX|M=\"#node_modules\"] (*)'
     summary: |
       [LINT] Linter for files.
-      Usage: task lint:file [FIX|F=<y|Y>] [MEX='"#node_modules"']
+      Usage: task lint:file [FIX|F=<y|Y>] [MEX|M='"#node_modules"']
 
       Arguments:
         FIX | F  Fix files (optional, by default no)
