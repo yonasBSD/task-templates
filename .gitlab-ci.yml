@@ -5,6 +5,7 @@ include:
 variables:
   IMAGE_DEFAULT: alpine:latest
   IMAGE_DOCKER: docker:latest
+  IMAGE_LYCHEE: lycheeverse/lychee:latest
   IMAGE_MARKDOWNLINT: davidanson/markdownlint-cli2
   IMAGE_NODE: node:lts-bullseye
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
@@ -46,6 +47,17 @@ lint-yaml:
     - ./bin/task --version
   script:
     - ./bin/task lint:yaml
+
+lint-lychee:
+  image:
+    name: $IMAGE_LYCHEE
+  stage: lint
+  before_script:
+    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
+    - ./bin/task --version
+  script:
+    - ./bin/task lint:lychee
+  allow_failure: true
 
 lint-docker-dind:
   image:

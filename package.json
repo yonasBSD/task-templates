@@ -8,10 +8,10 @@
   },
   "devDependencies": {
     "@semantic-release/exec": "^6.0.3",
-    "@semantic-release/gitlab": "^12.0.1",
+    "@semantic-release/gitlab": "^12.0.3",
     "commitizen": "^4.3.0",
     "cz-conventional-changelog": "^3.3.0",
-    "semantic-release": "^21.0.0"
+    "semantic-release": "^21.0.6"
   },
   "scripts": {
     "commit": "cz --signoff"

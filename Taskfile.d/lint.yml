@@ -5,6 +5,8 @@ version: '3'
 
 vars:
   IMAGE_HADOLINT: hadolint/hadolint
+  # IMAGE_LYCHEE: lycheeverse/lychee:latest-alpine
+  IMAGE_LYCHEE: lycheeverse/lychee:latest
   IMAGE_MARKDOWNLINT: davidanson/markdownlint-cli2
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
   IMAGE_YAMLINT: jfxs/ansible
@@ -39,6 +41,8 @@ tasks:
         vars: {GLOB: '"**/*.md" {{.MEX}}'}
       - echo "" && echo "YAML:" && echo "====="
       - task: yaml
+      - echo "" && echo "Lychee:" && echo "======="
+      - task: lychee
     silent: true
 
   docker:
@@ -130,6 +134,8 @@ tasks:
     #   Notes:
     #    - Only git tracked files are checked.
     cmds:
+      - git ls-files > ls-files.tmp
+      - defer: rm -f ls-files.tmp
       - |
         count_all=0
         count_ko=0
@@ -157,7 +163,7 @@ tasks:
               fi
             fi
           fi
-        done < <(git ls-files)
+        done < ls-files.tmp
         if [ "$count_ko" = "0" ]; then
             printf "\033[0;32m[OK] All %s text files have an empty line at the end of file.\033[0m\n" "$count_all"
         else
@@ -197,6 +203,8 @@ tasks:
     #   Notes:
     #    - Only git tracked files are checked.
     cmds:
+      - git ls-files > ls-files.tmp
+      - defer: rm -f ls-files.tmp
       - |
         count_all=0
         count_ko=0
@@ -214,7 +222,7 @@ tasks:
               fi
             fi
           fi
-        done < <(git ls-files)
+        done < ls-files.tmp
         if [ "$count_ko" = "0" ]; then
             printf "\033[0;32m[OK] All %s text files are UTF-8 encoded.\033[0m\n" "$count_all"
         else
@@ -224,6 +232,43 @@ tasks:
     preconditions:
       - sh: command -v git
         msg: "git is not installed"
+    silent: true
+
+  lychee:
+    desc: "Find broken hyperlinks with lychee. Arguments: [ARGS|A='.'] [IMG|I=lycheeverse/lychee] [PULL|P=n|N] (*)"
+    summary: |
+      [LINT] Find broken hyperlinks.
+      Usage: task lint:lychee [ARGS|A='.'] [IMG|I=lycheeverse/lychee] [PULL|P=<n|N>]
+
+      Arguments:
+        ARGS | A  Glob expressions (optional, by default ".")
+        IMG  | I  Docker markdownlint image to use (optional, by default {{.IMAGE_LYCHEE}})
+        PULL | P  Pull docker image (optional, by default yes)
+
+      Notes:
+       - To exclude directories create a lychee.toml file with the exclude_path = ["dir1", "dir2"] directive
+       - Documentation: https://github.com/lycheeverse/lychee
+
+      Requirements:
+        - lychee or docker
+    vars:
+      ARGS: '{{default .A .ARGS}}'
+      ARGS_D: '{{default "." .ARGS}}'
+      IMG: '{{default .I .IMG}}'
+      IMG_D: '{{default .IMAGE_LYCHEE .IMG}}'
+      PULL: '{{default .P .PULL}}'
+      EXEC: lychee
+    cmds:
+      - |
+        if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
+          {{.EXEC}} {{.ARGS_D}}
+        else
+          if ! command -v docker 2>&1 >/dev/null; then
+            echo "docker and {{.EXEC}} are not installed!" && exit 1
+          fi
+          if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
+          docker run -t --rm -w /input -v $(pwd):/input "{{.IMG_D}}" {{.ARGS_D}}
+        fi
     silent: true
 
   markdown:

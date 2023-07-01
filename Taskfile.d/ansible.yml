@@ -162,6 +162,52 @@ tasks:
         msg: "ARG|A argument is required"
     silent: true
 
+  ssh:
+    desc: "SSH a host with Ansible inventory configuration. Arguments: FILE|F=inventory HOST|H=my_host (*)"
+    summary: |
+      [ANSIBLE] SSH a host from inventory options.
+      Usage: task ansible:ssh FILE|F=<inventory_path> HOST|H=<nostname>
+
+      Arguments:
+        FILE | F  Path to inventory file (required)
+        HOST | H  Hostname of server defined in inventory (required)
+
+      Requirements:
+        - ssh
+    vars:
+      FILE: '{{default .F .FILE}}'
+      HOST: '{{default .H .HOST}}'
+    cmds:
+      - |
+        line_host=$(grep "{{.HOST}}" "{{.FILE}}" | grep ansible_host | grep ansible_user | sort -u | head -n 1)
+        if [ -z "$line_host" ]; then
+          printf "\033[0;31mHost %s not found in file %s (ansible_host and ansible_user must also be defined) \033[0m\n" "{{.HOST}}" "{{.FILE}}" && exit 1
+        fi
+        user=$(echo "$line_host" | sed -e "s/.*ansible_user=//" -e "s/ .*//")
+        ip=$(echo "$line_host" | sed -e "s/.*ansible_host=//" -e "s/ .*//")
+        key=$(echo "$line_host" | sed -e "s/.*ansible_ssh_private_key_file=//" -e "s/ .*//")
+        args_count=$(echo "$line_host" | grep "ansible_ssh_common_args=" | wc -l)
+        if [ "$args_count" -gt "0" ]; then
+          args=$(echo "$line_host" | sed -e "s/.*ansible_ssh_common_args=\"//" -e "s/\".*//")
+        else
+          args=""
+        fi
+        echo "Host: {{.HOST}}"
+        echo "IP: $ip"
+        echo "User: $user"
+        echo "Key: $key"
+        echo "SSH args: $args"
+        ssh -i "$key" $args ${user}@${ip}
+    preconditions:
+      - sh: test -n "{{.FILE}}" || test -n "{{.F}}"
+        msg: "FILE|F argument is required"
+      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
+        msg: "HOST|H argument is required"
+      - sh: ! (test -f "{{.FILE}}" || test -f "{{.FILE}}")
+        msg: "File {{.FILE}} not found"
+    silent: true
+    interactive: true
+
   vault:
     desc: "Operation on a file with Ansible Vault. Arguments: FILE|F=key.pem ACTION|A=ENC|DEC|EDIT [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
     summary: |

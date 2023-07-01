@@ -18,6 +18,9 @@ tasks:
       Arguments:
        PULL | P  Pull docker image (optional, by default yes)
 
+      Nota: On error "/bin/sh: 1: cz: Permission denied  - error Command failed with exit code 126."
+      Run yarn install
+
       Requirements:
         - docker
     vars:
