@@ -27,6 +27,18 @@ lint-file:
   script:
     - task lint:file
 
+lint-lychee:
+  image:
+    name: $IMAGE_LYCHEE
+    entrypoint: [""]
+  stage: lint
+  before_script:
+    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
+    - ./bin/task --version
+  script:
+    - ./bin/task lint:lychee
+  allow_failure: true
+
 lint-markdown:
   image:
     name: $IMAGE_MARKDOWNLINT
@@ -48,17 +60,6 @@ lint-yaml:
   script:
     - ./bin/task lint:yaml
 
-lint-lychee:
-  image:
-    name: $IMAGE_LYCHEE
-  stage: lint
-  before_script:
-    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
-    - ./bin/task --version
-  script:
-    - ./bin/task lint:lychee
-  allow_failure: true
-
 lint-docker-dind:
   image:
     name: $IMAGE_DOCKER
@@ -71,38 +72,23 @@ lint-docker-dind:
   script:
     - ./bin/task lint:docker FILE="tests/lint/Dockerfile"
 
+lint-lychee-dind:
+  extends: lint-docker-dind
+  script:
+    - ./bin/task lint:lychee
+  allow_failure: true
+
 lint-markdown-dind:
-  image:
-    name: $IMAGE_DOCKER
-  services:
-    - docker:$SERVICE_DOCKER_TAG
-  stage: tests
-  before_script:
-    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
-    - ./bin/task --version
+  extends: lint-docker-dind
   script:
     - ./bin/task lint:markdown
 
 lint-shell-dind:
-  image:
-    name: $IMAGE_DOCKER
-  services:
-    - docker:$SERVICE_DOCKER_TAG
-  stage: tests
-  before_script:
-    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
-    - ./bin/task --version
+  extends: lint-docker-dind
   script:
     - ./bin/task lint:shell FILES="tests/lint/*.sh"
 
 lint-yaml-dind:
-  image:
-    name: $IMAGE_DOCKER
-  services:
-    - docker:$SERVICE_DOCKER_TAG
-  stage: tests
-  before_script:
-    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
-    - ./bin/task --version
+  extends: lint-docker-dind
   script:
     - ./bin/task lint:yaml
