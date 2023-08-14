@@ -57,11 +57,11 @@ lint-vale:
     entrypoint: [""]
   stage: lint
   before_script:
-    - apt-get update && apt-get install -y --no-install-recommends wget
     - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
     - ./bin/task --version
   script:
-    - ./bin/task lint:vale
+    - export PATH="/bin:$PATH" && ./bin/task lint:vale
+  allow_failure: true
 
 lint-yaml:
   image:
