@@ -144,6 +144,34 @@ tasks:
         vars: {IMG: "{{.IMG}}", PULL: "{{.PULL}}", CMD: "{{.CMD}}"}
     silent: true
 
+  vulncheck:
+    desc: "Find and fix vulnerable dependencies with vulncheck. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    summary: |
+      [GO] Find and fix vulnerable dependencies with vulncheck.
+      If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
+      otherwise a Go Docker image is used.
+      Usage: task go:vulncheck [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
+
+      Arguments:
+        IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
+        PULL | P  Pull docker image (optional, by default yes)
+    vars:
+      IMG: '{{default .I .IMG}}'
+      IMG_D: '{{default .IMAGE_GO .IMG}}'
+      PULL: '{{default .P .PULL}}'
+    cmds:
+      - |
+        if (! test -n "{{.IMG}}") && (command -v govulncheck 2>&1 >/dev/null); then
+          govulncheck ./...
+        else
+          if ! command -v docker 2>&1 >/dev/null; then
+            echo "docker and govulncheck are not installed!" && exit 1
+          fi
+          if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
+          docker run -t --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" sh -c 'go install golang.org/x/vuln/cmd/govulncheck@latest && govulncheck ./...'
+        fi
+    silent: true
+
   exec-local-docker-go:
     vars:
       IMG_D: '{{default .IMAGE_GO .IMG}}'

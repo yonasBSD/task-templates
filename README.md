@@ -1,4 +1,4 @@
-# Task Templates
+# Task templates
 
 [![Software License](https://img.shields.io/badge/license-MIT-informational.svg?style=flat)](LICENSE)
 [![Pipeline Status](https://gitlab.com/op_so/task/task-templates/badges/main/pipeline.svg)](https://gitlab.com/op_so/task/task-templates/pipelines)
@@ -6,27 +6,27 @@
 
 A set of reusable [Task](https://taskfile.dev) templates, ready to use.
 
-## Getting Started
+## Getting started
 
 ### Requirements
 
-In order to use:
+To use:
 
 * [Task](https://taskfile.dev)
-* curl or wget
+* `curl` or `wget`
 * [Docker](https://docs.docker.com/engine/install/) (recommended): Many templates use Docker images to avoid installing software.
 
 ### Structure
 
 * `Taskfile.d`: Directory of the task template files
-* `Taskfile.project.yml`: Task file for the project that contains the `TASK_TEMPLATES` variable
-* `Taskfile.yml`: Core Task file with generic tasks (must not be edited)
+* `Taskfile.project.yml`: Task file for the project that has the `TASK_TEMPLATES` variable
+* `Taskfile.yml`: Core Task file with generic tasks, don't edit it!
 
 ### Installation
 
 * Download the main `Taskfile.yml` and the project file template `Taskfile.project.yml`:
 
-with curl:
+with `curl`:
 
 ```shell
 curl --progress-bar -o Taskfile.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.dist.yml
@@ -36,7 +36,7 @@ curl --progress-bar -o Taskfile.yml https://gitlab.com/op_so/task/task-templates
 curl --progress-bar -o Taskfile.project.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.project.dist.yml
 ```
 
-or with wget:
+or with `wget`:
 
 ```shell
 wget -cq --show-progress -O Taskfile.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.dist.yml
@@ -46,7 +46,7 @@ wget -cq --show-progress -O Taskfile.yml https://gitlab.com/op_so/task/task-temp
 wget -cq --show-progress -O Taskfile.project.yml https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.project.dist.yml
 ```
 
-On Alpine Linux, `--show-progress` option is not available.
+On Alpine Linux, `--show-progress` option isn't available.
 
 * Select your template(s) by editing the `Taskfile.project.yml` file variable `TASK_TEMPLATES`:
 
@@ -74,7 +74,7 @@ vars:
 
 * Git:
 
-`Taskfile.project.yml` is the file that contains your specific project tasks. It should probably be commited.
+`Taskfile.project.yml` is the file that has your specific project tasks. You should probably commit it.
 If you always want the last version of the task templates, add this following line in your `.gitignore` file
 
 ```shell
@@ -83,25 +83,25 @@ If you always want the last version of the task templates, add this following li
 
 Otherwise, if you prefer stability you should also commit the content of the `Taskfile.d` directory or specify the versions of the templates.
 
-* Available installed tasks are shown by execute `task` command without any parameter:
+* `task` command without any parameter shows the available installed tasks:
 ![Available tasks](tasks-list.png "Available tasks")
 
 ## Available templates
 
-* `age.yml`: Encrypt/Decrypt with [age](https://github.com/FiloSottile/age)
-* `ansible.yml`: Ansible common tasks
-* `crypto.yml`: Cryptographic tasks, generate keys, certificates ...
-* `docker.yml`: Docker common tasks
-* `git.yml`: Git signed commit and [commitizen](http://commitizen.github.io/cz-cli/) tasks
-* `go.yml`: Go task
+* `age.yml`: Encrypt/Decrypt with [`age`](https://github.com/FiloSottile/age)
+* `ansible.yml`: `Ansible` common tasks
+* `crypto.yml`: Cryptographic tasks, generate keys, certificates
+* `docker.yml`: `Docker` common tasks
+* `git.yml`: `Git` signed commit and [`commitizen`](http://commitizen.github.io/cz-cli/) tasks
+* `go.yml`: `Go` task
 * `lint.yml`: General lint text files tasks for every project
-* `multipass.yml`: [Multipass](https://multipass.run/) tasks
+* `multipass.yml`: [`Multipass`](https://multipass.run/) tasks
 * `python.yml`: Python tasks
-* `robot.yml`: [Robot Frameworks](https://robotframework.org/) useful tasks
-* `sbom.yml`: Software Bill of Materials commands with [syft](https://github.com/anchore/syft) and [cosign](https://github.com/sigstore/cosign)
+* `robot.yml`: [Robot Framework](https://robotframework.org/) useful tasks
+* `sbom.yml`: Software Bill of Materials commands with [`syft`](https://github.com/anchore/syft) and [`cosign`](https://github.com/sigstore/cosign)
 * `system.yml`: System interaction
-* `version.yml`: Useful version tasks like get last version on Github, pypi ...
-* `yarn.yml`: Yarn tasks
+* `version.yml`: Useful version tasks like get last version on `Github`, `pypi`
+* `yarn.yml`: `Yarn` tasks
 
 ### Upgrade
 
@@ -110,8 +110,12 @@ Otherwise, if you prefer stability you should also commit the content of the `Ta
 
 ## Authors
 
+<!-- vale off -->
 * **FX Soubirou** - *Initial work* - [GitLab repositories](https://gitlab.com/op_so)
+<!-- vale on -->
 
 ## License
 
+<!-- vale off -->
 This program is free software: you can redistribute it and/or modify it under the terms of the MIT License (MIT). See the [LICENSE](https://opensource.org/licenses/MIT) for details.
+<!-- vale on -->

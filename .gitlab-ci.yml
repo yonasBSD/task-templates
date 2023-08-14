@@ -33,6 +33,7 @@ lint-lychee:
     entrypoint: [""]
   stage: lint
   before_script:
+    - apt-get update && apt-get install -y --no-install-recommends wget
     - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
     - ./bin/task --version
   script:
@@ -49,6 +50,18 @@ lint-markdown:
     - ./bin/task --version
   script:
     - ./bin/task lint:markdown G="\"**/*.md\" \"#node_modules\" \"#.node_cache\""
+
+lint-vale:
+  image:
+    name: $IMAGE_VALE
+    entrypoint: [""]
+  stage: lint
+  before_script:
+    - apt-get update && apt-get install -y --no-install-recommends wget
+    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
+    - ./bin/task --version
+  script:
+    - ./bin/task lint:vale
 
 lint-yaml:
   image:
@@ -87,6 +100,11 @@ lint-shell-dind:
   extends: lint-docker-dind
   script:
     - ./bin/task lint:shell FILES="tests/lint/*.sh"
+
+lint-vale-dind:
+  extends: lint-docker-dind
+  script:
+    - ./bin/task lint:vale
 
 lint-yaml-dind:
   extends: lint-docker-dind

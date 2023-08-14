@@ -9,6 +9,7 @@ vars:
   IMAGE_LYCHEE: lycheeverse/lychee:latest
   IMAGE_MARKDOWNLINT: davidanson/markdownlint-cli2
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
+  IMAGE_VALE: jdkato/vale
   IMAGE_YAMLINT: jfxs/ansible
 
 tasks:
@@ -43,6 +44,8 @@ tasks:
       - task: yaml
       - echo "" && echo "Lychee:" && echo "======="
       - task: lychee
+      - echo "" && echo "Vale:" && echo "====="
+      - task: vale
     silent: true
 
   docker:
@@ -344,6 +347,50 @@ tasks:
         msg: "FILES|F argument is required"
     silent: true
 
+  vale:
+    desc: "Linter for grammar, style, and word usage English language. Arguments: [FILES|F=\"*.md\"] [STYLES|S=\"styles\"] [IMG|I=jdkato/vale] [PULL|P=n|N] (*)"
+    summary: |
+      [LINT] Linter for Linter for a grammar, style, and word usage English language.
+      If vale command is in the path and IMG/I argument is not set, the local vale command is executed,
+      otherwise a Vale Docker image is used.
+      You must create a .vale.ini configuration file and vale sync is automatically run:
+      https://vale.sh/generator
+      Usage: task lint:vale [FILES|F=\"*.md\"] [STYLES|S=\"styles\"] [IMG|I=jdkato/vale] [PULL|P=<n|N>]
+
+      Arguments:
+        FILES  | F  Files to check (optional, by default *.md)
+        STYLES | S  Styles directory (optional, by default styles)
+        IMG    | I  Docker yamllint image to use (optional, by default {{.IMAGE_VALE}})
+        PULL   | P  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - vale or docker
+    vars:
+      FILES: '{{default .F .FILES}}'
+      FILES_D: '{{default "*.md" .FILES}}'
+      STYLES: '{{default .S .STYLES}}'
+      STYLES_D: '{{default "styles" .STYLES}}'
+      IMG: '{{default .I .IMG}}'
+      IMG_D: '{{default .IMAGE_VALE .IMG}}'
+      PULL: '{{default .P .PULL}}'
+      EXEC: vale
+    cmds:
+      - mkdir -p {{.STYLES_D}}
+      - |
+        if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
+          {{.EXEC}} sync && {{.EXEC}} {{.FILES_D}}
+        else
+          if ! command -v docker 2>&1 >/dev/null; then
+            echo "docker and {{.EXEC}} are not installed!" && exit 1
+          fi
+          if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then
+            docker pull "{{.IMG_D}}"
+            docker run -t --rm -v $(pwd):/docs -w /docs "{{.IMG_D}}" sync
+          fi
+          docker run -t --rm -v $(pwd):/docs -w /docs "{{.IMG_D}}" {{.FILES_D}}
+        fi
+    silent: true
+
   yaml:
     desc: "Linter for YAML files. Arguments: [FILES|F=\".\"] [IMG|I=jfxs/ansible] [PULL|P=n|N] (*)"
     summary: |
@@ -352,7 +399,7 @@ tasks:
       otherwise a yamllint Docker image is used.
       You can configure rules and exclude directories with a .yamlint configuration file:
       https://yamllint.readthedocs.io/en/stable/configuration.html
-      Usage: task lint:yaml [PULL|P=<n|N>]
+      Usage: task lint:yaml [FILES|F=\".\"] [IMG|I=jfxs/ansible] [PULL|P=<n|N>]
 
       Arguments:
         FILES | F  Files to check (optional, by default .)

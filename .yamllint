@@ -5,6 +5,7 @@ ignore: |
   .git/
   .node_cache/
   node_modules/
+  styles/
 
 rules:
   line-length: disable
