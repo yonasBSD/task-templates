@@ -1,0 +1,17 @@
+master01    ansible_host=192.168.106.29 ansible_user=ubuntu ansible_ssh_private_key_file=.host/k-master01-1.pem ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+master02    ansible_host=192.168.106.30 ansible_user=ubuntu ansible_ssh_private_key_file=.host/k-master02-1.pem
+node02      ansible_host=192.168.106.34 ansible_user=ubuntu ansible_ssh_common_args="-vvv -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" ansible_ssh_private_key_file=.host/k-node02-1.pem
+
+[ubuntu]
+master01
+node02
+
+[master]
+master01
+
+[k3s]
+master01
+node02
+
+[node]
+node02

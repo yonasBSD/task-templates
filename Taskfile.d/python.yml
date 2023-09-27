@@ -5,7 +5,7 @@ version: '3'
 
 vars:
   IMAGE_BLACK: pyfound/black:latest_release
-  IMAGE_PYTHON: python:3-bullseye
+  IMAGE_PYTHON: python:3-bookworm
 
 tasks:
 

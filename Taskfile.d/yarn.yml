@@ -4,7 +4,7 @@
 version: '3'
 
 vars:
-  IMAGE_NODE: node:lts-bullseye
+  IMAGE_NODE: node:lts-bookworm
   SRC_MOUNT_POINT: /data
 
 tasks:
@@ -27,7 +27,7 @@ tasks:
       PULL: '{{default .P .PULL}}'
     cmds:
       - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_NODE}}"; fi
-      - docker run -t --rm -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" node:lts-bullseye yarn --cache-folder "{{.SRC_MOUNT_POINT}}/.node_cache" install
+      - docker run -t --rm -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" "{{.IMAGE_NODE}}" yarn --cache-folder "{{.SRC_MOUNT_POINT}}/.node_cache" install
     preconditions:
       - sh: command -v docker
         msg: "docker is not installed"
@@ -48,7 +48,7 @@ tasks:
       PULL: '{{default .P .PULL}}'
     cmds:
       - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_NODE}}"; fi
-      - docker run -t --rm -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" node:lts-bullseye yarn --cache-folder "{{.SRC_MOUNT_POINT}}/.node_cache" outdated || true
+      - docker run -t --rm -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" "{{.IMAGE_NODE}}" yarn --cache-folder "{{.SRC_MOUNT_POINT}}/.node_cache" outdated || true
     preconditions:
       - sh: command -v docker
         msg: "docker is not installed"
@@ -69,7 +69,7 @@ tasks:
       PULL: '{{default .P .PULL}}'
     cmds:
       - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_NODE}}"; fi
-      - docker run -t --rm -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" node:lts-bullseye yarn --cache-folder "{{.SRC_MOUNT_POINT}}/.node_cache" upgrade
+      - docker run -t --rm -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" "{{.IMAGE_NODE}}" yarn --cache-folder "{{.SRC_MOUNT_POINT}}/.node_cache" upgrade
     preconditions:
       - sh: command -v docker
         msg: "docker is not installed"

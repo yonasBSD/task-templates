@@ -26,6 +26,8 @@ tasks:
 
       Notes:
        - Only git versionned files are checked for generic files. Use MEX argument for Mardown files and .yamlint for YAML files.
+       - Check git tracked files,
+       - otherwise (empty git list), all files not in a directory starting by dot
 
       Requirements:
         - markdownlint-cli2 or docker
@@ -91,7 +93,9 @@ tasks:
         FIX | F  Fix files (optional, by default no)
 
       Notes:
-       - Only git versionned files are checked.
+        - Check git tracked files,
+        - otherwise (empty git list), all files not in a directory starting by dot
+
     vars:
       FIX: '{{default .F .FIX}}'
     cmds:
@@ -135,9 +139,11 @@ tasks:
     #     FIX | F  Fix files (optional, by default no)
     #
     #   Notes:
-    #    - Only git tracked files are checked.
+    #    - Check git tracked files,
+    #    - otherwise (empty git list), all files not in a directory starting by dot
     cmds:
-      - git ls-files > ls-files.tmp
+      - git ls-files > ls-files.tmp || true
+      - if [ ! -s "ls-files.tmp" ]; then find . -not -path './.*/*' -type f > ls-files.tmp; fi
       - defer: rm -f ls-files.tmp
       - |
         count_all=0
@@ -204,9 +210,10 @@ tasks:
     #   Usage: task lint:file-utf8
     #
     #   Notes:
-    #    - Only git tracked files are checked.
+    #    - Check files
     cmds:
-      - git ls-files > ls-files.tmp
+      - git ls-files > ls-files.tmp || true
+      - if [ ! -s "ls-files.tmp" ]; then find . -not -path './.*/*' -type f > ls-files.tmp; fi
       - defer: rm -f ls-files.tmp
       - |
         count_all=0
@@ -433,7 +440,15 @@ tasks:
       EXCLUDE_PATTERN: "# Exclude"
       FILE_FR: "{{.TASK}}.tmp"
     cmds:
-      - git grep -nIE "$(printf '{{.GREP}}')" | grep -v "{{.EXCLUDE_PATTERN}}" > {{.FILE_FR}} || true
+      - |
+        if git status -s 2>&1 >/dev/null; then
+          git grep -nIE "$(printf '{{.GREP}}')" | grep -v "{{.EXCLUDE_PATTERN}}" > {{.FILE_FR}} || true;
+        else
+          echo "[WARNING] - git error"
+          touch {{.FILE_FR}}
+        fi
+      # TODO Find a shell script which find CR
+      # - if [ ! -f "{{.FILE_FR}}" ]; then find . -not -path './.*/*' -type f -exec grep -nHI -e "$(printf '{{.GREP}}')" {} \; | grep -v "{{.EXCLUDE_PATTERN}}" > {{.FILE_FR}}; fi
       - defer: rm -f {{.FILE_FR}}
       - |
         count=$(wc -l < {{.FILE_FR}} | awk '{print $1}')

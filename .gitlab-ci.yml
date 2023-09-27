@@ -7,7 +7,7 @@ variables:
   IMAGE_DOCKER: docker:latest
   IMAGE_LYCHEE: lycheeverse/lychee:latest
   IMAGE_MARKDOWNLINT: davidanson/markdownlint-cli2
-  IMAGE_NODE: node:lts-bullseye
+  IMAGE_NODE: node:lts-bookworm
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
   IMAGE_YAMLLINT: jfxs/ansible
   SERVICE_DOCKER_TAG: stable-dind
@@ -59,8 +59,9 @@ lint-vale:
   before_script:
     - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
     - ./bin/task --version
+    - ln -s /bin/vale /usr/local/bin/vale
   script:
-    - export PATH="/bin:$PATH" && ./bin/task lint:vale
+    - ./bin/task lint:vale
   allow_failure: true
 
 lint-yaml:

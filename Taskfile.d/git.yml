@@ -5,7 +5,7 @@ version: '3'
 
 vars:
   IMAGE_DEFAULT: alpine:latest
-  IMAGE_NODE: node:lts-bullseye
+  IMAGE_NODE: node:lts-bookworm
 
 tasks:
 

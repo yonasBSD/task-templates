@@ -98,7 +98,7 @@ Otherwise, if you prefer stability you should also commit the content of the `Ta
 * `multipass.yml`: [`Multipass`](https://multipass.run/) tasks
 * `python.yml`: Python tasks
 * `robot.yml`: [Robot Framework](https://robotframework.org/) useful tasks
-* `sbom.yml`: Software Bill of Materials commands with [`syft`](https://github.com/anchore/syft) and [`cosign`](https://github.com/sigstore/cosign)
+* `sbom.yml`: Software bill of materials (`SBOM`) commands with [`syft`](https://github.com/anchore/syft) and [`cosign`](https://github.com/sigstore/cosign)
 * `system.yml`: System interaction
 * `version.yml`: Useful version tasks like get last version on `Github`, `pypi`
 * `yarn.yml`: `Yarn` tasks
