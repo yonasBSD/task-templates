@@ -3,15 +3,15 @@
   "version": "0.0.0-semantic-release",
   "description": "Reusable Task templates",
   "engines": {
-    "node": ">=12.0",
-    "yarn": ">=1.17"
+    "node": ">=18.0",
+    "yarn": ">=1.20"
   },
   "devDependencies": {
     "@semantic-release/exec": "^6.0.3",
-    "@semantic-release/gitlab": "^12.0.5",
+    "@semantic-release/gitlab": "^12.1.1",
     "commitizen": "^4.3.0",
     "cz-conventional-changelog": "^3.3.0",
-    "semantic-release": "^21.0.7"
+    "semantic-release": "^21.0.8"
   },
   "scripts": {
     "commit": "cz --signoff"

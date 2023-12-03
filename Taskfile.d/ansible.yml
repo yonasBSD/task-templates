@@ -24,14 +24,14 @@ tasks:
       Requirements:
         - ansible or docker
     vars:
-      CMD: '{{default .C .CMD}}'
-      IMG: '{{default .I .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      CMD: '{{.CMD | default .C}}'
+      IMG: '{{.IMG | default .I}}'
+      PULL: '{{.PULL | default .P}}'
     cmds:
       - task: exec-local-docker-ansible
         vars: {CMD: "{{.CMD}}", IMG: "{{.IMG}}", PULL: "{{.PULL}}"}
     preconditions:
-      - sh: test -n "{{.CMD}}" || test -n "{{.C}}"
+      - sh: test -n "{{.CMD}}"
         msg: "CMD|C argument is required"
     silent: true
 
@@ -53,11 +53,11 @@ tasks:
       Requirements:
         - ansible or docker
     vars:
-      REQ: '{{default .R .REQ}}'
-      FORCE: '{{default .F .FORCE}}'
-      IMG: '{{default .I .IMG}}'
-      PULL: '{{default .P .PULL}}'
-      PROXY: '{{default .PX .PROXY}}'
+      REQ: '{{.REQ | default .R}}'
+      FORCE: '{{.FORCE | default .F}}'
+      IMG: '{{.IMG | default .I}}'
+      PULL: '{{.PULL | default .P}}'
+      PROXY: '{{.PROXY | default .PX}}'
     cmds:
       - |
         if [ "{{.FORCE}}" = "Y" ] || [ "{{.F}}" = "y" ]; then
@@ -74,8 +74,58 @@ tasks:
           fi
         fi
     preconditions:
-      - sh: test -n "{{.REQ}}" || test -n "{{.R}}"
+      - sh: test -n "{{.REQ}}"
         msg: "REQ|R argument is required"
+    silent: true
+
+  galaxy-publish:
+    desc: "[ANSIBLE] Publish collection in Galaxy. Arguments: VERSION|V=1.2.3 NAMESPACE|N=jfx COLLECTION|C=metrics TOKEN|T=abcdefg... [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
+    summary: |
+      [ANSIBLE] Publish collection in Galaxy.
+      If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
+      otherwise an Ansible Docker image is used.
+      Usage: task ansible:galaxy-publish FILE|F=<file_path> ACTION|A=<ENC|DEC|EDIT> [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
+
+      Arguments:
+        VERSION    | V  Version of the collection (required)
+        NAMESPACE  | N  Namespace of the collection (required)
+        COLLECTION | C  Collection name (required)
+        TOKEN      | T  Galaxy token (required)
+        IMG        | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL       | P  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - ansible or docker
+    vars:
+      VERSION: '{{.VERSION | default .V}}'
+      NAMESPACE: '{{.NAMESPACE | default .N}}'
+      COLLECTION: '{{.COLLECTION | default .C}}'
+      TOKEN: '{{.TOKEN | default .T}}'
+      DEFAULT_VERSION: 1.0.0
+      ARG: '{{.ARG | default .A}}'
+      IMG: '{{.IMG | default .I}}'
+      PULL: '{{.PULL | default .P}}'
+      CMD1: "cd {{.NAMESPACE}}/{{.COLLECTION}} && ansible-galaxy collection build"
+      CMD2: "ansible-galaxy collection publish {{.NAMESPACE}}/{{.COLLECTION}}/{{.NAMESPACE}}-{{.COLLECTION}}-{{.VERSION}}.tar.gz --token {{.TOKEN }}"
+    cmds:
+      - cp -f README.md {{.NAMESPACE}}/{{.COLLECTION}}/README.md
+      - defer: rm -f {{.NAMESPACE}}/{{.COLLECTION}}/README.md
+      - sed -i.bu 's/^\(version:\).*/\1 {{.VERSION}}/' {{.NAMESPACE}}/{{.COLLECTION}}/galaxy.yml
+      - defer: sed -i.bu 's/^\(version:\).*/\1 {{.DEFAULT_VERSION}}/' {{.NAMESPACE}}/{{.COLLECTION}}/galaxy.yml && rm -f {{.NAMESPACE}}/{{.COLLECTION}}/galaxy.yml.bu
+      - task: exec-local-docker-ansible
+        vars: {CMD: "{{.CMD1}}", IMG: "{{.IMG}}", PULL: "{{.PULL}}"}
+      - defer: rm -f {{.NAMESPACE}}/{{.COLLECTION}}/*.tar.gz
+      - task: exec-local-docker-ansible
+        vars: {CMD: "{{.CMD2}}", IMG: "{{.IMG}}", PULL: "{{.PULL}}"}
+    preconditions:
+      - sh: test -n "{{.VERSION}}"
+        msg: "VERSION|V argument is required"
+      - sh: test -n "{{.NAMESPACE}}"
+        msg: "NAMESPACE|N argument is required"
+      - sh: test -n "{{.COLLECTION}}"
+        msg: "COLLECTION|C argument is required"
+      - sh: test -n "{{.TOKEN}}"
+        msg: "TOKEN|T argument is required"
     silent: true
 
   lint:
@@ -94,15 +144,15 @@ tasks:
       Requirements:
         - ansible-lint or docker
     vars:
-      ARG: '{{default .A .ARG}}'
-      IMG: '{{default .I .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      ARG: '{{.ARG | default .A}}'
+      IMG: '{{.IMG | default .I}}'
+      PULL: '{{.PULL | default .P}}'
       CMD: "ansible-lint {{.ARG}}"
     cmds:
       - task: exec-local-docker-ansible
         vars: {CMD: "{{.CMD}}", IMG: "{{.IMG}}", PULL: "{{.PULL}}"}
     preconditions:
-      - sh: test -n "{{.ARG}}" || test -n "{{.A}}"
+      - sh: test -n "{{.ARG}}"
         msg: "ARG|A argument is required"
     silent: true
 
@@ -122,15 +172,15 @@ tasks:
       Requirements:
         - ansible or docker
     vars:
-      ARG: '{{default .A .NAME}}'
-      IMG: '{{default .I .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      ARG: '{{.ARG | default .A}}'
+      IMG: '{{.IMG | default .I}}'
+      PULL: '{{.PULL | default .P}}'
       CMD: "ansible {{.ARG}} -m ansible.builtin.ping"
     cmds:
       - task: exec-local-docker-ansible
         vars: {CMD: "{{.CMD}}", IMG: "{{.IMG}}", PULL: "{{.PULL}}"}
     preconditions:
-      - sh: test -n "{{.ARG}}" || test -n "{{.A}}"
+      - sh: test -n "{{.ARG}}"
         msg: "ARG|A argument is required"
     silent: true
 
@@ -150,15 +200,15 @@ tasks:
       Requirements:
         - ansible or docker
     vars:
-      ARG: '{{default .A .NAME}}'
-      IMG: '{{default .I .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      ARG: '{{.ARG | default .A}}'
+      IMG: '{{.IMG | default .I}}'
+      PULL: '{{.PULL | default .P}}'
       CMD: "ansible-playbook {{.ARG}}"
     cmds:
       - task: exec-local-docker-ansible
         vars: {CMD: "{{.CMD}}", IMG: "{{.IMG}}", PULL: "{{.PULL}}"}
     preconditions:
-      - sh: test -n "{{.ARG}}" || test -n "{{.A}}"
+      - sh: test -n "{{.ARG}}"
         msg: "ARG|A argument is required"
     silent: true
 
@@ -175,8 +225,8 @@ tasks:
       Requirements:
         - ssh
     vars:
-      FILE: '{{default .F .FILE}}'
-      HOST: '{{default .H .HOST}}'
+      FILE: '{{.FILE | default .F}}'
+      HOST: '{{.HOST | default .H}}'
     cmds:
       - |
         line_host=$(grep "{{.HOST}}" "{{.FILE}}" | grep ansible_host | grep ansible_user | sort -u | head -n 1)
@@ -199,11 +249,11 @@ tasks:
         echo "SSH args: $args"
         ssh -i "$key" $args ${user}@${ip}
     preconditions:
-      - sh: test -n "{{.FILE}}" || test -n "{{.F}}"
+      - sh: test -n "{{.FILE}}"
         msg: "FILE|F argument is required"
-      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
+      - sh: test -n "{{.HOST}}"
         msg: "HOST|H argument is required"
-      - sh: ! (test -f "{{.FILE}}" || test -f "{{.FILE}}")
+      - sh: ! (test -f "{{.FILE}}")
         msg: "File {{.FILE}} not found"
     silent: true
     interactive: true
@@ -225,10 +275,10 @@ tasks:
       Requirements:
         - ansible or docker
     vars:
-      FILE: '{{default .F .FILE}}'
-      ACTION: '{{default .A .ACTION}}'
-      IMG: '{{default .I .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      FILE: '{{.FILE | default .F}}'
+      ACTION: '{{.ACTION | default .A}}'
+      IMG: '{{.IMG | default .I}}'
+      PULL: '{{.PULL | default .P}}'
     cmds:
       - |
         if [ "{{.ACTION}}" = "ENC" ]; then
@@ -241,9 +291,9 @@ tasks:
           printf "\033[0;31m[ERROR] Wrong ACTION: %s , possible actions: ENC|DEC|EDIT \033[0m\n" "{{.ACTION}}" && exit 1
         fi
     preconditions:
-      - sh: test -n "{{.FILE}}" || test -n "{{.F}}"
+      - sh: test -n "{{.FILE}}"
         msg: "FILE|F argument is required"
-      - sh: test -n "{{.ACTION}}" || test -n "{{.A}}"
+      - sh: test -n "{{.ACTION}}"
         msg: "ACTION|A argument is required"
     silent: true
     interactive: true

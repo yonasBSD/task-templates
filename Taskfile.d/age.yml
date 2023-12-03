@@ -19,7 +19,7 @@ tasks:
       Requirements:
         - age
     vars:
-      DIR: '{{default .D .DIR}}'
+      DIR: '{{.DIR | default .D}}'
     cmds:
       - if [ ! -f "{{.DIR}}.tar" ]; then tar cf "{{.DIR}}.tar" "{{.DIR}}/"; fi
       - |
@@ -33,7 +33,7 @@ tasks:
     preconditions:
       - sh: command -v age
         msg: "age is not installed"
-      - sh: test -n "{{.DIR}}" || test -n "{{.D}}"
+      - sh: test -n "{{.DIR}}"
         msg: "DIR|D argument is required"
       - sh: (! test -f "{{.DIR}}.tar.age" && ! test -f "{{.D}}.tar.age")
         msg: "File {{.DIR}}.tar.age already exists!"
@@ -52,7 +52,7 @@ tasks:
       Requirements:
         - age
     vars:
-      NAME: '{{default .N .NAME}}'
+      NAME: '{{.NAME | default .N}}'
     cmds:
       - if [ ! -f "{{.NAME}}.tar" ]; then age --decrypt "{{.NAME}}.tar.age" > "{{.NAME}}.tar"; fi
       - echo "File {{.NAME}} decrypted successfully!"
@@ -61,7 +61,7 @@ tasks:
     preconditions:
       - sh: command -v age
         msg: "age is not installed"
-      - sh: test -n "{{.NAME}}" || test -n "{{.NAME}}"
+      - sh: test -n "{{.NAME}}"
         msg: "NAME|N argument is required"
       - sh: (! test -d "{{.NAME}}" && ! test -d "{{.N}}")
         msg: "Directory {{.NAME}} already exists!"
