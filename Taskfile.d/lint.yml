@@ -376,7 +376,6 @@ tasks:
               - id: trailing-whitespace
                 args: [--markdown-linebreak-ext=md]
     cmds:
-      - echo {{.MESG}} > tests.txt
       - if [ ! -f ".pre-commit-config.yaml" ]; then echo -n "{{.PRE_COMMIT_CONFIG_DEFAULT}}" > ".pre-commit-config.yaml" && printf "\033[0;32mConfig file \"%s\" is created.\033[0m\n" ".pre-commit-config.yaml"; fi
       - |
         if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
