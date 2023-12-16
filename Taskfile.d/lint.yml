@@ -1,16 +1,25 @@
 ---
 # https://taskfile.dev
+# Title:
+# Description:
+# Tags:
+# Author:
+# Home:
+# License:
+# Bookmarks:
+# Deprecated:
 
 version: '3'
 
 vars:
   IMAGE_HADOLINT: hadolint/hadolint
-  # IMAGE_LYCHEE: lycheeverse/lychee:latest-alpine
   IMAGE_LYCHEE: lycheeverse/lychee:latest
   IMAGE_MARKDOWNLINT: davidanson/markdownlint-cli2
+  IMAGE_PYTHON: python:3-bookworm
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
   IMAGE_VALE: jdkato/vale
   IMAGE_YAMLINT: jfxs/ansible
+  DOCKER_OPTS: ""
 
 tasks:
 
@@ -51,35 +60,36 @@ tasks:
     silent: true
 
   docker:
-    desc: "Linter for Dockerfiles. Arguments: [FILE|F=Dockerfile] [IMG|I=hadolint/hadolint] [PULL|P=n|N] (*)"
+    desc: "Linter for Dockerfiles. Arguments: [FILE|F=Dockerfile] [IMG|I=hadolint/hadolint] [PULL|P=n|N] [DOCKER_OPTS|DO=-u 1000:0] (*)"
     summary: |
       [LINT] Linter for Dockerfiles.
-      Usage: task lint:markdown [FILE|F=Dockerfile] [IMG|I=hadolint/hadolint] [PULL|P=<n|N>]
+      Usage: task lint:markdown [FILE|F=Dockerfile] [IMG|I=hadolint/hadolint] [PULL|P=<n|N>] [DOCKER_OPTS|DO=<docker_options>]
 
       Arguments:
-        FILE | F  Path of the Docker file to lint (optional, by default Dockerfile)
-        IMG  | I  Docker markdownlint image to use (optional, by default {{.IMAGE_HADOLINT}})
-        PULL | P  Pull docker image (optional, by default yes)
+        FILE | F      Path of the Docker file to lint (optional, by default Dockerfile)
+        IMG  | I      Docker markdownlint image to use (optional, by default {{.IMAGE_HADOLINT}})
+        PULL | P      Pull docker image (optional, by default yes)
+        DOCKER_OPTS | DO  Docker options (optional)
 
       Requirements:
         - hadolint or docker
     vars:
-      FILE: '{{default .F .FILE}}'
-      FILE_D: '{{default "Dockerfile" .FILE}}'
-      IMG: '{{default .I .IMG}}'
-      IMG_D: '{{default .IMAGE_HADOLINT .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      FILE: '{{.FILE | default .F | default "Dockerfile"}}'
+      IMG: '{{.IMG | default .I}}'
+      IMG_D: '{{.IMG | default .IMAGE_HADOLINT}}'
+      PULL: '{{.PULL | default .P}}'
+      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO}}'
       EXEC: hadolint
     cmds:
       - |
         if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
-          {{.EXEC}} {{.FILE_D}}
+          {{.EXEC}} {{.FILE}}
         else
           if ! command -v docker 2>&1 >/dev/null; then
             echo "docker and {{.EXEC}} are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run -t --rm -v $(pwd):/mnt "{{.IMG_D}}" {{.EXEC}} /mnt/{{.FILE_D}}
+          docker run {{.DOCKER_OPTS}} -t --rm -v $(pwd):/mnt "{{.IMG_D}}" {{.EXEC}} /mnt/{{.FILE}}
         fi
     silent: true
 
@@ -97,7 +107,7 @@ tasks:
         - otherwise (empty git list), all files not in a directory starting by dot
 
     vars:
-      FIX: '{{default .F .FIX}}'
+      FIX: '{{.FIX | default .F}}'
     cmds:
       - task: file-utf8
       - task: file-cr
@@ -120,7 +130,7 @@ tasks:
     #    - Only git tracked files are checked,
     #    - add "# Exclude" to lines you want to exclude from lint.
     vars:
-      FIX: '{{default .F .FIX}}'
+      FIX: '{{.FIX | default .F}}'
       GREP_RE: "\r"  # Exclude
       SED_RE: "\r"  # Exclude
       DESC: "CR (Carriage Return)"
@@ -194,7 +204,7 @@ tasks:
     #    - Only git tracked files are checked,
     #    - add "# Exclude" to lines you want to exclude from lint.
     vars:
-      FIX: '{{default .F .FIX}}'
+      FIX: '{{.FIX | default .F}}'
       GREP_RE: "[[:space:]]$"  # Exclude
       SED_RE: "[[:space:]]*$"  # Exclude
       DESC: "trailing whitespaces at the end of line(s)"
@@ -245,15 +255,16 @@ tasks:
     silent: true
 
   lychee:
-    desc: "Find broken hyperlinks with lychee. Arguments: [ARGS|A='.'] [IMG|I=lycheeverse/lychee] [PULL|P=n|N] (*)"
+    desc: "Find broken hyperlinks with lychee. Arguments: [ARGS|A='.'] [IMG|I=lycheeverse/lychee] [PULL|P=n|N] [DOCKER_OPTS|DO=-u 1000:0] (*)"
     summary: |
       [LINT] Find broken hyperlinks.
       Usage: task lint:lychee [ARGS|A='.'] [IMG|I=lycheeverse/lychee] [PULL|P=<n|N>]
 
       Arguments:
-        ARGS | A  Glob expressions (optional, by default ".")
-        IMG  | I  Docker markdownlint image to use (optional, by default {{.IMAGE_LYCHEE}})
-        PULL | P  Pull docker image (optional, by default yes)
+        ARGS | A          Glob expressions (optional, by default ".")
+        IMG  | I          Docker markdownlint image to use (optional, by default {{.IMAGE_LYCHEE}})
+        PULL | P          Pull docker image (optional, by default yes)
+        DOCKER_OPTS | DO  Docker options (optional)
 
       Notes:
        - To exclude directories create a lychee.toml file with the exclude_path = ["dir1", "dir2"] directive
@@ -262,63 +273,123 @@ tasks:
       Requirements:
         - lychee or docker
     vars:
-      ARGS: '{{default .A .ARGS}}'
-      ARGS_D: '{{default "." .ARGS}}'
-      IMG: '{{default .I .IMG}}'
-      IMG_D: '{{default .IMAGE_LYCHEE .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      ARGS: '{{.ARGS | default .A | default "."}}'
+      IMG: '{{.IMG | default .I}}'
+      IMG_D: '{{.IMG | default .IMAGE_LYCHEE}}'
+      PULL: '{{.PULL | default .P}}'
+      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO}}'
       EXEC: lychee
     cmds:
       - |
         if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
-          {{.EXEC}} {{.ARGS_D}}
+          {{.EXEC}} {{.ARGS}}
         else
           if ! command -v docker 2>&1 >/dev/null; then
             echo "docker and {{.EXEC}} are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run -t --rm -w /input -v $(pwd):/input "{{.IMG_D}}" {{.ARGS_D}}
+          docker run {{.DOCKER_OPTS}} -t --rm -w /input -v $(pwd):/input "{{.IMG_D}}" {{.ARGS}}
         fi
     silent: true
 
   markdown:
-    desc: "Linter for Mardown files. Arguments: [GLOB|G='\"**/*.md\"'] [IMG|I=tmknom/markdownlint] [PULL|P=n|N] (*)"
+    desc: "Linter for Mardown files. Arguments: [GLOB|G='\"**/*.md\"'] [IMG|I=tmknom/markdownlint] [PULL|P=n|N] [DOCKER_OPTS|DO=-u 1000:0] (*)"
     summary: |
       [LINT] Linter for Markdown files.
       Usage: task lint:markdown [GLOB|G='"**/*.md" "#node_modules"'] [IMG|I=tmknom/markdownlint] [PULL|P=<n|N>]
 
       Arguments:
-        GLOB | G  Glob expressions (optional, by default "**/*.md")
-        IMG  | I  Docker markdownlint image to use (optional, by default {{.IMAGE_MARKDOWNLINT}})
-        PULL | P  Pull docker image (optional, by default yes)
-
+        GLOB | G          Glob expressions (optional, by default "**/*.md")
+        IMG  | I          Docker markdownlint image to use (optional, by default {{.IMAGE_MARKDOWNLINT}})
+        PULL | P          Pull docker image (optional, by default yes)
+        DOCKER_OPTS | DO  Docker options (optional)
       Notes:
        - Documentation of Glob expressions: https://github.com/DavidAnson/markdownlint-cli2
 
       Requirements:
         - markdownlint-cli2 or docker
     vars:
-      GLOB: '{{default .G .GLOB}}'
-      GLOB_D: '{{default "\"**/*.md\"" .GLOB}}'
-      IMG: '{{default .I .IMG}}'
-      IMG_D: '{{default .IMAGE_MARKDOWNLINT .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      GLOB: '{{.GLOB | default .G | default "\"**/*.md\""}}'
+      IMG: '{{.IMG | default .I}}'
+      IMG_D: '{{.IMG | default .IMAGE_MARKDOWNLINT}}'
+      PULL: '{{.PULL | default .P}}'
+      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO}}'
       EXEC: markdownlint-cli2
     cmds:
       - |
         if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
-          {{.EXEC}} {{.GLOB_D}}
+          {{.EXEC}} {{.GLOB}}
         else
           if ! command -v docker 2>&1 >/dev/null; then
             echo "docker and {{.EXEC}} are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run -t --rm -v $(pwd):/workdir "{{.IMG_D}}" {{.GLOB_D}}
+          docker run {{.DOCKER_OPTS}} -t --rm -v $(pwd):/workdir "{{.IMG_D}}" {{.GLOB}}
+        fi
+    silent: true
+
+  pre-commit:
+    desc: "Lint with pre-commit framework. Arguments: [IMG|I=python:3-bookworm] [PULL|P=n|N] [DOCKER_OPTS|DO=-u 1000:0] (*)"
+    summary: |
+      [LINT] Lint with pre-commit framework.
+      Usage: task lint:pre-commit [IMG|I=python:3-bookwormt] [PULL|P=<n|N>]
+
+      Arguments:
+        IMG  | I          Docker markdownlint image to use (optional, by default {{.IMAGE_PYTHON}})
+        PULL | P          Pull docker image (optional, by default yes)
+        DOCKER_OPTS | DO  Docker options (optional)
+
+      Notes:
+       - Documentation of pre-commit: https://pre-commit.com/
+
+      Requirements:
+        - pre-commit or docker
+    vars:
+      IMG: '{{.IMG | default .I}}'
+      IMG_D: '{{.IMG | default .IMAGE_PYTHON}}'
+      PULL: '{{.PULL | default .P}}'
+      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO}}'
+      EXEC: pre-commit
+      CMD: git config --global --add safe.directory /workdir && pip install pre-commit && pre-commit autoupdate && pre-commit run --all-files
+      PRE_COMMIT_CONFIG_DEFAULT: |
+        repos:
+          - repo: https://github.com/pre-commit/pre-commit-hooks
+            rev: v4.5.0
+            hooks:
+              - id: trailing-whitespace
+              - id: end-of-file-fixer
+              - id: check-yaml
+              - id: check-added-large-files
+              # Hooks added from sample-config
+              - id: check-executables-have-shebangs
+              - id: check-json
+              - id: check-merge-conflict
+              - id: check-shebang-scripts-are-executable
+              - id: check-symlinks
+              - id: check-toml
+              - id: check-xml
+              - id: detect-private-key
+              - id: end-of-file-fixer
+              - id: fix-byte-order-marker
+              - id: mixed-line-ending
+              - id: trailing-whitespace
+                args: [--markdown-linebreak-ext=md]
+    cmds:
+      - if [ ! -f ".pre-commit-config.yaml" ]; then echo "{{.PRE_COMMIT_CONFIG_DEFAULT}}" > ".pre-commit-config.yaml" && printf "\033[0;32mConfig file \"%s\" is created.\033[0m\n" ".pre-commit-config.yaml"; fi
+      - |
+        if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
+          pre-commit autoupdate && pre-commit run --all-files
+        else
+          if ! command -v docker 2>&1 >/dev/null; then
+            echo "docker and {{.EXEC}} are not installed!" && exit 1
+          fi
+          if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
+          docker run {{.DOCKER_OPTS}} -t --rm -v $(pwd):/workdir -w /workdir "{{.IMG_D}}" /bin/bash -c "{{.CMD}}"
         fi
     silent: true
 
   shell:
-    desc: "Linter for bash/sh shell files. Arguments: FILES|F=\"myscripts/*.sh\" [IMG|I=koalaman/shellcheck:stable] [PULL|P=n|N] (*)"
+    desc: "Linter for bash/sh shell files. Arguments: FILES|F=\"myscripts/*.sh\" [IMG|I=koalaman/shellcheck:stable] [PULL|P=n|N] [DOCKER_OPTS|DO=-u 1000:0] (*)"
     summary: |
       [LINT] Linter for bash/sh shell files.
       If shellcheck command is in the path and IMG/I argument is not set, the local shellcheck command is executed,
@@ -326,17 +397,19 @@ tasks:
       Usage: task lint:shell FILES|F="myscripts/*.sh" [IMG|I=<koalaman/shellcheck:stable>] [PULL|P=<n|N>]
 
       Arguments:
-        FILES | F  Files to check (required)
-        IMG   | I  Docker shellcheck image to use (optional, by default {{.IMAGE_SHELLCHECK}})
-        PULL  | P  Pull docker image (optional, by default yes)
+        FILES | F         Files to check (required)
+        IMG   | I         Docker shellcheck image to use (optional, by default {{.IMAGE_SHELLCHECK}})
+        PULL  | P         Pull docker image (optional, by default yes)
+        DOCKER_OPTS | DO  Docker options (optional)
 
       Requirements:
         - shellcheck or docker
     vars:
-      FILES: '{{default .F .FILES}}'
-      IMG: '{{default .I .IMG}}'
-      IMG_D: '{{default .IMAGE_SHELLCHECK .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      FILES: '{{.FILES | default .F}}'
+      IMG: '{{.IMG | default .I}}'
+      IMG_D: '{{.IMG | default .IMAGE_SHELLCHECK}}'
+      PULL: '{{.PULL | default .P}}'
+      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO}}'
       EXEC: shellcheck
     cmds:
       - |
@@ -347,15 +420,15 @@ tasks:
             echo "docker and {{.EXEC}} are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run -t --rm -v $(pwd):/mnt "{{.IMG_D}}" {{.FILES}}
+          docker run {{.DOCKER_OPTS}} -t --rm -v $(pwd):/mnt "{{.IMG_D}}" {{.FILES}}
         fi
     preconditions:
-      - sh: test -n "{{.FILES}}" || test -n "{{.F}}"
+      - sh: test -n "{{.FILES}}"
         msg: "FILES|F argument is required"
     silent: true
 
   vale:
-    desc: "Linter for grammar, style, and word usage English language. Arguments: [FILES|F=\"*.md\"] [STYLES|S=\"styles\"] [IMG|I=jdkato/vale] [PULL|P=n|N] (*)"
+    desc: "Linter for grammar, style, and word usage English language. Arguments: [FILES|F=\"*.md\"] [STYLES|S=\"styles\"] [IMG|I=jdkato/vale] [PULL|P=n|N] [DOCKER_OPTS|DO=-u 1000:0] (*)"
     summary: |
       [LINT] Linter for Linter for a grammar, style, and word usage English language.
       If vale command is in the path and IMG/I argument is not set, the local vale command is executed,
@@ -365,41 +438,41 @@ tasks:
       Usage: task lint:vale [FILES|F=\"*.md\"] [STYLES|S=\"styles\"] [IMG|I=jdkato/vale] [PULL|P=<n|N>]
 
       Arguments:
-        FILES  | F  Files to check (optional, by default *.md)
-        STYLES | S  Styles directory (optional, by default styles)
-        IMG    | I  Docker yamllint image to use (optional, by default {{.IMAGE_VALE}})
-        PULL   | P  Pull docker image (optional, by default yes)
+        FILES  | F        Files to check (optional, by default *.md)
+        STYLES | S        Styles directory (optional, by default styles)
+        IMG    | I        Docker yamllint image to use (optional, by default {{.IMAGE_VALE}})
+        PULL   | P        Pull docker image (optional, by default yes)
+        DOCKER_OPTS | DO  Docker options (optional)
 
       Requirements:
         - vale or docker
     vars:
-      FILES: '{{default .F .FILES}}'
-      FILES_D: '{{default "*.md" .FILES}}'
-      STYLES: '{{default .S .STYLES}}'
-      STYLES_D: '{{default "styles" .STYLES}}'
-      IMG: '{{default .I .IMG}}'
-      IMG_D: '{{default .IMAGE_VALE .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      FILES: '{{.FILES | default .F | default "*.md"}}'
+      STYLES: '{{.STYLES | default .S | default "styles"}}'
+      IMG: '{{.IMG | default .I}}'
+      IMG_D: '{{.IMG | default .IMAGE_VALE}}'
+      PULL: '{{.PULL | default .P}}'
+      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO}}'
       EXEC: vale
     cmds:
-      - mkdir -p {{.STYLES_D}}
+      - mkdir -p {{.STYLES}}
       - |
         if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
-          {{.EXEC}} sync && {{.EXEC}} {{.FILES_D}}
+          {{.EXEC}} sync && {{.EXEC}} {{.FILES}}
         else
           if ! command -v docker 2>&1 >/dev/null; then
             echo "docker and {{.EXEC}} are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then
             docker pull "{{.IMG_D}}"
-            docker run -t --rm -v $(pwd):/docs -w /docs "{{.IMG_D}}" sync
+            docker run {{.DOCKER_OPTS}} -t --rm -v $(pwd):/docs -w /docs "{{.IMG_D}}" sync
           fi
-          docker run -t --rm -v $(pwd):/docs -w /docs "{{.IMG_D}}" {{.FILES_D}}
+          docker run {{.DOCKER_OPTS}} -t --rm -v $(pwd):/docs -w /docs "{{.IMG_D}}" {{.FILES}}
         fi
     silent: true
 
   yaml:
-    desc: "Linter for YAML files. Arguments: [FILES|F=\".\"] [IMG|I=jfxs/ansible] [PULL|P=n|N] (*)"
+    desc: "Linter for YAML files. Arguments: [FILES|F=\".\"] [IMG|I=jfxs/ansible] [PULL|P=n|N] [DOCKER_OPTS|DO=-u 1000:0] (*)"
     summary: |
       [LINT] Linter for YAML files.
       If yamllint command is in the path and IMG/I argument is not set, the local yamllint command is executed,
@@ -409,29 +482,30 @@ tasks:
       Usage: task lint:yaml [FILES|F=\".\"] [IMG|I=jfxs/ansible] [PULL|P=<n|N>]
 
       Arguments:
-        FILES | F  Files to check (optional, by default .)
-        IMG   | I  Docker yamllint image to use (optional, by default {{.IMAGE_YAMLINT}})
-        PULL  | P  Pull docker image (optional, by default yes)
+        FILES | F         Files to check (optional, by default .)
+        IMG   | I         Docker yamllint image to use (optional, by default {{.IMAGE_YAMLINT}})
+        PULL  | P         Pull docker image (optional, by default yes)
+        DOCKER_OPTS | DO  Docker options (optional)
 
       Requirements:
         - yamllint or docker
     vars:
-      FILES: '{{default .F .FILES}}'
-      FILES_D: '{{default "." .FILES}}'
-      IMG: '{{default .I .IMG}}'
-      IMG_D: '{{default .IMAGE_YAMLINT .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      FILES: '{{.FILES | default .F | default "."}}'
+      IMG: '{{.IMG | default .I}}'
+      IMG_D: '{{.IMG | default .IMAGE_YAMLINT}}'
+      PULL: '{{.PULL | default .P}}'
+      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO}}'
       EXEC: yamllint
     cmds:
       - |
         if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
-          {{.EXEC}} {{.FILES_D}}
+          {{.EXEC}} {{.FILES}}
         else
           if ! command -v docker 2>&1 >/dev/null; then
             echo "docker and {{.EXEC}} are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run -t --rm -v $(pwd):/ansible "{{.IMG_D}}" {{.EXEC}} {{.FILES_D}}
+          docker run {{.DOCKER_OPTS}} -t --rm -v $(pwd):/ansible "{{.IMG_D}}" {{.EXEC}} {{.FILES}}
         fi
     silent: true
 

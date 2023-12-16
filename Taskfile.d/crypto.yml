@@ -41,8 +41,8 @@ tasks:
       Requirements:
         - openssl
     vars:
-      CONFIG: '{{default .C .CONFIG}}'
-      NAME: '{{default .N .NAME}}'
+      CONFIG: '{{.CONFIG | default .C}}'
+      NAME: '{{.NAME | default .N}}'
     cmds:
       - openssl req -new -newkey rsa:2048 -nodes -config "{{.CONFIG}}" -out "{{.NAME}}.csr" -keyout "{{.NAME}}.key"
       - chmod 600 "{{.NAME}}.key"
@@ -53,9 +53,9 @@ tasks:
     preconditions:
       - sh: command -v openssl
         msg: "openssl is not installed"
-      - sh: test -n "{{.CONFIG}}" || test -n "{{.C}}"
+      - sh: test -n "{{.CONFIG}}"
         msg: "CONFIG|C argument is required"
-      - sh: test -n "{{.NAME}}" || test -n "{{.N}}"
+      - sh: test -n "{{.NAME}}"
         msg: "NAME|N argument is required"
     silent: true
 
@@ -73,9 +73,9 @@ tasks:
       Requirements:
         - docker
     vars:
-      FILE: '{{default .F .FILE}}'
-      PASS: '{{default .P .PASS}}'
-      UUSER: '{{default .U .UUSER}}'
+      FILE: '{{.FILE | default .F}}'
+      PASS: '{{.PASS | default .P}}'
+      UUSER: '{{.UUSER | default .U}}'
       DEFAULT_IMAGE: alpine:latest
     cmds:
       - |
@@ -90,11 +90,11 @@ tasks:
     preconditions:
       - sh: command -v docker
         msg: "docker is not installed"
-      - sh: test -n "{{.FILE}}" || test -n "{{.F}}"
+      - sh: test -n "{{.FILE}}"
         msg: "FILE|F argument is required"
-      - sh: test -n "{{.UUSER}}" || test -n "{{.U}}"
+      - sh: test -n "{{.UUSER}}"
         msg: "UUSER|U argument is required"
-      - sh: test -n "{{.PASS}}" || test -n "{{.P}}"
+      - sh: test -n "{{.PASS}}"
         msg: "PASS|P argument is required"
     silent: true
 
@@ -110,7 +110,7 @@ tasks:
       Requirements:
         - ssh-keygen
     vars:
-      KEY: '{{default .K .KEY}}'
+      KEY: '{{.KEY | default .K}}'
     cmds:
       - dir=$(dirname "{{.KEY}}") && mkdir -p "$dir" && chmod 700 "$dir"
       - |
@@ -124,6 +124,6 @@ tasks:
     preconditions:
       - sh: command -v ssh-keygen
         msg: "ssh-keygen is not installed"
-      - sh: test -n "{{.KEY}}" || test -n "{{.K}}"
+      - sh: test -n "{{.KEY}}"
         msg: "KEY|K argument is required"
     silent: true

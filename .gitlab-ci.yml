@@ -8,6 +8,7 @@ variables:
   IMAGE_LYCHEE: lycheeverse/lychee:latest
   IMAGE_MARKDOWNLINT: davidanson/markdownlint-cli2
   IMAGE_NODE: node:lts-bookworm
+  IMAGE_PRE_COMMIT: python:3-bookworm
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
   IMAGE_YAMLLINT: jfxs/ansible
   SERVICE_DOCKER_TAG: stable-dind
@@ -24,8 +25,20 @@ lint-file:
     - apk --no-cache add curl file git ncurses
     - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
     - task --version
+    - echo -en  "[safe]\n  directory = $CI_PROJECT_DIR\n" >> ~/.gitconfig
+    - git status
   script:
     - task lint:file
+
+lint-pre-commit:
+  image: $IMAGE_PRE_COMMIT
+  stage: lint
+  before_script:
+    - apt-get update && apt-get install -y --no-install-recommends curl git
+    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+    - task --version
+  script:
+    - task lint:pre-commit
 
 lint-lychee:
   image:
