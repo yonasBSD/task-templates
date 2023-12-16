@@ -112,11 +112,6 @@ lint-markdown-dind:
   script:
     - ./bin/task lint:markdown
 
-lint-pre-commit-dind:
-  extends: lint-docker-dind
-  script:
-    - ./bin/task lint:pre-commit
-
 lint-shell-dind:
   extends: lint-docker-dind
   script:
