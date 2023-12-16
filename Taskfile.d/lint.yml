@@ -352,6 +352,7 @@ tasks:
       EXEC: pre-commit
       CMD: git config --global --add safe.directory /workdir && pip install pre-commit && pre-commit autoupdate && pre-commit run --all-files
       PRE_COMMIT_CONFIG_DEFAULT: |
+        ---
         repos:
           - repo: https://github.com/pre-commit/pre-commit-hooks
             rev: v4.5.0
@@ -375,7 +376,8 @@ tasks:
               - id: trailing-whitespace
                 args: [--markdown-linebreak-ext=md]
     cmds:
-      - if [ ! -f ".pre-commit-config.yaml" ]; then echo "{{.PRE_COMMIT_CONFIG_DEFAULT}}" > ".pre-commit-config.yaml" && printf "\033[0;32mConfig file \"%s\" is created.\033[0m\n" ".pre-commit-config.yaml"; fi
+      - echo {{.MESG}} > tests.txt
+      - if [ ! -f ".pre-commit-config.yaml" ]; then echo -n "{{.PRE_COMMIT_CONFIG_DEFAULT}}" > ".pre-commit-config.yaml" && printf "\033[0;32mConfig file \"%s\" is created.\033[0m\n" ".pre-commit-config.yaml"; fi
       - |
         if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
           pre-commit autoupdate && pre-commit run --all-files

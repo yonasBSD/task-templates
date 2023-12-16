@@ -37,6 +37,8 @@ lint-pre-commit:
     - apt-get update && apt-get install -y --no-install-recommends curl git
     - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
     - task --version
+    - pip install pre-commit
+    - pre-commit --version
   script:
     - task lint:pre-commit
 
@@ -109,6 +111,11 @@ lint-markdown-dind:
   extends: lint-docker-dind
   script:
     - ./bin/task lint:markdown
+
+lint-pre-commit-dind:
+  extends: lint-docker-dind
+  script:
+    - ./bin/task lint:pre-commit
 
 lint-shell-dind:
   extends: lint-docker-dind
