@@ -5,39 +5,6 @@ version: '3'
 
 tasks:
 
-  attach-sbom:
-    desc: "Adding an SBOM to an image: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 [DIR|D=.] (*)"
-    summary: |
-      [SBOM] Adding an SBOM to an image as an attestation in registry.
-      Usage: task sbom:attach-sbom-attest IMG|I=<image> DIR|D=<temporary_directory>
-
-      Arguments:
-        IMG | I  Image to analyze (required)
-        DIR | D  Temporary directory to save attestation file (optional, current directory by default)
-
-      Requirements:
-        - cosign
-        - syft
-        - Registry push permission (docker login ...)
-    vars:
-      DIR: '{{default .D .DIR}}'
-      D_DIR: '{{default "." .DIR}}'
-      IMG: '{{default .I .IMG}}'
-      ATT_FILENAME:
-        sh: echo "{{.IMG}}" | sed -E 's/[\/:.@]+/-/g'
-    cmds:
-      - defer: rm -f "{{.D_DIR}}/{{.ATT_FILENAME}}.sbom.json"
-      - syft -o spdx-json "{{.IMG}}" > "{{.D_DIR}}/{{.ATT_FILENAME}}.sbom.json"
-      - cosign attach sbom --sbom "{{.D_DIR}}/{{.ATT_FILENAME}}.sbom.json" "{{.IMG}}"
-    preconditions:
-      - sh: command -v cosign
-        msg: "cosign is not installed"
-      - sh: command -v syft
-        msg: "syft is not installed"
-      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
-        msg: "IMG|I argument is required"
-    silent: true
-
   attach-sbom-attest:
     desc: "Adding an SBOM to an image as an attestation: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 KEY|K=/home/my_dir/cosign.key [DIR|D=.] (*)"
     summary: |
@@ -62,9 +29,9 @@ tasks:
       ATT_FILENAME:
         sh: echo "{{.IMG}}" | sed -E 's/[\/:.@]+/-/g'
     cmds:
-      - defer: rm -f "{{.D_DIR}}/{{.ATT_FILENAME}}.att"
-      - syft attest --key "{{.KEY}}" -o spdx-json "{{.IMG}}" > "{{.D_DIR}}/{{.ATT_FILENAME}}.att"
-      - cosign attach attestation --attestation "{{.D_DIR}}/{{.ATT_FILENAME}}.att" "{{.IMG}}"
+      - defer: rm -f "{{.D_DIR}}/{{.ATT_FILENAME}}.sbom.json"
+      - syft -o spdx-json "{{.IMG}}" > "{{.D_DIR}}/{{.ATT_FILENAME}}.sbom.json"
+      - cosign attest --key "{{.KEY}}" --predicate "{{.D_DIR}}/{{.ATT_FILENAME}}.sbom.json" --type spdx "{{.IMG}}"
     preconditions:
       - sh: command -v cosign
         msg: "cosign is not installed"
