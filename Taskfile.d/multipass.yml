@@ -464,6 +464,7 @@ tasks:
   # TODO: Add a task list-all to list all instances and mount points.
 
   # TODO: Kill not only hyperkit but qemu, use argument.
+  # https://multipass.run/docs/hyperkit-migration
   reset:
     desc: "Restart multipass daemon and kill all hyperkit instances"
     cmds:
