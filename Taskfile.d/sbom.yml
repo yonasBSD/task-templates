@@ -31,7 +31,7 @@ tasks:
     cmds:
       - defer: rm -f "{{.D_DIR}}/{{.ATT_FILENAME}}.sbom.json"
       - syft -o spdx-json "{{.IMG}}" > "{{.D_DIR}}/{{.ATT_FILENAME}}.sbom.json"
-      - cosign attest --key "{{.KEY}}" --predicate "{{.D_DIR}}/{{.ATT_FILENAME}}.sbom.json" --type spdx "{{.IMG}}"
+      - cosign attest --tlog-upload=false --key "{{.KEY}}" --predicate "{{.D_DIR}}/{{.ATT_FILENAME}}.sbom.json" --type spdxjson "{{.IMG}}"
     preconditions:
       - sh: command -v cosign
         msg: "cosign is not installed"
@@ -145,7 +145,7 @@ tasks:
       OUTPUT: '{{default .O .OUTPUT}}'
     cmds:
       - defer: rm -f "{{.OUTPUT}}.tmp"
-      - cosign verify-attestation --key "{{.KEY}}" --type spdxjson "{{.IMG}}"  | jq '.payload | @base64d | fromjson | .predicate' > "{{.OUTPUT}}.tmp"
+      - cosign verify-attestation --insecure-ignore-tlog=true --key "{{.KEY}}" --type spdxjson "{{.IMG}}"  | jq '.payload | @base64d | fromjson | .predicate' > "{{.OUTPUT}}.tmp"
       - |
         if [ -z "{{.FORMAT}}" ]; then
           mv "{{.OUTPUT}}.tmp" "{{.OUTPUT}}"
