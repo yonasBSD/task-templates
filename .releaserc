@@ -1,0 +1,20 @@
+{
+  "branches": [
+    "main",
+    "master"
+  ],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/gitlab",
+      {
+        "assets": [
+          {
+            "path": "Taskfile.d/*.yml"
+          }
+        ]
+      }
+    ]
+  ]
+}

@@ -4,16 +4,17 @@
 version: '3'
 
 vars:
-  IMAGE_DEFAULT: alpine:latest
-  IMAGE_NODE: node:lts-bookworm
+  IMAGE_DEFAULT: jfxs/commitizen-semantic-release:latest
+  DOCKER_EXEC_OPTS: ""
+  DOCKER_RUN_OPTS: ""
 
 tasks:
 
-  commit-signed:
+  signed-commit:
     desc: "Signed commit. Arguments: KEY_PATH|K=key_full_path MESSAGE|M=message [OPTION|O=\"--amend\"] [PULL|P=n|N] (*)"
     summary: |
       [GIT] Signed commit.
-      Usage: task git:commit KEY_PATH|K=<key_full_path> MESSAGE|M=<message> [OPTION|O=\"<options>\"] [PULL|P=<n|N>]
+      Usage: task git:signed-commit KEY_PATH|K=<key_full_path> MESSAGE|M=<message> [OPTION|O=\"<options>\"] [PULL|P=<n|N>]
 
       Prerequistes:
         - Run command: git config user.name "your name"
@@ -32,21 +33,20 @@ tasks:
     vars:
       KEY_MOUNT_POINT: /Private
       SRC_MOUNT_POINT: /data
-      KEY_PATH: '{{default .K .KEY_PATH}}'
-      MESSAGE: '{{default .M .MESSAGE}}'
-      OPTIONS: '{{default .O .OPTIONS}}'
-      D_OPTIONS: '{{default "-S --signoff" .OPTIONS}}'
-      PULL: '{{default .P .PULL}}'
+      KEY_PATH: '{{.KEY_PATH | default .K}}'
+      MESSAGE: '{{.MESSAGE | default .M}}'
+      OPTIONS: '{{.OPTIONS | default .O | default "-S --signoff"}}'
+      PULL: '{{.PULL | default .P}}'
       KEY_PATH_DIR:
         sh: dirname "{{.KEY_PATH}}"
       KEY_NAME:
         sh: basename "{{.KEY_PATH}}"
     cmds:
       - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_DEFAULT}}"; fi
-      - docker run -d --name commit -v "{{.KEY_PATH_DIR}}:{{.KEY_MOUNT_POINT}}" -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" "{{.IMAGE_DEFAULT}}" sleep infinity
+      - docker run {{.DOCKER_RUN_OPTS}} -d --name commit -v "{{.KEY_PATH_DIR}}:{{.KEY_MOUNT_POINT}}" -v $(pwd):"{{.SRC_MOUNT_POINT}}" "{{.IMAGE_DEFAULT}}" sleep infinity
       - defer: echo "Waiting for the container to stop..." && docker stop commit && docker rm commit
-      - docker exec -it commit /bin/sh -c 'apk --no-cache add git gnupg && gpg --import "{{.KEY_MOUNT_POINT}}/{{.KEY_NAME}}"'
-      - docker exec -it commit /bin/sh -c 'export GPG_TTY=$(tty); git config --global --add safe.directory /data && git commit {{.D_OPTIONS}} -m "{{.MESSAGE}}"'
+      - docker exec {{.DOCKER_EXEC_OPTS}} -it commit /bin/sh -c 'export GPG_TTY=$(tty); gpg --batch --import "{{.KEY_MOUNT_POINT}}/{{.KEY_NAME}}"'
+      - docker exec {{.DOCKER_EXEC_OPTS}} -it commit /bin/sh -c 'export GPG_TTY=$(tty); git commit {{.OPTIONS}} -m "{{.MESSAGE}}"'
       - echo "Signed commit succeeded!"
     preconditions:
       - sh: command -v docker
@@ -76,25 +76,23 @@ tasks:
     vars:
       KEY_MOUNT_POINT: /Private
       SRC_MOUNT_POINT: /data
-      KEY_PATH: '{{default .K .KEY_PATH}}'
-      PULL: '{{default .P .PULL}}'
+      KEY_PATH: '{{.KEY_PATH | default .K}}'
+      PULL: '{{.PULL | default .P}}'
       KEY_PATH_DIR:
         sh: dirname "{{.KEY_PATH}}"
       KEY_NAME:
         sh: basename "{{.KEY_PATH}}"
     cmds:
-      - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_NODE}}"; fi
-      - docker run -d --name node-commit -v "{{.KEY_PATH_DIR}}:{{.KEY_MOUNT_POINT}}" -v "$(pwd):{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" "{{.IMAGE_NODE}}" sleep infinity
-      - defer: echo "Waiting for the container to stop..." && docker stop node-commit && docker rm node-commit
-      - docker exec -it node-commit /bin/sh -c 'gpg --import "{{.KEY_MOUNT_POINT}}/{{.KEY_NAME}}"'
-      - docker exec -it node-commit /bin/sh -c 'export GPG_TTY=$(tty); git config --global --add safe.directory /data && yarn commit'
+      - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_DEFAULT}}"; fi
+      - docker run {{.DOCKER_RUN_OPTS}} -d --name commit -v "{{.KEY_PATH_DIR}}:{{.KEY_MOUNT_POINT}}" -v $(pwd):"{{.SRC_MOUNT_POINT}}" "{{.IMAGE_DEFAULT}}" sleep infinity
+      - defer: echo "Waiting for the container to stop..." && docker stop commit && docker rm commit
+      - docker exec {{.DOCKER_EXEC_OPTS}} -it commit /bin/sh -c 'export GPG_TTY=$(tty); gpg --batch --import "{{.KEY_MOUNT_POINT}}/{{.KEY_NAME}}"'
+      - docker exec {{.DOCKER_EXEC_OPTS}} -it commit /bin/sh -c 'export GPG_TTY=$(tty); cz --signoff'
       - echo "Signed commit succeeded!"
     preconditions:
       - sh: command -v docker
         msg: "docker is not installed"
       - sh: test -n "{{.KEY_PATH}}" || test -n "{{.K}}"
         msg: "KEY_PATH|K argument is required"
-      - sh: test -f yarn.lock
-        msg: "Error: Commitizen installation by Yarn is required."
     interactive: true
     silent: true

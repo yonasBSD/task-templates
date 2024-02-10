@@ -1,13 +1,13 @@
 ---
 # https://taskfile.dev
-# Title:
-# Description:
-# Tags:
-# Author:
-# Home:
-# License:
-# Bookmarks:
-# Deprecated:
+# @title:
+# @description:
+# @tags:
+# @author:
+# @home:
+# @license:
+# @bookmarks:
+# @deprecated:
 
 version: '3'
 
@@ -19,7 +19,6 @@ vars:
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
   IMAGE_VALE: jdkato/vale
   IMAGE_YAMLINT: jfxs/ansible
-  DOCKER_OPTS: ""
 
 tasks:
 
@@ -66,9 +65,9 @@ tasks:
       Usage: task lint:markdown [FILE|F=Dockerfile] [IMG|I=hadolint/hadolint] [PULL|P=<n|N>] [DOCKER_OPTS|DO=<docker_options>]
 
       Arguments:
-        FILE | F      Path of the Docker file to lint (optional, by default Dockerfile)
-        IMG  | I      Docker markdownlint image to use (optional, by default {{.IMAGE_HADOLINT}})
-        PULL | P      Pull docker image (optional, by default yes)
+        FILE        | F   Path of the Docker file to lint (optional, by default Dockerfile)
+        IMG         | I   Docker markdownlint image to use (optional, by default {{.IMAGE_HADOLINT}})
+        PULL        | P   Pull docker image (optional, by default yes)
         DOCKER_OPTS | DO  Docker options (optional)
 
       Requirements:
@@ -78,7 +77,7 @@ tasks:
       IMG: '{{.IMG | default .I}}'
       IMG_D: '{{.IMG | default .IMAGE_HADOLINT}}'
       PULL: '{{.PULL | default .P}}'
-      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO}}'
+      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO | default ""}}'
       EXEC: hadolint
     cmds:
       - |
@@ -258,12 +257,12 @@ tasks:
     desc: "Find broken hyperlinks with lychee. Arguments: [ARGS|A='.'] [IMG|I=lycheeverse/lychee] [PULL|P=n|N] [DOCKER_OPTS|DO=-u 1000:0] (*)"
     summary: |
       [LINT] Find broken hyperlinks.
-      Usage: task lint:lychee [ARGS|A='.'] [IMG|I=lycheeverse/lychee] [PULL|P=<n|N>]
+      Usage: task lint:lychee [ARGS|A='.'] [IMG|I=lycheeverse/lychee] [PULL|P=<n|N>] [DOCKER_OPTS|DO=<docker_options>]
 
       Arguments:
-        ARGS | A          Glob expressions (optional, by default ".")
-        IMG  | I          Docker markdownlint image to use (optional, by default {{.IMAGE_LYCHEE}})
-        PULL | P          Pull docker image (optional, by default yes)
+        ARGS        | A   Glob expressions (optional, by default ".")
+        IMG         | I   Docker markdownlint image to use (optional, by default {{.IMAGE_LYCHEE}})
+        PULL        | P   Pull docker image (optional, by default yes)
         DOCKER_OPTS | DO  Docker options (optional)
 
       Notes:
@@ -277,7 +276,7 @@ tasks:
       IMG: '{{.IMG | default .I}}'
       IMG_D: '{{.IMG | default .IMAGE_LYCHEE}}'
       PULL: '{{.PULL | default .P}}'
-      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO}}'
+      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO | default ""}}'
       EXEC: lychee
     cmds:
       - |
@@ -296,13 +295,14 @@ tasks:
     desc: "Linter for Mardown files. Arguments: [GLOB|G='\"**/*.md\"'] [IMG|I=tmknom/markdownlint] [PULL|P=n|N] [DOCKER_OPTS|DO=-u 1000:0] (*)"
     summary: |
       [LINT] Linter for Markdown files.
-      Usage: task lint:markdown [GLOB|G='"**/*.md" "#node_modules"'] [IMG|I=tmknom/markdownlint] [PULL|P=<n|N>]
+      Usage: task lint:markdown [GLOB|G='"**/*.md" "#node_modules"'] [IMG|I=tmknom/markdownlint] [PULL|P=<n|N>] [DOCKER_OPTS|DO=<docker_options>]
 
       Arguments:
-        GLOB | G          Glob expressions (optional, by default "**/*.md")
-        IMG  | I          Docker markdownlint image to use (optional, by default {{.IMAGE_MARKDOWNLINT}})
-        PULL | P          Pull docker image (optional, by default yes)
+        GLOB        | G   Glob expressions (optional, by default "**/*.md")
+        IMG         | I   Docker markdownlint image to use (optional, by default {{.IMAGE_MARKDOWNLINT}})
+        PULL        | P   Pull docker image (optional, by default yes)
         DOCKER_OPTS | DO  Docker options (optional)
+
       Notes:
        - Documentation of Glob expressions: https://github.com/DavidAnson/markdownlint-cli2
 
@@ -313,7 +313,7 @@ tasks:
       IMG: '{{.IMG | default .I}}'
       IMG_D: '{{.IMG | default .IMAGE_MARKDOWNLINT}}'
       PULL: '{{.PULL | default .P}}'
-      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO}}'
+      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO | default ""}}'
       EXEC: markdownlint-cli2
     cmds:
       - |
@@ -332,11 +332,11 @@ tasks:
     desc: "Lint with pre-commit framework. Arguments: [IMG|I=python:3-bookworm] [PULL|P=n|N] [DOCKER_OPTS|DO=-u 1000:0] (*)"
     summary: |
       [LINT] Lint with pre-commit framework.
-      Usage: task lint:pre-commit [IMG|I=python:3-bookwormt] [PULL|P=<n|N>]
+      Usage: task lint:pre-commit [IMG|I=python:3-bookwormt] [PULL|P=<n|N>] [DOCKER_OPTS|DO=<docker_options>]
 
       Arguments:
-        IMG  | I          Docker markdownlint image to use (optional, by default {{.IMAGE_PYTHON}})
-        PULL | P          Pull docker image (optional, by default yes)
+        IMG         | I   Docker markdownlint image to use (optional, by default {{.IMAGE_PYTHON}})
+        PULL        | P   Pull docker image (optional, by default yes)
         DOCKER_OPTS | DO  Docker options (optional)
 
       Notes:
@@ -348,7 +348,7 @@ tasks:
       IMG: '{{.IMG | default .I}}'
       IMG_D: '{{.IMG | default .IMAGE_PYTHON}}'
       PULL: '{{.PULL | default .P}}'
-      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO}}'
+      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO | default ""}}'
       EXEC: pre-commit
       CMD: git config --global --add safe.directory /workdir && pip install pre-commit && pre-commit autoupdate && pre-commit run --all-files
       PRE_COMMIT_CONFIG_DEFAULT: |
@@ -395,12 +395,12 @@ tasks:
       [LINT] Linter for bash/sh shell files.
       If shellcheck command is in the path and IMG/I argument is not set, the local shellcheck command is executed,
       otherwise a shellcheck Docker image is used.
-      Usage: task lint:shell FILES|F="myscripts/*.sh" [IMG|I=<koalaman/shellcheck:stable>] [PULL|P=<n|N>]
+      Usage: task lint:shell FILES|F="myscripts/*.sh" [IMG|I=<koalaman/shellcheck:stable>] [PULL|P=<n|N>] [DOCKER_OPTS|DO=<docker_options>]
 
       Arguments:
-        FILES | F         Files to check (required)
-        IMG   | I         Docker shellcheck image to use (optional, by default {{.IMAGE_SHELLCHECK}})
-        PULL  | P         Pull docker image (optional, by default yes)
+        FILES       | F   Files to check (required)
+        IMG         | I   Docker shellcheck image to use (optional, by default {{.IMAGE_SHELLCHECK}})
+        PULL        | P   Pull docker image (optional, by default yes)
         DOCKER_OPTS | DO  Docker options (optional)
 
       Requirements:
@@ -410,7 +410,7 @@ tasks:
       IMG: '{{.IMG | default .I}}'
       IMG_D: '{{.IMG | default .IMAGE_SHELLCHECK}}'
       PULL: '{{.PULL | default .P}}'
-      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO}}'
+      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO | default ""}}'
       EXEC: shellcheck
     cmds:
       - |
@@ -436,13 +436,13 @@ tasks:
       otherwise a Vale Docker image is used.
       You must create a .vale.ini configuration file and vale sync is automatically run:
       https://vale.sh/generator
-      Usage: task lint:vale [FILES|F=\"*.md\"] [STYLES|S=\"styles\"] [IMG|I=jdkato/vale] [PULL|P=<n|N>]
+      Usage: task lint:vale [FILES|F=\"*.md\"] [STYLES|S=\"styles\"] [IMG|I=jdkato/vale] [PULL|P=<n|N>] [DOCKER_OPTS|DO=<docker_options>]
 
       Arguments:
-        FILES  | F        Files to check (optional, by default *.md)
-        STYLES | S        Styles directory (optional, by default styles)
-        IMG    | I        Docker yamllint image to use (optional, by default {{.IMAGE_VALE}})
-        PULL   | P        Pull docker image (optional, by default yes)
+        FILES       | F   Files to check (optional, by default *.md)
+        STYLES      | S   Styles directory (optional, by default styles)
+        IMG         | I   Docker yamllint image to use (optional, by default {{.IMAGE_VALE}})
+        PULL        | P   Pull docker image (optional, by default yes)
         DOCKER_OPTS | DO  Docker options (optional)
 
       Requirements:
@@ -453,7 +453,7 @@ tasks:
       IMG: '{{.IMG | default .I}}'
       IMG_D: '{{.IMG | default .IMAGE_VALE}}'
       PULL: '{{.PULL | default .P}}'
-      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO}}'
+      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO | default ""}}'
       EXEC: vale
     cmds:
       - mkdir -p {{.STYLES}}
@@ -480,12 +480,12 @@ tasks:
       otherwise a yamllint Docker image is used.
       You can configure rules and exclude directories with a .yamlint configuration file:
       https://yamllint.readthedocs.io/en/stable/configuration.html
-      Usage: task lint:yaml [FILES|F=\".\"] [IMG|I=jfxs/ansible] [PULL|P=<n|N>]
+      Usage: task lint:yaml [FILES|F=\".\"] [IMG|I=jfxs/ansible] [PULL|P=<n|N>] [DOCKER_OPTS|DO=<docker_options>]
 
       Arguments:
-        FILES | F         Files to check (optional, by default .)
-        IMG   | I         Docker yamllint image to use (optional, by default {{.IMAGE_YAMLINT}})
-        PULL  | P         Pull docker image (optional, by default yes)
+        FILES       | F   Files to check (optional, by default .)
+        IMG         | I   Docker yamllint image to use (optional, by default {{.IMAGE_YAMLINT}})
+        PULL        | P   Pull docker image (optional, by default yes)
         DOCKER_OPTS | DO  Docker options (optional)
 
       Requirements:
@@ -495,7 +495,7 @@ tasks:
       IMG: '{{.IMG | default .I}}'
       IMG_D: '{{.IMG | default .IMAGE_YAMLINT}}'
       PULL: '{{.PULL | default .P}}'
-      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO}}'
+      DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO | default ""}}'
       EXEC: yamllint
     cmds:
       - |
