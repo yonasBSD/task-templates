@@ -1,24 +1,24 @@
 ---
 # https://taskfile.dev
-# @title:
-# @description:
-# @tags:
-# @author:
-# @home:
-# @license:
-# @bookmarks:
+# @title: Lint
+# @description: A set of tasks to lint files
+# @tags: lint, docker, shell, yaml, markdown
+# @authors: FX Soubirou <soubirou@yahoo.fr>
+# @home: https://gitlab.com/op_so/task/task-templates
+# @links: [pre-commit](https://pre-commit.com/)
+# @license: MIT
 # @deprecated:
 
 version: '3'
 
 vars:
-  IMAGE_HADOLINT: hadolint/hadolint
-  IMAGE_LYCHEE: lycheeverse/lychee:latest
-  IMAGE_MARKDOWNLINT: davidanson/markdownlint-cli2
-  IMAGE_PYTHON: python:3-bookworm
-  IMAGE_SHELLCHECK: koalaman/shellcheck:stable
-  IMAGE_VALE: jdkato/vale
-  IMAGE_YAMLINT: jfxs/ansible
+  IMAGE_HADOLINT: hadolint/hadolint  # Default image for lint:docker task
+  IMAGE_LYCHEE: lycheeverse/lychee:master  # Default image for lint:lychee task
+  IMAGE_MARKDOWNLINT: davidanson/markdownlint-cli2  # Default image for lint:markdown task
+  IMAGE_PRE-COMMIT: jfxs/pre-commit  # Default image for lint:pre-commit task
+  IMAGE_SHELLCHECK: koalaman/shellcheck:stable  # Default image for lint:shellcheck task
+  IMAGE_VALE: jdkato/vale  # Default image for lint:vale task
+  IMAGE_YAMLINT: jfxs/ansible  # Default image for lint:yaml task
 
 tasks:
 
@@ -329,13 +329,13 @@ tasks:
     silent: true
 
   pre-commit:
-    desc: "Lint with pre-commit framework. Arguments: [IMG|I=python:3-bookworm] [PULL|P=n|N] [DOCKER_OPTS|DO=-u 1000:0] (*)"
+    desc: "Lint with pre-commit framework. Arguments: [IMG|I=jfxs/pre-commit] [PULL|P=n|N] [DOCKER_OPTS|DO=-u 1000:0] (*)"
     summary: |
       [LINT] Lint with pre-commit framework.
-      Usage: task lint:pre-commit [IMG|I=python:3-bookwormt] [PULL|P=<n|N>] [DOCKER_OPTS|DO=<docker_options>]
+      Usage: task lint:pre-commit [IMG|I=jfxs/pre-commit] [PULL|P=<n|N>] [DOCKER_OPTS|DO=<docker_options>]
 
       Arguments:
-        IMG         | I   Docker markdownlint image to use (optional, by default {{.IMAGE_PYTHON}})
+        IMG         | I   Docker markdownlint image to use (optional, by default {{.IMAGE_PRE-COMMIT}})
         PULL        | P   Pull docker image (optional, by default yes)
         DOCKER_OPTS | DO  Docker options (optional)
 
@@ -346,11 +346,11 @@ tasks:
         - pre-commit or docker
     vars:
       IMG: '{{.IMG | default .I}}'
-      IMG_D: '{{.IMG | default .IMAGE_PYTHON}}'
+      IMG_D: '{{.IMG | default .IMAGE_PRE-COMMIT}}'
       PULL: '{{.PULL | default .P}}'
       DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO | default ""}}'
       EXEC: pre-commit
-      CMD: git config --global --add safe.directory /workdir && pip install pre-commit && pre-commit autoupdate && pre-commit run --all-files
+      CMD: pre-commit run --all-files
       PRE_COMMIT_CONFIG_DEFAULT: |
         ---
         repos:
@@ -379,13 +379,13 @@ tasks:
       - if [ ! -f ".pre-commit-config.yaml" ]; then echo -n "{{.PRE_COMMIT_CONFIG_DEFAULT}}" > ".pre-commit-config.yaml" && printf "\033[0;32mConfig file \"%s\" is created.\033[0m\n" ".pre-commit-config.yaml"; fi
       - |
         if (! test -n "{{.IMG}}") && (command -v {{.EXEC}} 2>&1 >/dev/null); then
-          pre-commit autoupdate && pre-commit run --all-files
+          {{.CMD}}
         else
           if ! command -v docker 2>&1 >/dev/null; then
             echo "docker and {{.EXEC}} are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run {{.DOCKER_OPTS}} -t --rm -v $(pwd):/workdir -w /workdir "{{.IMG_D}}" /bin/bash -c "{{.CMD}}"
+          docker run {{.DOCKER_OPTS}} -t --rm -v $(pwd):/workdir "{{.IMG_D}}" /bin/bash -c "{{.CMD}}"
         fi
     silent: true
 
