@@ -15,7 +15,7 @@ vars:
   IMAGE_HADOLINT: hadolint/hadolint  # Default image for lint:docker task
   IMAGE_LYCHEE: lycheeverse/lychee:master  # Default image for lint:lychee task
   IMAGE_MARKDOWNLINT: davidanson/markdownlint-cli2  # Default image for lint:markdown task
-  IMAGE_PRE-COMMIT: jfxs/pre-commit  # Default image for lint:pre-commit task
+  IMAGE_PRECOMMIT: jfxs/pre-commit  # Default image for lint:pre-commit task
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable  # Default image for lint:shellcheck task
   IMAGE_VALE: jdkato/vale  # Default image for lint:vale task
   IMAGE_YAMLINT: jfxs/ansible  # Default image for lint:yaml task
@@ -335,22 +335,22 @@ tasks:
       Usage: task lint:pre-commit [IMG|I=jfxs/pre-commit] [PULL|P=<n|N>] [DOCKER_OPTS|DO=<docker_options>]
 
       Arguments:
-        IMG         | I   Docker markdownlint image to use (optional, by default {{.IMAGE_PRE-COMMIT}})
+        IMG         | I   Docker pre-commit image to use (optional, by default {{.IMAGE_PRECOMMIT}})
         PULL        | P   Pull docker image (optional, by default yes)
         DOCKER_OPTS | DO  Docker options (optional)
 
       Notes:
-       - Documentation of pre-commit: https://pre-commit.com/
+        - Documentation of pre-commit: https://pre-commit.com/
 
       Requirements:
         - pre-commit or docker
     vars:
       IMG: '{{.IMG | default .I}}'
-      IMG_D: '{{.IMG | default .IMAGE_PRE-COMMIT}}'
+      IMG_D: '{{.IMG | default .IMAGE_PRECOMMIT}}'
       PULL: '{{.PULL | default .P}}'
       DOCKER_OPTS: '{{.DOCKER_OPTS | default .DO | default ""}}'
       EXEC: pre-commit
-      CMD: pre-commit run --all-files
+      CMD: export PRE_COMMIT_HOME=./.cache/pre-commit && pre-commit run --all-files
       PRE_COMMIT_CONFIG_DEFAULT: |
         ---
         repos:

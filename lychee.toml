@@ -1,1 +1,1 @@
-exclude_path = [".node_cache", "node_modules", "reports", "styles"]
+exclude_path = [".cache", ".node_cache", "node_modules", "reports", "styles"]

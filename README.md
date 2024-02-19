@@ -48,7 +48,7 @@ wget -cq --show-progress -O Taskfile.project.yml https://gitlab.com/op_so/task/t
 
 On Alpine Linux, `--show-progress` option isn't available.
 
-* Select your template(s) by editing the `Taskfile.project.yml` file variable `TASK_TEMPLATES`:
+* Select your templates by editing the `Taskfile.project.yml` file variable `TASK_TEMPLATES`:
 
 example:
 
