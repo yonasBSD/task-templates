@@ -33,11 +33,8 @@ lint-file:
 lint-pre-commit:
   image: $IMAGE_PRECOMMIT
   stage: lint
-  before_script:
-    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-    - task --version
   script:
-    - task lint:pre-commit
+    - task --taskfile /lint.yml pre-commit DIR=$(pwd)
 
 lint-lychee:
   image:
