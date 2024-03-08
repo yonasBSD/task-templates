@@ -127,8 +127,8 @@ tasks:
     cmds:
       - |
         if [ -d "{{.DIR_TASKFILES}}" ]; then
-          ls -1 {{.DIR_TASKFILES}}/*.yml |
-          while IFS= read -r template; do
+          for template in {{.DIR_TASKFILES}}/*.yml
+          do
             template_name=$(basename "$template")
             printf "\033[0;33m[ %s: ]\033[0m " "${template_name%.yml}" && task --list -t "$template" || true
             echo ""

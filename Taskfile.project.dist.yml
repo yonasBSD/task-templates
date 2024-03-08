@@ -12,7 +12,6 @@ vars:
   # Example: TASK_TEMPLATES: go,lint,yarn
   TASK_TEMPLATES: lint
 
-
 tasks:
 
   00-get-list-templates:
@@ -22,12 +21,12 @@ tasks:
       - echo "{{.TASK_TEMPLATES}}"
     silent: true
 
-  # Task example
+  # Task example with TASK_TEMPLATES: lint
   10-pre-commit:
     desc: "[PROJECT] Pre-commit checks."
     cmds:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}
-      - task lint:all MEX='"#Taskfile.d"'
+      - task lint:pre-commit
       - echo "Checks Start $(cat {{.FILE_TASK_START}}) - End $(date)"
     silent: true
