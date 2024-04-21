@@ -1,0 +1,54 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+
+tasks:
+
+  install:
+    desc: "[POETRY] Install packages."
+    cmds:
+      - date > {{.FILE_TASK_START}}
+      - defer: rm -f {{.FILE_TASK_START}}
+      - rm -f poetry.lock
+      - poetry install --with lint
+      - echo "Tests Start $(cat {{.FILE_TASK_START}}) - End $(date)"
+    silent: true
+
+  lint:
+    desc: "[POETRY] Lint code."
+    cmds:
+      - date > {{.FILE_TASK_START}}
+      - defer: rm -f {{.FILE_TASK_START}}
+      - echo " Black " && echo "======="
+      - poetry run black src
+      - poetry run black tests
+      - echo " Mypy " && echo "======"
+      - poetry run mypy src
+      - poetry run mypy tests
+      - echo " Ruff " && echo "======"
+      - poetry run ruff check src/
+      - poetry run ruff check tests/
+      - echo " Flake8 " && echo "========"
+      - poetry run flake8 src/
+      - poetry run flake8 tests/
+      - echo "Tests Start $(cat {{.FILE_TASK_START}}) - End $(date)"
+    silent: true
+
+  pytest:
+    desc: "[POETRY] Tests."
+    cmds:
+      - date > {{.FILE_TASK_START}}
+      - defer: rm -f {{.FILE_TASK_START}}
+      - poetry run pytest --cov=src/ --cov-report term
+      - echo "Tests Start $(cat {{.FILE_TASK_START}}) - End $(date)"
+    silent: true
+
+  run:
+    desc: "[POETRY] How to run code."
+    cmds:
+      - echo "use command> poetry run <pgm> ..."
+      - echo "pgm is defined in pyproject.toml section [tool.poetry.scripts]"
+    silent: true

@@ -1,12 +1,22 @@
 ---
 # https://taskfile.dev
+# @description: Two tasks to sign commits and use commitizen without pre-requisites.
+# @tags: git, docker, CLI
+# @authors: FX Soubirou <soubirou@yahoo.fr>
+# @file-raw: https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/git.yml
+# @file-ui: https://gitlab.com/op_so/task/task-templates/-/blob/main/Taskfile.d/git.yml
+# @home: https://gitlab.com/op_so/task/task-templates
+# @links: [Commitizen](https://github.com/commitizen/cz-cli)
+# @license: MIT
+# @status: stable
+# @deprecated-tasks:
 
 version: '3'
 
 vars:
-  IMAGE_DEFAULT: jfxs/commitizen-semantic-release:latest
-  DOCKER_EXEC_OPTS: ""
-  DOCKER_RUN_OPTS: ""
+  IMAGE_DEFAULT: jfxs/commitizen-semantic-release:latest  # Default image
+  DOCKER_EXEC_OPTS: ""  # Optionnal Docker options for docker exec command
+  DOCKER_RUN_OPTS: ""  # Optionnal Docker options for docker run command
 
 tasks:
 
@@ -16,17 +26,17 @@ tasks:
       [GIT] Signed commit.
       Usage: task git:signed-commit KEY_PATH|K=<key_full_path> MESSAGE|M=<message> [OPTION|O=\"<options>\"] [PULL|P=<n|N>]
 
-      Prerequistes:
+      Prerequisites:
         - Run command: git config user.name "your name"
         - Run command: git config user.email "your_email@example.com"
         - Run command: git config user.signingkey XXXX
         - Run command: git config commit.gpgsign true
 
       Arguments:
-        KEY_PATH | K  Absolute path to the private key file (required)
-        MESSAGE  | M  Commit message (required)
-        OPTIONS  | O  Git options (optional, by default -S --signoff)
-        PULL     | P  Pull docker image (optional, by default yes)
+        KEY_PATH | K:  Absolute path to the private key file (required)
+        MESSAGE  | M:  Commit message (required)
+        OPTIONS  | O:  Git options (optional, by default -S --signoff)
+        PULL     | P:  Pull docker image (optional, by default yes)
 
       Requirements:
         - docker
@@ -51,9 +61,9 @@ tasks:
     preconditions:
       - sh: command -v docker
         msg: "docker is not installed"
-      - sh: test -n "{{.KEY_PATH}}" || test -n "{{.K}}"
+      - sh: test -n "{{.KEY_PATH}}"
         msg: "KEY_PATH|K argument is required"
-      - sh: test -n "{{.MESSAGE}}" || test -n "{{.M}}"
+      - sh: test -n "{{.MESSAGE}}"
         msg: "MESSAGE|M argument is required"
     silent: true
 
@@ -63,13 +73,13 @@ tasks:
       [GIT] Signed commit with Commitizen.
       Usage: task git:commit KEY_PATH|K=<key_full_path> [PULL|P=<n|N>]
 
-      Prerequistes:
+      Prerequisites:
         - Run command: git config user.signingkey XXXX
         - Run command: git config commit.gpgsign true
 
       Arguments:
-        KEY_PATH | K  Absolute path to the private key file (required)
-        PULL     | P  Pull docker image (optional, by default yes)
+        KEY_PATH | K:  Absolute path to the private key file (required)
+        PULL     | P:  Pull docker image (optional, by default yes)
 
       Requirements:
         - docker
@@ -92,7 +102,7 @@ tasks:
     preconditions:
       - sh: command -v docker
         msg: "docker is not installed"
-      - sh: test -n "{{.KEY_PATH}}" || test -n "{{.K}}"
+      - sh: test -n "{{.KEY_PATH}}"
         msg: "KEY_PATH|K argument is required"
     interactive: true
     silent: true

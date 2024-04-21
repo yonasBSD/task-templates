@@ -1,5 +1,6 @@
 ---
 include:
+  - remote: 'https://gitlab.com/op_so/projects/gitlab-ci-templates/-/raw/main/templates/lint.gitlab-ci.yml'
   - remote: 'https://gitlab.com/op_so/projects/gitlab-ci-templates/-/raw/main/templates/gitlab-release.gitlab-ci.yml'
 
 variables:
@@ -11,77 +12,13 @@ variables:
   IMAGE_PRECOMMIT: jfxs/pre-commit
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
   IMAGE_YAMLLINT: jfxs/ansible
+  LINT_VALE: "true"
   SERVICE_DOCKER_TAG: stable-dind
 
 stages:
   - lint
   - tests
   - gitlab-release
-
-lint-file:
-  image: $IMAGE_DEFAULT
-  stage: lint
-  before_script:
-    - apk --no-cache add curl file git ncurses
-    - sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-    - task --version
-    - echo -en  "[safe]\n  directory = $CI_PROJECT_DIR\n" >> ~/.gitconfig
-    - git status
-  script:
-    - task lint:file
-
-lint-pre-commit:
-  image: $IMAGE_PRECOMMIT
-  stage: lint
-  script:
-    - task --taskfile /lint.yml pre-commit DIR=$(pwd)
-
-lint-lychee:
-  image:
-    name: $IMAGE_LYCHEE
-    entrypoint: [""]
-  stage: lint
-  before_script:
-    - apt-get update && apt-get install -y --no-install-recommends wget
-    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
-    - ./bin/task --version
-  script:
-    - ./bin/task lint:lychee
-  allow_failure: true
-
-lint-markdown:
-  image:
-    name: $IMAGE_MARKDOWNLINT
-    entrypoint: [""]
-  stage: lint
-  before_script:
-    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
-    - ./bin/task --version
-  script:
-    - ./bin/task lint:markdown G="\"**/*.md\" \"#node_modules\" \"#.node_cache\""
-
-lint-vale:
-  image:
-    name: $IMAGE_VALE
-    entrypoint: [""]
-  stage: lint
-  before_script:
-    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
-    - ./bin/task --version
-    - ln -s /bin/vale /usr/local/bin/vale
-  script:
-    - ./bin/task lint:vale
-  allow_failure: true
-
-lint-yaml:
-  image:
-    name: $IMAGE_YAMLLINT
-  stage: lint
-  before_script:
-    - sh -c "$(wget -qO - https://taskfile.dev/install.sh)" -- -d
-    - ./bin/task --version
-  script:
-    - ./bin/task lint:yaml
 
 lint-docker-dind:
   image:

@@ -1,5 +1,15 @@
 ---
 # https://taskfile.dev
+# @description: A set of tasks to manage version.
+# @tags: docker, skopeo, CI, CLI
+# @authors: FX Soubirou <soubirou@yahoo.fr>
+# @file-raw: https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/version.yml
+# @file-ui: https://gitlab.com/op_so/task/task-templates/-/blob/main/Taskfile.d/version.yml
+# @home: https://gitlab.com/op_so/task/task-templates
+# @links: [skopeo](https://github.com/containers/skopeo)
+# @license: MIT
+# @status: stable
+# @deprecated-tasks:
 
 version: '3'
 
@@ -18,10 +28,10 @@ tasks:
       Example: task version:format-semver VERSION=5.7 will return 5.7.0
 
       Arguments:
-        VERSION | V  Version to format (required)
+        VERSION | V: Version to format (required)
     vars:
       REGEX: ^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-.*)?$
-      VERSION: '{{default .V .VERSION}}'
+      VERSION: '{{.VERSION | default .V}}'
     cmds:
       - |
         version_without_build=$(echo "{{.VERSION}}" | cut -f1 -d"+")
@@ -44,7 +54,7 @@ tasks:
           echo "$part_version$part_pre"
         fi
     preconditions:
-      - sh: test -n "{{.VERSION}}" || test -n "{{.V}}"
+      - sh: test -n "{{.VERSION}}"
         msg: "VERSION|V argument is required"
     silent: true
 
@@ -55,13 +65,13 @@ tasks:
       Usage: task version:get-cli-version OUTPUT|O=<cli_output>/<repo>
 
       Arguments:
-        OUTPUT | O  CLI output (required)
+        OUTPUT | O: CLI output (required)
     vars:
-      OUTPUT: '{{default .O .OUTPUT}}'
+      OUTPUT: '{{.OUTPUT | default .O}}'
     cmds:
       - echo "{{.OUTPUT}}" | head -n 1 | sed 's/[^0-9]*\([0-9.]*\).*/\1/'
     preconditions:
-      - sh: test -n "{{.OUTPUT}}" || test -n "{{.O}}"
+      - sh: test -n "{{.OUTPUT}}"
         msg: "OUTPUT|O argument is required"
     silent: true
 
@@ -72,25 +82,25 @@ tasks:
       Usage: task version:get-docker-apk-version IMG|I=<image> APK|A=<package>
 
       Arguments:
-        APK | A  Alpine package (required)
-        IMG | I  Image to run (required)
+        APK | A: Alpine package (required)
+        IMG | I: Image to run (required)
 
       Requirements:
         - docker
     vars:
-      APK: '{{default .A .APK}}'
-      IMG: '{{default .I .IMG}}'
+      APK: '{{.APK | default .A}}'
+      IMG: '{{.IMG | default .I}}'
       APK_OUTPUT:
-        sh: docker run --rm "{{.IMG}}" /bin/sh -c "apk --no-cache add squid" | grep "Installing {{.APK}}" | sed 's/.*(\(.*\)-.*)/\1/'
+        sh: docker run --rm "{{.IMG}}" /bin/sh -c "apk --no-cache add {{.APK}}" | grep "Installing {{.APK}}" | sed 's/.*(\(.*\)-.*)/\1/'
     cmds:
       - task: format-semver
         vars: {VERSION: "{{.APK_OUTPUT}}"}
     preconditions:
       - sh: command -v docker
         msg: "docker is not installed"
-      - sh: test -n "{{.APK}}" || test -n "{{.A}}"
+      - sh: test -n "{{.APK}}"
         msg: "APK|A argument is required"
-      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+      - sh: test -n "{{.IMG}}"
         msg: "IMG|I argument is required"
     silent: true
 
@@ -101,14 +111,14 @@ tasks:
       Usage: task version:get-docker-cli-version IMG|I=<image> CMD|C=<shell_command>
 
       Arguments:
-        IMG | I  Image to run (required)
-        CMD | C  CLI command (required)
+        IMG | I: Image to run (required)
+        CMD | C: CLI command (required)
 
       Requirements:
         - docker
     vars:
-      CMD: '{{default .C .CMD}}'
-      IMG: '{{default .I .IMG}}'
+      CMD: '{{.CMD | default .C}}'
+      IMG: '{{.IMG | default .I}}'
       CLI_OUTPUT:
         sh: docker run -t --rm "{{.IMG}}" /bin/sh -c "{{.CMD}}"
     cmds:
@@ -117,32 +127,31 @@ tasks:
     preconditions:
       - sh: command -v docker
         msg: "docker is not installed"
-      - sh: test -n "{{.CMD}}" || test -n "{{.C}}"
+      - sh: test -n "{{.CMD}}"
         msg: "CMD|C argument is required"
-      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+      - sh: test -n "{{.IMG}}"
         msg: "IMG|I argument is required"
     silent: true
 
   get-docker-manifest-version:
     desc: "Get version from docker manifest with skopeo: IMG|I=index.docker.io/jfxs/alpine-task [LABEL|L=org.opencontainers.image.version] (*)"
     summary: |
-      [VERSION] get-manifest-version:
+      [VERSION] Get version from docker manifest with skopeo:
       Usage: task version:get-manifest-version IMG|I=<image> [LABEL|L=<label_of_version>]
 
       Arguments:
-        IMG   | I  Image to analyze (required)
-        LABEL | L  Label of the version (optional, default org.opencontainers.image.version)
+        IMG   | I: Image to analyze (required)
+        LABEL | L: Label of the version (optional, default org.opencontainers.image.version)
 
       Requirements:
         - docker or skopeo
     vars:
-      IMG: '{{default .I .IMG}}'
-      LABEL: '{{default .L .LABEL}}'
-      D_LABEL: '{{default "org.opencontainers.image.version" .LABEL}}'
+      IMG: '{{.IMG | default .I}}'
+      LABEL: '{{.LABEL | default .L | default "org.opencontainers.image.version"}}'
       IMAGE_SKOPEO: quay.io/skopeo/stable
     cmds:
       - |
-        label='"'{{.D_LABEL}}'"'
+        label='"'{{.LABEL}}'"'
         if [ -x "$(command -v skopeo)" ]; then
           if ! skopeo_output=$(skopeo inspect --format "{{ `{{index .Labels $label}}` }}" "docker://{{.IMG}}"); then
             printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{index .Labels $label}}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
@@ -158,7 +167,7 @@ tasks:
     preconditions:
       - sh: command -v docker || command -v skopeo
         msg: "skopeo or docker are not installed"
-      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+      - sh: test -n "{{.IMG}}"
         msg: "IMG|I argument is required"
     silent: true
 
@@ -169,13 +178,13 @@ tasks:
       Usage: task version:get-latest-github REPO|R=<owner>/<repo>
 
       Arguments:
-        REPO | R  Repository in format: <owner>/<repo> (required)
+        REPO | R: Repository in format: <owner>/<repo> (required)
 
       Requirements:
         - curl or wget
         - jq
     vars:
-      REPO: '{{default .R .REPO}}'
+      REPO: '{{.REPO | default .R}}'
     cmds:
       - |
         if [ -x "$(command -v curl)" ]; then
@@ -188,8 +197,38 @@ tasks:
         msg: "curl or wget are not installed"
       - sh: command -v jq
         msg: "jq is not installed"
-      - sh: test -n "{{.REPO}}" || test -n "{{.R}}"
+      - sh: test -n "{{.REPO}}"
         msg: "REPO|R argument is required"
+    silent: true
+
+  get-latest-npm:
+    desc: "Get latest version from NPM registry: PACKAGE|P=wrangler (*)"
+    summary: |
+      [VERSION] Get latest version from NPM registry:
+      Usage: task version:get-latest-npm PACKAGE|P=<package>
+
+      Arguments:
+        PACKAGE | P: Package name (required)
+
+      Requirements:
+        - curl or wget
+        - jq
+    vars:
+      PACKAGE: '{{.PACKAGE | default .P }}'
+    cmds:
+      - |
+        if [ -x "$(command -v curl)" ]; then
+          curl -sL  https://registry.npmjs.org/{{.PACKAGE}}/latest | jq -r ".version"
+        else
+          wget -qO- https://registry.npmjs.org/{{.PACKAGE}}/latest | jq -r ".version"
+        fi
+    preconditions:
+      - sh: command -v curl || command -v wget
+        msg: "curl or wget are not installed"
+      - sh: command -v jq
+        msg: "jq is not installed"
+      - sh: test -n "{{.PACKAGE}}"
+        msg: "PACKAGE|P argument is required"
     silent: true
 
   get-latest-pypi:
@@ -199,13 +238,13 @@ tasks:
       Usage: task version:get-latest-github PACKAGE|P=<package_name>
 
       Arguments:
-        PACKAGE | P  Package name (required)
+        PACKAGE | P: Package name (required)
 
       Requirements:
         - curl or wget
         - jq
     vars:
-      PACKAGE: '{{default .P .PACKAGE}}'
+      PACKAGE: '{{.PACKAGE | default .P}}'
     cmds:
       - |
         if [ -x "$(command -v curl)" ]; then
@@ -218,7 +257,7 @@ tasks:
         msg: "curl or wget are not installed"
       - sh: command -v jq
         msg: "jq is not installed"
-      - sh: test -n "{{.PACKAGE}}" || test -n "{{.P}}"
+      - sh: test -n "{{.PACKAGE}}"
         msg: "PACKAGE|P argument is required"
     silent: true
 
@@ -230,13 +269,13 @@ tasks:
       Example: task version:get-major-minor-version VERSION=3.19.1 will return 3.19
 
       Arguments:
-        VERSION | V  Version (required)
+        VERSION | V: Version (required)
     vars:
-      VERSION: '{{default .V .VERSION}}'
+      VERSION: '{{.VERSION | default .V}}'
     cmds:
       - echo "{{.VERSION}}" | sed -E 's/([0-9]+\.[0-9]+)\..*/\1/'
     preconditions:
-      - sh: test -n "{{.VERSION}}" || test -n "{{.V}}"
+      - sh: test -n "{{.VERSION}}"
         msg: "VERSION|V argument is required"
     silent: true
 
@@ -248,12 +287,12 @@ tasks:
       Example: task version:get-major-version VERSION=3.19.1 will return 3
 
       Arguments:
-        VERSION | V  Version (required)
+        VERSION | V: Version (required)
     vars:
-      VERSION: '{{default .V .VERSION}}'
+      VERSION: '{{.VERSION | default .V}}'
     cmds:
       - echo "{{.VERSION}}" | sed -E 's/([0-9]+)\..*/\1/'
     preconditions:
-      - sh: test -n "{{.VERSION}}" || test -n "{{.V}}"
+      - sh: test -n "{{.VERSION}}"
         msg: "VERSION|V argument is required"
     silent: true

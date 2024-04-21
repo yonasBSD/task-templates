@@ -1,8 +1,8 @@
 # Task templates
 
-[![Software License](https://img.shields.io/badge/license-MIT-informational.svg?style=flat)](LICENSE)
-[![Pipeline Status](https://gitlab.com/op_so/task/task-templates/badges/main/pipeline.svg)](https://gitlab.com/op_so/task/task-templates/pipelines)
-[![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
+[![Software License](https://img.shields.io/badge/license-MIT-informational.svg?style=for-the-badge)](LICENSE)
+[![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release&style=for-the-badge)](https://github.com/semantic-release/semantic-release)
+[![Pipeline Status](https://img.shields.io/gitlab/pipeline-status/op_so/task/task-templates?style=for-the-badge)](https://gitlab.com/op_so/task/task-templates/pipelines)
 
 A set of reusable [Task](https://taskfile.dev) templates, ready to use.
 
