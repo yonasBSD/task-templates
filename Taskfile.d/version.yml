@@ -137,7 +137,7 @@ tasks:
     desc: "Get version from docker manifest with skopeo: IMG|I=index.docker.io/jfxs/alpine-task [LABEL|L=org.opencontainers.image.version] (*)"
     summary: |
       [VERSION] Get version from docker manifest with skopeo:
-      Usage: task version:get-manifest-version IMG|I=<image> [LABEL|L=<label_of_version>]
+      Usage: task version:get-docker-manifest-version IMG|I=<image> [LABEL|L=<label_of_version>]
 
       Arguments:
         IMG   | I: Image to analyze (required)

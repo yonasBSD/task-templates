@@ -5,7 +5,8 @@ include:
 
 variables:
   IMAGE_DEFAULT: alpine:latest
-  IMAGE_DOCKER: docker:latest
+  # IMAGE_DOCKER: docker:latest
+  IMAGE_DOCKER: docker:25
   IMAGE_LYCHEE: lycheeverse/lychee:latest
   IMAGE_MARKDOWNLINT: davidanson/markdownlint-cli2
   IMAGE_NODE: node:lts-bookworm
@@ -13,7 +14,8 @@ variables:
   IMAGE_SHELLCHECK: koalaman/shellcheck:stable
   IMAGE_YAMLLINT: jfxs/ansible
   LINT_VALE: "true"
-  SERVICE_DOCKER_TAG: stable-dind
+  # SERVICE_DOCKER_TAG: stable-dind
+  SERVICE_DOCKER_TAG: 25-dind
 
 stages:
   - lint
