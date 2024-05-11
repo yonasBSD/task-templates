@@ -5,6 +5,8 @@
 #
 version: '3'
 
+dotenv: ['.env']
+
 vars:
   DIR_TASKFILES: Taskfile.d
   FILE_TASK_START: "task-start-{{.TASK}}.txt"

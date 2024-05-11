@@ -1,0 +1,67 @@
+---
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+
+tasks:
+
+  check:
+    desc: "Check response code of an URL. Arguments: URL|U=http://url (*)"
+    summary: |
+      [URL] Check response code of an URL.
+      Usage: task url:check URL|U=http://url
+
+      Arguments:
+        URL | U  Url to check (required)
+
+      Requirements:
+        - curl
+    vars:
+      URL: '{{.URL | default .U}}'
+    cmds:
+      - |
+        http_code=$(curl -L -so /dev/null -w "%{http_code}" {{.URL}})
+        if [ "${http_code}" != "200" ]; then
+          printf "[\033[0;31m[KO] HTTP code: %s\033[0m\n" "${http_code}"
+          exit 1
+        else
+          printf "\033[0;32m[OK] %s - %s \033[0m\n" "${http_code}" {{.URL}}
+        fi
+    preconditions:
+      - sh: test -n "{{.URL}}"
+        msg: "URL|U argument is required"
+    silent: true
+
+  perf:
+    desc: "Get performance of an URL. Arguments: URL|U=http://url [FILE|F=./perf_url.txt] (*)"
+    summary: |
+      [URL] Get response code of URL.
+      Usage: task url:perf URL|U=http://url [FILE|F=<file_path>]
+
+      Arguments:
+        URL  | U:  URL to check (required)
+        FILE | F:  File path (optional, if not set output to terminal)
+
+      Note: definition of metrics can be found here: https://blog.cloudflare.com/a-question-of-timing
+
+      Requirements:
+        - curl
+    vars:
+      URL: '{{.URL | default .U}}'
+      FILE: '{{.FILE | default .F}}'
+      CURL_DATE:
+        sh: date -u +'%Y-%m-%dT%H:%M:%SZ'
+    cmds:
+      - |
+        output=$(curl -so /dev/null -w "code: %{http_code} | dnslookup: %{time_namelookup} | connect: %{time_connect} | appconnect: %{time_appconnect} | pretransfer: %{time_pretransfer} | starttransfer: %{time_starttransfer} | total: %{time_total} | size: %{size_download}" {{.URL}})
+        if test -n "{{.FILE}}"; then
+          echo "{{.CURL_DATE}} | ${output}" >> "{{.FILE}}"
+        else
+          echo "{{.CURL_DATE}} | ${output}"
+        fi
+    preconditions:
+      - sh: test -n "{{.URL}}"
+        msg: "URL|U argument is required"
+    silent: true

@@ -296,3 +296,18 @@ tasks:
       - sh: command -v docker
         msg: "docker is not installed"
     silent: true
+
+  rm-all:
+    desc: "Remove all Docker objects (*)"
+    summary: |
+      [DOCKER] Remove all Docker objectss.
+      Usage: task docker:rm-all
+
+      Requirements:
+        - docker
+    cmds:
+      - docker system prune -a -f
+    preconditions:
+      - sh: command -v docker
+        msg: "docker is not installed"
+    silent: true

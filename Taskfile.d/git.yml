@@ -15,8 +15,8 @@ version: '3'
 
 vars:
   IMAGE_DEFAULT: jfxs/commitizen-semantic-release:latest  # Default image
-  DOCKER_EXEC_OPTS: ""  # Optionnal Docker options for docker exec command
-  DOCKER_RUN_OPTS: ""  # Optionnal Docker options for docker run command
+  DOCKER_EXEC_OPTS: ""  # Optional Docker options for docker exec command
+  DOCKER_RUN_OPTS: ""  # Optional Docker options for docker run command
 
 tasks:
 

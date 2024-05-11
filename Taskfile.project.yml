@@ -45,6 +45,7 @@ tasks:
     cmds:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}
+      - task lint:pre-commit
       - task lint:all MEX='"#.cache" "#node_modules" "#.node_cache" "#styles"'
       - echo "" && echo "Checks Start $(cat {{.FILE_TASK_START}}) - End $(date)"
     silent: true
