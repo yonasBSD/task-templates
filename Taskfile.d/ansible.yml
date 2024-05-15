@@ -1,10 +1,21 @@
 ---
 # https://taskfile.dev
+# @description: A set of Ansible tasks.
+# @tags: Ansible, docker, CLI
+# @authors: FX Soubirou <soubirou@yahoo.fr>
+# @file-raw: https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/ansible.yml
+# @file-ui: https://gitlab.com/op_so/task/task-templates/-/blob/main/Taskfile.d/ansible.yml
+# @home: https://gitlab.com/op_so/task/task-templates
+# @links: [Ansible](https://www.ansible.com/)
+# @license: MIT
+# @status: stable
+# @deprecated-tasks:
 
 version: '3'
 
 vars:
-  IMAGE_ANSIBLE: jfxs/ansible
+  IMAGE_ANSIBLE: jfxs/ansible  # Default Ansible image
+  DOCKER_RUN_OPTS: ""  # Optional Docker options for docker run command
 
 tasks:
 
@@ -17,9 +28,9 @@ tasks:
       Usage: task ansible:command CMD|C=<ansible_command> [IMG|I=<docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-        CMD  | C  Ansible command to run (required)
-        IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
-        PULL | P  Pull docker image (optional, by default yes)
+        CMD  | C:  Ansible command to run (required)
+        IMG  | I:  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL | P:  Pull docker image (optional, by default yes)
 
       Requirements:
         - ansible or docker
@@ -44,11 +55,11 @@ tasks:
       Usage: task ansible:galaxy-install FILE|F=<file_path> [FORCE|F=<y|Y>] [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>] [PROXY|PX=<proxy_url>]
 
       Arguments:
-        REQ   | R  Requirements file path (required)
-        FORCE | F  Force to install the last version of collections (optional, by default no)
-        IMG   | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
-        PULL  | P  Pull docker image (optional, by default yes)
-        PROXY | PX Proxy (optional)
+        REQ   | R:  Requirements file path (required)
+        FORCE | F:  Force to install the last version of collections (optional, by default no)
+        IMG   | I:  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL  | P:  Pull docker image (optional, by default yes)
+        PROXY | PX: Proxy (optional)
 
       Requirements:
         - ansible or docker
@@ -87,12 +98,12 @@ tasks:
       Usage: task ansible:galaxy-publish FILE|F=<file_path> ACTION|A=<ENC|DEC|EDIT> [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-        VERSION    | V  Version of the collection (required)
-        NAMESPACE  | N  Namespace of the collection (required)
-        COLLECTION | C  Collection name (required)
-        TOKEN      | T  Galaxy token (required)
-        IMG        | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
-        PULL       | P  Pull docker image (optional, by default yes)
+        VERSION    | V:  Version of the collection (required)
+        NAMESPACE  | N:  Namespace of the collection (required)
+        COLLECTION | C:  Collection name (required)
+        TOKEN      | T:  Galaxy token (required)
+        IMG        | I:  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL       | P:  Pull docker image (optional, by default yes)
 
       Requirements:
         - ansible or docker
@@ -137,9 +148,9 @@ tasks:
       Usage: task ansible:lint ARG|A=<arguments_list> [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-        ARG  | A  Arguments of the ansible-lint (required)
-        IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
-        PULL | P  Pull docker image (optional, by default yes)
+        ARG  | A:  Arguments of the ansible-lint (required)
+        IMG  | I:  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL | P:  Pull docker image (optional, by default yes)
 
       Requirements:
         - ansible-lint or docker
@@ -165,9 +176,9 @@ tasks:
       Usage: task ansible:ping ARG|A=<arguments_list> [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-        ARG  | A  Arguments of the command to run (required)
-        IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
-        PULL | P  Pull docker image (optional, by default yes)
+        ARG  | A:  Arguments of the command to run (required)
+        IMG  | I:  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL | P:  Pull docker image (optional, by default yes)
 
       Requirements:
         - ansible or docker
@@ -193,9 +204,9 @@ tasks:
       Usage: task ansible:playbook ARG|A=<arguments_list> [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-        ARG  | A  Arguments of the playbook to run (required)
-        IMG  | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
-        PULL | P  Pull docker image (optional, by default yes)
+        ARG  | A:  Arguments of the playbook to run (required)
+        IMG  | I:  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL | P:  Pull docker image (optional, by default yes)
 
       Requirements:
         - ansible or docker
@@ -219,8 +230,8 @@ tasks:
       Usage: task ansible:ssh FILE|F=<inventory_path> HOST|H=<nostname>
 
       Arguments:
-        FILE | F  Path to inventory file (required)
-        HOST | H  Hostname of server defined in inventory (required)
+        FILE | F:  Path to inventory file (required)
+        HOST | H:  Hostname of server defined in inventory (required)
 
       Requirements:
         - ssh
@@ -267,10 +278,10 @@ tasks:
       Usage: task ansible:vault FILE|F=<file_path> ACTION|A=<ENC|DEC|EDIT> [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-        FILE   | F  Path of the file (required)
-        ACTION | F  Action ENC: encrypt, DEC: decrypt, EDIT: edit the file (required)
-        IMG    | I  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
-        PULL   | P  Pull docker image (optional, by default yes)
+        FILE   | F:  Path of the file (required)
+        ACTION | A:  Action ENC: encrypt, DEC: decrypt, EDIT: edit the file (required)
+        IMG    | I:  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL   | P:  Pull docker image (optional, by default yes)
 
       Requirements:
         - ansible or docker
@@ -298,6 +309,39 @@ tasks:
     silent: true
     interactive: true
 
+  vault-variable:
+    desc: "Operation on a variable with Ansible Vault. Arguments: VARIABLE|V=my_var SECRET|S=my_secret [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
+    summary: |
+      [ANSIBLE] Operation on a variable with Ansible Vault.
+      If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
+      otherwise an Ansible Docker image is used.
+      Usage: task ansible:vault-variable VARIABLE|V=<variable_name> SECRET|S=<secret_value> [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
+
+      Arguments:
+        VARIABLE | V:  The variable name (required)
+        SECRET   | S:  The secret to encrypt (required)
+        IMG      | I:  Docker Ansible image to use (optional, by default {{.IMAGE_ANSIBLE}})
+        PULL     | P:  Pull docker image (optional, by default yes)
+
+      Requirements:
+        - ansible or docker
+    vars:
+      VARIABLE: '{{.VARIABLE | default .V}}'
+      SECRET: '{{.SECRET | default .S}}'
+      IMG: '{{.IMG | default .I}}'
+      PULL: '{{.PULL | default .P}}'
+      CMD: "ansible-vault encrypt_string '{{.SECRET}}' --name '{{.VARIABLE}}'"
+    cmds:
+      - task: exec-local-docker-ansible
+        vars: {CMD: "{{.CMD}}", IMG: "{{.IMG}}", PULL: "{{.PULL}}"}
+    preconditions:
+      - sh: test -n "{{.VARIABLE}}"
+        msg: "VARIABLE|V argument is required"
+      - sh: test -n "{{.SECRET}}"
+        msg: "SECRET|S argument is required"
+    silent: true
+    interactive: true
+
   exec-local-docker-ansible:
     vars:
       IMG_D: '{{default .IMAGE_ANSIBLE .IMG}}'
@@ -308,9 +352,9 @@ tasks:
         else
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
           if [ "{{.INTERACTIVE}}" == "Y" ]; then
-            docker run -it --rm -v $(pwd):/ansible -w /ansible "{{.IMG_D}}" sh -c '{{.CMD}}'
+            docker run {{.DOCKER_RUN_OPTS}} -it --rm -v $(pwd):/ansible -w /ansible "{{.IMG_D}}" sh -c '{{.CMD}}'
           else
-            docker run -t --rm -v $(pwd):/ansible -w /ansible "{{.IMG_D}}" sh -c '{{.CMD}}'
+            docker run {{.DOCKER_RUN_OPTS}} -t --rm -v $(pwd):/ansible -w /ansible "{{.IMG_D}}" sh -c '{{.CMD}}'
           fi
         fi
     preconditions:

@@ -1,11 +1,83 @@
 ---
 # https://taskfile.dev
+# @description: A set of cryptographic tasks.
+# @tags: cryptography, docker, CLI
+# @authors: FX Soubirou <soubirou@yahoo.fr>
+# @file-raw: https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/crypto.yml
+# @file-ui: https://gitlab.com/op_so/task/task-templates/-/blob/main/Taskfile.d/crypto.yml
+# @home: https://gitlab.com/op_so/task/task-templates
+# @links: [age](https://github.com/FiloSottile/age), [OpenSSL](https://www.openssl.org/)
+# @license: MIT
+# @status: stable
+# @deprecated-tasks:
 
 version: '3'
 
 vars:
+  DOCKER_RUN_OPTS: ""  # Optional Docker options for docker run command
 
 tasks:
+
+  age-decrypt:
+    desc: "Decrypt a folder with age. Arguments: NAME|N=filename (*)"
+    summary: |
+      [AGE] Decrypt a folder with age.
+      Usage: task crypto:age-decrypt NAME|N=<filename>
+
+      Arguments:
+        NAME | N:  File name without extension tar.age (required)
+
+      Requirements:
+        - age
+    vars:
+      NAME: '{{.NAME | default .N}}'
+    cmds:
+      - if [ ! -f "{{.NAME}}.tar" ]; then age --decrypt "{{.NAME}}.tar.age" > "{{.NAME}}.tar"; fi
+      - echo "File {{.NAME}} decrypted successfully!"
+      - tar xf "{{.NAME}}.tar"
+      - rm -f "{{.NAME}}.tar"
+    preconditions:
+      - sh: command -v age
+        msg: "age is not installed"
+      - sh: test -n "{{.NAME}}"
+        msg: "NAME|N argument is required"
+      - sh: (! test -d "{{.NAME}}" && ! test -d "{{.N}}")
+        msg: "Directory {{.NAME}} already exists!"
+    interactive: true
+    silent: true
+
+  age-encrypt:
+    desc: "Encrypt a folder with age. Arguments: DIR|D=dir_path (*)"
+    summary: |
+      [AGE] Encrypt a folder with age.
+      Usage: task crypto:age-encrypt DIR|D=<directory_path>
+
+      Arguments:
+        DIR | D:  Directory to encrypt (required)
+
+      Requirements:
+        - age
+    vars:
+      DIR: '{{.DIR | default .D}}'
+    cmds:
+      - if [ ! -f "{{.DIR}}.tar" ]; then tar cf "{{.DIR}}.tar" "{{.DIR}}/"; fi
+      - |
+        if tar tf "{{.DIR}}.tar" &> /dev/null; then
+          echo "Tar archive {{.DIR}}.tar created successfully!"
+        else
+          echo "Error creating Tar archive {{.DIR}}.tar" && exit 1
+        fi
+      - age --passphrase "{{.DIR}}.tar" > "{{.DIR}}.tar.age"
+      - rm -f "{{.DIR}}.tar"
+    preconditions:
+      - sh: command -v age
+        msg: "age is not installed"
+      - sh: test -n "{{.DIR}}"
+        msg: "DIR|D argument is required"
+      - sh: (! test -f "{{.DIR}}.tar.age" && ! test -f "{{.D}}.tar.age")
+        msg: "File {{.DIR}}.tar.age already exists!"
+    interactive: true
+    silent: true
 
   generate-csr:
     desc: "Generate a private key pair and csr. Arguments: CONFIG|C=server_config.cnf NAME|N=hostname (*)"
@@ -14,8 +86,8 @@ tasks:
       Usage: task crypto:generate-csr CONFIG|K=<config_path> NAME|N=<server_name>
 
       Arguments:
-       CONFIG | C  Config file path (required)
-       NAME   | N  Server name (required)
+       CONFIG | C:  Config file path (required)
+       NAME   | N:  Server name (required)
 
       Configuration file Example:
       [ req ]
@@ -66,9 +138,9 @@ tasks:
       Usage: task crypto:generate-htpasswd FILE|F=<file_relative_path> UUSER|U=<username> PASS|P=<password>
 
       Arguments:
-       FILE  | F  Relative file path to the Basic Auth file (required)
-       UUSER | U  Username (required)
-       PASS  | P  Password of the username (required)
+       FILE  | F:  Relative file path to the Basic Auth file (required)
+       UUSER | U:  Username (required)
+       PASS  | P:  Password of the username (required)
 
       Requirements:
         - docker
@@ -84,7 +156,7 @@ tasks:
         else
           htpasswd_options="-cBb"
         fi
-        docker run -t --rm --name generate-passwd -v "$(pwd):/file" "{{.DEFAULT_IMAGE}}" /bin/sh -c "apk --no-cache add apache2-utils && htpasswd $htpasswd_options /file/{{.FILE}} {{.UUSER}} {{.PASS}}"
+        docker run {{.DOCKER_RUN_OPTS}} -t --rm --name generate-passwd -v "$(pwd):/file" "{{.DEFAULT_IMAGE}}" /bin/sh -c "apk --no-cache add apache2-utils && htpasswd $htpasswd_options /file/{{.FILE}} {{.UUSER}} {{.PASS}}"
       - chmod 600 "{{.FILE}}"
       - echo "File {{.FILE}} created/updated"
     preconditions:
@@ -105,7 +177,7 @@ tasks:
       Usage: task crypto:generate-key KEY|K=<key_path>
 
       Arguments:
-       KEY | K  Path to the private key file (required)
+       KEY | K:  Path to the private key file (required)
 
       Requirements:
         - ssh-keygen

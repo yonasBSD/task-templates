@@ -1,10 +1,22 @@
 ---
 # https://taskfile.dev
+# @description: A set of docker tasks.
+# @tags: docker, skopeo, CLI
+# @authors: FX Soubirou <soubirou@yahoo.fr>
+# @file-raw: https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/docker.yml
+# @file-ui: https://gitlab.com/op_so/task/task-templates/-/blob/main/Taskfile.d/docker.yml
+# @home: https://gitlab.com/op_so/task/task-templates
+# @links: [docker](https://docs.docker.com/), [skopeo](https://github.com/containers/skopeo)
+# @license: MIT
+# @status: stable
+# @deprecated-tasks:
 
 version: '3'
 
 vars:
-  IMAGE_QEMU: multiarch/qemu-user-static
+  IMAGE_QEMU: multiarch/qemu-user-static  # Default Docker image for Quemu
+  IMAGE_SKOPEO: quay.io/skopeo/stable  # Default Docker image for Skopeo
+  DOCKER_RUN_OPTS: ""  # Optional Docker options for docker run command
 
 tasks:
 
@@ -15,27 +27,27 @@ tasks:
       Usage: task docker:build-local TAG|T=<image[:tag]> VERSION|V=<version> [VCS_REF|C=<commit_sha>] [FILE|F=<Dockerfile_path>]
 
       Arguments:
-        TAG     | T  Tag of the image (required)
-        VERSION | V  Version (required)
-        VCS_REF | C  Commit revision SHA hash (optional, by default NO_REF)
-        FILE    | F  Dockerfile path (optional, by default Dockerfile)
+        TAG     | T:  Tag of the image (required)
+        VERSION | V:  Version (required)
+        VCS_REF | C:  Commit revision SHA hash (optional, by default NO_REF)
+        FILE    | F:  Dockerfile path (optional, by default Dockerfile)
 
       Requirements:
         - docker
     vars:
       BUILD_DATE:
         sh: date -u +'%Y-%m-%dT%H:%M:%SZ'
-      TAG: '{{default .T .TAG}}'
-      VERSION: '{{default .V .VERSION}}'
-      VCS_REF: '{{default .C .VCS_REF}}'
-      D_VCS_REF: '{{default "NO_REF" .VCS_REF}}'
-      FILE: '{{default .F .FILE}}'
-      D_FILE: '{{default "Dockerfile" .FILE}}'
+      TAG: '{{.TAG | default .T | default "test"}}'
+      VERSION: '{{.VERSION | default .V}}'
+      VCS_REF: '{{.VCS_REF | default .C | default "NO_REF"}}'
+      FILE: '{{.FILE | default .F | default "Dockerfile"}}'
     cmds:
-      - docker build --build-arg VERSION="{{.VERSION}}" --build-arg VCS_REF="{{.D_VCS_REF}}" --build-arg BUILD_DATE="{{.BUILD_DATE}}" -t "{{.TAG}}" -f "{{.D_FILE}}" .
+      - docker build --build-arg VERSION="{{.VERSION}}" --build-arg VCS_REF="{{.VCS_REF}}" --build-arg BUILD_DATE="{{.BUILD_DATE}}" -t "{{.TAG}}" -f "{{.FILE}}" .
     preconditions:
       - sh: command -v docker
         msg: "docker is not installed"
+      - sh: test -n "{{.VERSION}}"
+        msg: "VERSION|V argument is required"
     silent: true
 
   build-push-multiarch:
@@ -45,44 +57,48 @@ tasks:
       Usage: task docker:build-push DOCKER_USER|U=<username> DOCKER_PASS|P=<password> TAG|T=<image[:tag]> VERSION|V=<version> [REGISTRY|R=<registry_url>] [VCS_REF|C=<commit_sha>] [FILE|F=<Dockerfile_path>] [ARCH|A=<architecture_list>]
 
       Arguments:
-        DOCKER_USER | U  Registry user (required)
-        DOCKER_PASS | P  Registry password/token (required)
-        TAG         | T  Tag of the image (required)
-        VERSION     | V  Version (required)
-        REGISTRY    | R  Registry URL (optional, by default docker.io)
-        VCS_REF     | C  Commit revision SHA hash (optional)
-        FILE        | F  Dockerfile path (optional, by default Dockerfile)
-        ARCH        | A  Build plateform (optional, by default linux/amd64,linux/arm64)
+        DOCKER_USER | U:  Registry user (required)
+        DOCKER_PASS | P:  Registry password/token (required)
+        TAG         | T:  Tag of the image (required)
+        VERSION     | V:  Version (required)
+        REGISTRY    | R:  Registry URL (optional, by default docker.io)
+        VCS_REF     | C:  Commit revision SHA hash (optional)
+        FILE        | F:  Dockerfile path (optional, by default Dockerfile)
+        ARCH        | A:  Build plateform (optional, by default linux/amd64,linux/arm64)
 
       Requirements:
         - docker
     vars:
       BUILD_DATE:
         sh: date -u +'%Y-%m-%dT%H:%M:%SZ'
-      DOCKER_USER: '{{default .U .DOCKER_USER}}'
-      DOCKER_PASS: '{{default .P .DOCKER_PASS}}'
-      TAG: '{{default .T .TAG}}'
-      VERSION: '{{default .V .VERSION}}'
-      REGISTRY: '{{default .R .REGISTRY}}'
-      D_REGISTRY: '{{default "docker.io" .REGISTRY}}'
-      VCS_REF: '{{default .C .VCS_REF}}'
-      D_VCS_REF: '{{default "NO_REF" .VCS_REF}}'
-      FILE: '{{default .F .FILE}}'
-      D_FILE: '{{default "Dockerfile" .FILE}}'
-      ARCH: '{{default .A .ARCH}}'
-      D_ARCH: '{{default "linux/amd64,linux/arm64" .ARCH}}'
+      DOCKER_USER: '{{.DOCKER_USER | default .U}}'
+      DOCKER_PASS: '{{.DOCKER_PASS | default .P}}'
+      REGISTRY: '{{.REGISTRY | default .R | default "docker.io"}}'
+      TAG: '{{.TAG | default .T}}'
+      VERSION: '{{.VERSION | default .V}}'
+      VCS_REF: '{{.VCS_REF | default .C | default "NO_REF"}}'
+      FILE: '{{.FILE | default .F | default "Dockerfile"}}'
+      ARCH: '{{.ARCH | default .A | default "linux/amd64,linux/arm64"}}'
     cmds:
-      - echo -n "{{.DOCKER_PASS}}" | docker login -u "{{.DOCKER_USER}}" --password-stdin "{{.D_REGISTRY}}"
-      - defer: docker logout "{{.D_REGISTRY}}"
-      - docker run --name qemu --rm --privileged "{{.IMAGE_QEMU}}" --reset -p yes
+      - echo -n "{{.DOCKER_PASS}}" | docker login -u "{{.DOCKER_USER}}" --password-stdin "{{.REGISTRY}}"
+      - defer: docker logout "{{.REGISTRY}}"
+      - docker run {{.DOCKER_RUN_OPTS}} --name qemu --rm --privileged "{{.IMAGE_QEMU}}" --reset -p yes
       - docker context create builder-context
       - defer: docker context rm builder-context
       - docker buildx create --name builderx --driver docker-container --use builder-context
       - defer: docker buildx rm builderx
-      - docker buildx build --build-arg VERSION="{{.VERSION}}" --build-arg VCS_REF="{{.D_VCS_REF}}" --build-arg BUILD_DATE="{{.BUILD_DATE}}" --push -t "{{.TAG}}" --platform "{{.D_ARCH}}" -f "{{.D_FILE}}" .
+      - docker buildx build --build-arg VERSION="{{.VERSION}}" --build-arg VCS_REF="{{.VCS_REF}}" --build-arg BUILD_DATE="{{.BUILD_DATE}}" --push -t "{{.TAG}}" --platform "{{.ARCH}}" -f "{{.FILE}}" .
     preconditions:
       - sh: command -v docker
         msg: "docker is not installed"
+      - sh: test -n "{{.DOCKER_USER}}"
+        msg: "DOCKER_USER|U argument is required"
+      - sh: test -n "{{.DOCKER_PASS}}"
+        msg: "DOCKER_PASS|P argument is required"
+      - sh: test -n "{{.TAG}}"
+        msg: "TAG|T argument is required"
+      - sh: test -n "{{.VERSION}}"
+        msg: "VERSION|V argument is required"
     silent: true
 
   count-layer:
@@ -92,13 +108,12 @@ tasks:
       Usage: task docker:count-layer IMG|I=<image>
 
       Arguments:
-        IMG | I  Image to analyze (required)
+        IMG | I:  Image to analyze (required)
 
       Requirements:
         - docker or skopeo
     vars:
-      IMG: '{{default .I .IMG}}'
-      IMAGE_SKOPEO: quay.io/skopeo/stable
+      IMG: '{{.IMG | default .I}}'
     cmds:
       - |
         if [ -x "$(command -v skopeo)" ]; then
@@ -107,7 +122,7 @@ tasks:
             exit 1
           fi
         else
-          if ! skopeo_output=$(docker run -t --rm "{{.IMAGE_SKOPEO}}" inspect --format "{{ `{{ .Layers }}` }}" "docker://{{.IMG}}"); then
+          if ! skopeo_output=$(docker run {{.DOCKER_RUN_OPTS}} -t --rm "{{.IMAGE_SKOPEO}}" inspect --format "{{ `{{ .Layers }}` }}" "docker://{{.IMG}}"); then
             printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{ .Layers }}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
             exit 1
           fi
@@ -116,7 +131,7 @@ tasks:
     preconditions:
       - sh: command -v docker || command -v skopeo
         msg: "skopeo or docker are not installed"
-      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+      - sh: test -n "{{.IMG}}"
         msg: "IMG|I argument is required"
     silent: true
 
@@ -127,14 +142,13 @@ tasks:
       Usage: task docker:get-digest [FILE|F=<Dockerfile_path>]
 
       Arguments:
-        FILE | F  Dockerfile path (optional, by default Dockerfile)
+        FILE | F:  Dockerfile path (optional, by default Dockerfile)
 
       Requirements:
     vars:
-      FILE: '{{default .F .FILE}}'
-      D_FILE: '{{default "Dockerfile" .FILE}}'
+      FILE: '{{.FILE | default .F | default "Dockerfile"}}'
     cmds:
-      - grep FROM "{{.D_FILE}}" | tail -n 1 | awk '{print $2}'
+      - grep FROM "{{.FILE}}" | tail -n 1 | awk '{print $2}'
     silent: true
 
   get-digest:
@@ -144,13 +158,12 @@ tasks:
       Usage: task docker:get-digest IMG|I=<image>
 
       Arguments:
-        IMG | I  Image to analyze (required)
+        IMG | I:  Image to analyze (required)
 
       Requirements:
         - docker or skopeo
     vars:
-      IMG: '{{default .I .IMG}}'
-      IMAGE_SKOPEO: quay.io/skopeo/stable
+      IMG: '{{.IMG | default .I}}'
     cmds:
       - |
         if [ -x "$(command -v skopeo)" ]; then
@@ -159,7 +172,7 @@ tasks:
             exit 1
           fi
         else
-          if ! skopeo_output=$(docker run -t --rm "{{.IMAGE_SKOPEO}}" inspect --format "{{ `{{ .Digest }}` }}" "docker://{{.IMG}}"); then
+          if ! skopeo_output=$(docker run {{.DOCKER_RUN_OPTS}} -t --rm "{{.IMAGE_SKOPEO}}" inspect --format "{{ `{{ .Digest }}` }}" "docker://{{.IMG}}"); then
             printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{ .Digest }}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
             exit 1
           fi
@@ -168,7 +181,7 @@ tasks:
     preconditions:
       - sh: command -v docker || command -v skopeo
         msg: "skopeo or docker are not installed"
-      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+      - sh: test -n "{{.IMG}}"
         msg: "IMG|I argument is required"
     silent: true
 
@@ -179,14 +192,13 @@ tasks:
       Usage: task docker:get-digest-layerN IMG|I=<image>
 
       Arguments:
-        IMG | I  Image to analyze (required)
-        NUM | N  Layer to get. Start at 0 (required)
+        IMG | I:  Image to analyze (required)
+        NUM | N:  Layer to get. Start at 0 (required)
       Requirements:
         - docker or skopeo
     vars:
-      IMG: '{{default .I .IMG}}'
-      IMAGE_SKOPEO: quay.io/skopeo/stable
-      NUM: '{{default .N .NUM}}'
+      IMG: '{{.IMG | default .I}}'
+      NUM: '{{.NUM | default .N}}'
     cmds:
       - |
         if [ -x "$(command -v skopeo)" ]; then
@@ -195,7 +207,7 @@ tasks:
             exit 1
           fi
         else
-          if ! skopeo_output=$(docker run -t --rm "{{.IMAGE_SKOPEO}}" inspect --format "{{ `{{index .Layers ` }} {{.NUM}} {{ `}}` }}" "docker://{{.IMG}}"); then
+          if ! skopeo_output=$(docker run {{.DOCKER_RUN_OPTS}} -t --rm "{{.IMAGE_SKOPEO}}" inspect --format "{{ `{{index .Layers ` }} {{.NUM}} {{ `}}` }}" "docker://{{.IMG}}"); then
             printf "\033[0;31m[ERROR] Command skopeo inspect --format {{ `{{index .Layers N}}` }} docker://%s failed!\033[0m\n" "{{.IMG}}"
             exit 1
           fi
@@ -204,9 +216,9 @@ tasks:
     preconditions:
       - sh: command -v docker || command -v skopeo
         msg: "skopeo or docker are not installed"
-      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+      - sh: test -n "{{.IMG}}"
         msg: "IMG|I argument is required"
-      - sh: test -n "{{.NUM}}" || test -n "{{.N}}"
+      - sh: test -n "{{.NUM}}"
         msg: "NUM|N argument is required"
     silent: true
 
@@ -217,22 +229,21 @@ tasks:
       Usage: task docker:get-next-tag-index IMG|I=<image> VERSION|V=<version>
 
       Arguments:
-        IMG     | I  Image to analyze (required)
-        VERSION | V  Version (required)
+        IMG     | I:  Image to analyze (required)
+        VERSION | V:  Version (required)
 
       Requirements:
         - docker or skopeo
         - jq
     vars:
-      IMG: '{{default .I .IMG}}'
-      VERSION: '{{default .V .VERSION}}'
-      IMAGE_SKOPEO: quay.io/skopeo/stable
+      IMG: '{{.IMG | default .I}}'
+      VERSION: '{{.VERSION | default .V}}'
     cmds:
       - |
         if [ -x "$(command -v skopeo)" ]; then
           skopeo_output=$(skopeo list-tags "docker://{{.IMG}}") || true
         else
-          skopeo_output=$(docker run -t --rm "{{.IMAGE_SKOPEO}}" list-tags "docker://{{.IMG}}") || true
+          skopeo_output=$(docker run {{.DOCKER_RUN_OPTS}} -t --rm "{{.IMAGE_SKOPEO}}" list-tags "docker://{{.IMG}}") || true
         fi
         if [ -z "$skopeo_output" ]; then
           echo "001"
@@ -260,9 +271,9 @@ tasks:
         msg: "jq is not installed"
       - sh: command -v docker || command -v skopeo
         msg: "skopeo or docker are not installed"
-      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+      - sh: test -n "{{.IMG}}"
         msg: "IMG|I argument is required"
-      - sh: test -n "{{.VERSION}}" || test -n "{{.V}}"
+      - sh: test -n "{{.VERSION}}"
         msg: "VERSION|V argument is required"
     silent: true
 

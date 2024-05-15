@@ -1,0 +1,7 @@
+https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/ansible.yml
+https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/crypto.yml
+https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/docker.yml
+https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/git.yml
+https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/go.yml
+https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/lint.yml
+https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/version.yml

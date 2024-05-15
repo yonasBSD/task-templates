@@ -1,10 +1,21 @@
 ---
 # https://taskfile.dev
+# @description: A set of Go tasks.
+# @tags: Go, docker, CLI
+# @authors: FX Soubirou <soubirou@yahoo.fr>
+# @file-raw: https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/go.yml
+# @file-ui: https://gitlab.com/op_so/task/task-templates/-/blob/main/Taskfile.d/go.yml
+# @home: https://gitlab.com/op_so/task/task-templates
+# @links: [Go](https://go.dev/)
+# @license: MIT
+# @status: beta
+# @deprecated-tasks:
 
 version: '3'
 
 vars:
-  IMAGE_GO: golang:latest
+  IMAGE_GO: golang:latest  # Default Docker image for Go
+  DOCKER_RUN_OPTS: ""  # Optional Docker options for docker run command
 
 tasks:
 
@@ -17,12 +28,12 @@ tasks:
       Usage: task go:format-check [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-        IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
-        PULL | P  Pull docker image (optional, by default yes)
+        IMG  | I:  Docker Go image to use (optional, by default {{.IMAGE_GO}})
+        PULL | P:  Pull docker image (optional, by default yes)
     vars:
-      IMG: '{{default .I .IMG}}'
-      IMG_D: '{{default .IMAGE_GO .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      IMG: '{{.IMG | default .I}}'
+      IMG_D: '{{.IMG | default .IMAGE_GO}}'
+      PULL: '{{.PULL | default .P}}'
     cmds:
       - |
         if (! test -n "{{.IMG}}") && (command -v go 2>&1 >/dev/null); then
@@ -32,7 +43,7 @@ tasks:
             echo "docker and go are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run -t --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" sh -c 'if [ -n "$(gofmt -l .)" ]; then echo "Go code is not formatted!" && gofmt -d . && exit 1; else go vet ./...; fi'
+          docker run {{.DOCKER_RUN_OPTS}} -t --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" sh -c 'if [ -n "$(gofmt -l .)" ]; then echo "Go code is not formatted!" && gofmt -d . && exit 1; else go vet ./...; fi'
         fi
     silent: true
 
@@ -45,11 +56,11 @@ tasks:
       Usage: task go:mod-clean [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-        IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
-        PULL | P  Pull docker image (optional, by default yes)
+        IMG  | I:  Docker Go image to use (optional, by default {{.IMAGE_GO}})
+        PULL | P:  Pull docker image (optional, by default yes)
     vars:
-      IMG: '{{default .I .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      IMG: '{{.IMG | default .I}}'
+      PULL: '{{.PULL | default .P}}'
       CMD: "go mod tidy"
     cmds:
       - task: exec-local-docker-go
@@ -65,11 +76,11 @@ tasks:
       Usage: task go:mod-clean [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-        IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
-        PULL | P  Pull docker image (optional, by default yes)
+        IMG  | I:  Docker Go image to use (optional, by default {{.IMAGE_GO}})
+        PULL | P:  Pull docker image (optional, by default yes)
     vars:
-      IMG: '{{default .I .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      IMG: '{{.IMG | default .I}}'
+      PULL: '{{.PULL | default .P}}'
       CMD: "go mod download"
     cmds:
       - task: exec-local-docker-go
@@ -85,12 +96,12 @@ tasks:
       Usage: task go:mod-outdated [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-        IMG | I Docker Go image to use (optional, by default {{.IMAGE_GO}})
-        PULL | P Pull docker image (optional, by default yes)
+        IMG  | I:  Docker Go image to use (optional, by default {{.IMAGE_GO}})
+        PULL | P:  Pull docker image (optional, by default yes)
     vars:
-      IMG: '{{default .I .IMG}}'
-      IMG_D: '{{default .IMAGE_GO .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      IMG: '{{.IMG | default .I}}'
+      IMG_D: '{{.IMG | default .IMAGE_GO}}'
+      PULL: '{{.PULL | default .P}}'
     cmds:
       - |
         if (! test -n "{{.IMG}}") && (command -v go 2>&1 >/dev/null); then
@@ -100,7 +111,7 @@ tasks:
             echo "docker and go are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run -t --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" go list -u -f '{{`{{if (and (not (or .Main .Indirect)) .Update)}}`}}{{`{{.Path}}`}}  {{`{{.Version}}`}} -> {{`{{.Update.Version}}`}}{{`{{end}}`}}' -m all 2> /dev/null
+          docker run {{.DOCKER_RUN_OPTS}} -t --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" go list -u -f '{{`{{if (and (not (or .Main .Indirect)) .Update)}}`}}{{`{{.Path}}`}}  {{`{{.Version}}`}} -> {{`{{.Update.Version}}`}}{{`{{end}}`}}' -m all 2> /dev/null
         fi
     silent: true
 
@@ -113,11 +124,11 @@ tasks:
       Usage: task go:test-unit [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-        IMG | I Docker Go image to use (optional, by default {{.IMAGE_GO}})
-        PULL | P Pull docker image (optional, by default yes)
+        IMG  | I:  Docker Go image to use (optional, by default {{.IMAGE_GO}})
+        PULL | P:  Pull docker image (optional, by default yes)
     vars:
-      IMG: '{{default .I .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      IMG: '{{.IMG | default .I}}'
+      PULL: '{{.PULL | default .P}}'
       CMD: go test ./... -cover
     cmds:
       - task: exec-local-docker-go
@@ -136,8 +147,8 @@ tasks:
         IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
         PULL | P  Pull docker image (optional, by default yes)
     vars:
-      IMG: '{{default .I .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      IMG: '{{.IMG | default .I}}'
+      PULL: '{{.PULL | default .P}}'
       CMD: go test ./... -v -cover | sed '/PASS/s//$(printf "\033[32mPASS\033[0m")/' | sed '/FAIL/s//$(printf "\033[31mFAIL\033[0m")/'
     cmds:
       - task: exec-local-docker-go
@@ -153,12 +164,12 @@ tasks:
       Usage: task go:vulncheck [IMG|I=<Docker_image:tag>] [PULL|P=<n|N>]
 
       Arguments:
-        IMG  | I  Docker Go image to use (optional, by default {{.IMAGE_GO}})
-        PULL | P  Pull docker image (optional, by default yes)
+        IMG  | I:  Docker Go image to use (optional, by default {{.IMAGE_GO}})
+        PULL | P:  Pull docker image (optional, by default yes)
     vars:
-      IMG: '{{default .I .IMG}}'
-      IMG_D: '{{default .IMAGE_GO .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      IMG: '{{.IMG | default .I}}'
+      IMG_D: '{{.IMG | default .IMAGE_GO}}'
+      PULL: '{{.PULL | default .P}}'
     cmds:
       - |
         if (! test -n "{{.IMG}}") && (command -v govulncheck 2>&1 >/dev/null); then
@@ -168,13 +179,13 @@ tasks:
             echo "docker and govulncheck are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run -t --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" sh -c 'go install golang.org/x/vuln/cmd/govulncheck@latest && govulncheck ./...'
+          docker run {{.DOCKER_RUN_OPTS}} -t --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" sh -c 'go install golang.org/x/vuln/cmd/govulncheck@latest && govulncheck ./...'
         fi
     silent: true
 
   exec-local-docker-go:
     vars:
-      IMG_D: '{{default .IMAGE_GO .IMG}}'
+      IMG_D: '{{.IMG | default .IMAGE_GO}}'
     cmds:
       - |
         if (! test -n "{{.IMG}}") && (command -v go 2>&1 >/dev/null); then
@@ -184,7 +195,7 @@ tasks:
             echo "docker and go are not installed!" && exit 1
           fi
           if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMG_D}}"; fi
-          docker run -t --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" sh -c '{{.CMD}}'
+          docker run {{.DOCKER_RUN_OPTS}} -t --rm -v $(pwd):/usr/src/myapp -w /usr/src/myapp "{{.IMG_D}}" sh -c '{{.CMD}}'
         fi
     preconditions:
       - sh: test -n "{{.CMD}}"
