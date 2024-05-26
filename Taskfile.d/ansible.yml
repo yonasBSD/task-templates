@@ -1,7 +1,7 @@
 ---
 # https://taskfile.dev
 # @description: A set of Ansible tasks.
-# @tags: Ansible, docker, CLI
+# @tags: ansible, docker, CLI
 # @authors: FX Soubirou <soubirou@yahoo.fr>
 # @file-raw: https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/ansible.yml
 # @file-ui: https://gitlab.com/op_so/task/task-templates/-/blob/main/Taskfile.d/ansible.yml
@@ -168,7 +168,7 @@ tasks:
     silent: true
 
   ping:
-    desc: "Run Ansible ping. Arguments: ARG|A=\"-i inventory all\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
+    desc: "Run Ansible ping. Arguments: ARG|A=\"-i inventory all\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [ANSIBLE] Run Ansible ping.
       If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
@@ -196,7 +196,7 @@ tasks:
     silent: true
 
   playbook:
-    desc: "Run Ansible playbook. Arguments: ARG|A=\"-i inventory playbook.yml\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
+    desc: "Run Ansible playbook. Arguments: ARG|A=\"-i inventory playbook.yml\" [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [ANSIBLE] Run Ansible playbook.
       If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
@@ -270,7 +270,7 @@ tasks:
     interactive: true
 
   vault:
-    desc: "Operation on a file with Ansible Vault. Arguments: FILE|F=key.pem ACTION|A=ENC|DEC|EDIT [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
+    desc: "Operation on a file with Ansible Vault. Arguments: FILE|F=key.pem ACTION|A=ENC|DEC|EDIT [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [ANSIBLE] Operation on a file with Ansible Vault.
       If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,
@@ -310,7 +310,7 @@ tasks:
     interactive: true
 
   vault-variable:
-    desc: "Operation on a variable with Ansible Vault. Arguments: VARIABLE|V=my_var SECRET|S=my_secret [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N> ](*)"
+    desc: "Operation on a variable with Ansible Vault. Arguments: VARIABLE|V=my_var SECRET|S=my_secret [IMG|I=jfxs/ansible:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [ANSIBLE] Operation on a variable with Ansible Vault.
       If Ansible command is in the path and IMG/I argument is not set, the local Ansible command is executed,

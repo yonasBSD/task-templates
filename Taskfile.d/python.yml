@@ -1,11 +1,21 @@
 ---
 # https://taskfile.dev
+# @description: A set of tasks for a Pythonproject
+# @tags: python, docker, CI, CLI
+# @authors: FX Soubirou <soubirou@yahoo.fr>
+# @file-raw: https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/python.yml
+# @file-ui: https://gitlab.com/op_so/task/task-templates/-/blob/main/Taskfile.d/python.yml
+# @home: https://gitlab.com/op_so/task/task-templates
+# @links: [Python](https://www.python.org/)
+# @license: MIT
+# @status: draft
+# @deprecated-tasks:
 
 version: '3'
 
 vars:
-  IMAGE_BLACK: pyfound/black:latest_release
-  IMAGE_PYTHON: python:3-bookworm
+  IMAGE_BLACK: pyfound/black:latest_release  # Default Black image
+  IMAGE_PYTHON: python:3-bookworm  # Default Python image
 
 tasks:
 
@@ -16,22 +26,20 @@ tasks:
       Usage: task python:black [ARG|A=--check] [IMG|I=pyfound/black] [PULL|P=<n|N>]
 
       Arguments:
-        ARG  | A  Arguments or options to passto black CLI (optional, by default current directory)
-        IMG  | I  Docker black image to use (optional, by default {{.IMAGE_BLACK}})
-        PULL | P  Pull docker image (optional, by default yes)
+        ARG  | A: Arguments or options to passto black CLI (optional, by default current directory)
+        IMG  | I: Docker black image to use (optional, by default {{.IMAGE_BLACK}})
+        PULL | P: Pull docker image (optional, by default yes)
 
       Requirements:
         - black or docker
     vars:
-      ARG: '{{default .A .ARG}}'
-      ARG_D: '{{default "." .ARG}}'
-      IMG: '{{default .I .IMG}}'
-      IMG_D: '{{default .IMAGE_BLACK .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      ARG: '{{.ARG | default .A | default "."}}'
+      IMG: '{{.IMG | default .I | default .IMAGE_BLACK}}'
+      PULL: '{{.PULL | default .P}}'
       EXEC: black
     cmds:
       - task: exec-local-docker
-        vars: {EXEC: "{{.EXEC}}", ARG: "{{.ARG_D}}", IMG: "{{.IMG_D}}", PULL: "{{.PULL}}"}
+        vars: {EXEC: "{{.EXEC}}", ARG: "{{.ARG}}", IMG: "{{.IMG}}", PULL: "{{.PULL}}"}
     silent: true
 
   lint:
@@ -41,21 +49,19 @@ tasks:
       Usage: task python:lint [ARG|A=path/to/code/]
 
       Arguments:
-        ARG  | A  Arguments or options to pass to flake CLI (optional, by default current directory)
+        ARG  | A: Arguments or options to pass to flake CLI (optional, by default current directory)
 
       Requirements:
-        - python or docker
+        - python with flake8 or docker
     vars:
-      ARG: '{{default .A .ARG}}'
-      ARG_D: '{{default "." .ARG}}'
-      IMG: '{{default .I .IMG}}'
-      IMG_D: '{{default .IMAGE_PYTHON .IMG}}'
-      PULL: '{{default .P .PULL}}'
+      ARG: '{{.ARG | default .A | default "."}}'
+      IMG: '{{.IMG | default .I | default .IMAGE_BLACK}}'
+      PULL: '{{.PULL | default .P}}'
       EXEC: flake8
       EXEC_DOCKER: 'python3 -m pip install flake8 && python3 -m flake8'
     cmds:
       - task: exec-local-docker
-        vars: {EXEC: "{{.EXEC}}", EXEC_DOCKER: "{{.EXEC_DOCKER}}", ARG: "{{.ARG_D}}", IMG: "{{.IMG_D}}", PULL: "{{.PULL}}"}
+        vars: {EXEC: "{{.EXEC}}", EXEC_DOCKER: "{{.EXEC_DOCKER}}", ARG: "{{.ARG}}", IMG: "{{.IMG}}", PULL: "{{.PULL}}"}
     silent: true
 
   exec-local-docker:

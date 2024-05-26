@@ -1,5 +1,15 @@
 ---
 # https://taskfile.dev
+# @description: A set of tasks for a Python Poetry project
+# @tags: poetry, python, CI, CLI
+# @authors: FX Soubirou <soubirou@yahoo.fr>
+# @file-raw: https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/poetry.yml
+# @file-ui: https://gitlab.com/op_so/task/task-templates/-/blob/main/Taskfile.d/poetry.yml
+# @home: https://gitlab.com/op_so/task/task-templates
+# @links: [Poetry](https://python-poetry.org/)
+# @license: MIT
+# @status: draft
+# @deprecated-tasks:
 
 version: '3'
 
@@ -8,17 +18,40 @@ vars:
 tasks:
 
   install:
-    desc: "[POETRY] Install packages."
+    desc: "[POETRY] Install packages. (*)"
+    summary: |
+      [POETRY] Install packages.
+      Usage: task poetry:install
+
+      Arguments:
+
+      Requirements:
+        - poetry
     cmds:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}
       - rm -f poetry.lock
       - poetry install --with lint
       - echo "Tests Start $(cat {{.FILE_TASK_START}}) - End $(date)"
+    preconditions:
+      - sh: command -v poetry
+        msg: "poetry is not installed"
     silent: true
 
   lint:
-    desc: "[POETRY] Lint code."
+    desc: "[POETRY] Lint code. (*)"
+    summary: |
+      [POETRY] Lint code with Black, Mypy, Ruff, Flacke8.
+      Usage: task poetry:lint
+
+      Arguments:
+
+      Requirements:
+        - poetry
+        - Black
+        - Mypy
+        - Ruff
+        - Flake8
     cmds:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}
@@ -35,10 +68,22 @@ tasks:
       - poetry run flake8 src/
       - poetry run flake8 tests/
       - echo "Tests Start $(cat {{.FILE_TASK_START}}) - End $(date)"
+    preconditions:
+      - sh: command -v poetry
+        msg: "poetry is not installed"
     silent: true
 
   pytest:
-    desc: "[POETRY] Tests."
+    desc: "[POETRY] run tests. (*)"
+    summary: |
+      [POETRY] run tests with pytest.
+      Usage: task poetry:pytest
+
+      Arguments:
+
+      Requirements:
+        - poetry
+        - Pytest
     cmds:
       - date > {{.FILE_TASK_START}}
       - defer: rm -f {{.FILE_TASK_START}}

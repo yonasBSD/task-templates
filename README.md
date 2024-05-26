@@ -6,6 +6,8 @@
 
 A set of reusable [Task](https://taskfile.dev) templates, ready to use.
 
+**Documentation** is available: [https://task-templates.pages.dev](https://task-templates.pages.dev/)
+
 ## Getting started
 
 ### Requirements
@@ -88,20 +90,22 @@ Otherwise, if you prefer stability you should also commit the content of the `Ta
 
 ## Available templates
 
-* `age.yml`: Encrypt/Decrypt with [`age`](https://github.com/FiloSottile/age)
-* `ansible.yml`: `Ansible` common tasks
+* `ansible.yml`: [`Ansible`](https://www.ansible.com/) common tasks
 * `crypto.yml`: Cryptographic tasks, generate keys, certificates
-* `docker.yml`: `Docker` common tasks
+* `docker.yml`: [`Docker`](https://docs.docker.com/) common tasks
 * `git.yml`: `Git` signed commit and [`commitizen`](http://commitizen.github.io/cz-cli/) tasks
-* `go.yml`: `Go` task
-* `lint.yml`: General lint text files tasks for every project
+* `go.yml`: [`Go`](https://go.dev/) tasks
+* `lint.yml`: A set of tasks to lint different types of files.
 * `multipass.yml`: [`Multipass`](https://multipass.run/) tasks
-* `python.yml`: Python tasks
+* `poetry.yml`: [`Poetry`](https://python-poetry.org/) Python tasks
+* `python.yml`: Python common tasks
 * `robot.yml`: [Robot Framework](https://robotframework.org/) useful tasks
 * `sbom.yml`: Software bill of materials (`SBOM`) commands with [`syft`](https://github.com/anchore/syft) and [`cosign`](https://github.com/sigstore/cosign)
-* `system.yml`: System interaction
+* `url.yml`: Check URL with [`curl`](https://curl.se/)
 * `version.yml`: Useful version tasks like get last version on `Github`, `pypi`
-* `yarn.yml`: `Yarn` tasks
+* `yarn.yml`: [`yarn`](https://yarnpkg.com/) common tasks with Docker
+
+For details go to the [templates documentation](https://task-templates.pages.dev/task_templates/).
 
 ### Upgrade
 

@@ -1,5 +1,15 @@
 ---
 # https://taskfile.dev
+# @description: A set of tasks to check URL with curl.
+# @tags: curl, CI, CLI
+# @authors: FX Soubirou <soubirou@yahoo.fr>
+# @file-raw: https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/curl.yml
+# @file-ui: https://gitlab.com/op_so/task/task-templates/-/blob/main/Taskfile.d/curl.yml
+# @home: https://gitlab.com/op_so/task/task-templates
+# @links: [curl](https://curl.se/)
+# @license: MIT
+# @status: stable
+# @deprecated-tasks:
 
 version: '3'
 
@@ -14,7 +24,7 @@ tasks:
       Usage: task url:check URL|U=http://url
 
       Arguments:
-        URL | U  Url to check (required)
+        URL | U: Url to check (required)
 
       Requirements:
         - curl
@@ -30,6 +40,8 @@ tasks:
           printf "\033[0;32m[OK] %s - %s \033[0m\n" "${http_code}" {{.URL}}
         fi
     preconditions:
+      - sh: command -v curl
+        msg: "curl is not installed"
       - sh: test -n "{{.URL}}"
         msg: "URL|U argument is required"
     silent: true
@@ -41,8 +53,8 @@ tasks:
       Usage: task url:perf URL|U=http://url [FILE|F=<file_path>]
 
       Arguments:
-        URL  | U:  URL to check (required)
-        FILE | F:  File path (optional, if not set output to terminal)
+        URL  | U: URL to check (required)
+        FILE | F: File path (optional, if not set output to terminal)
 
       Note: definition of metrics can be found here: https://blog.cloudflare.com/a-question-of-timing
 
@@ -62,6 +74,8 @@ tasks:
           echo "{{.CURL_DATE}} | ${output}"
         fi
     preconditions:
+      - sh: command -v curl
+        msg: "curl is not installed"
       - sh: test -n "{{.URL}}"
         msg: "URL|U argument is required"
     silent: true

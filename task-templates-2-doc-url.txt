@@ -4,4 +4,11 @@ https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/docker.yml
 https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/git.yml
 https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/go.yml
 https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/lint.yml
+https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/multipass.yml
+https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/poetry.yml
+https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/python.yml
+https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/robot.yml
+https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/sbom.yml
+https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/url.yml
 https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/version.yml
+https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/yarn.yml

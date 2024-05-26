@@ -1,7 +1,19 @@
 ---
 # https://taskfile.dev
+# @description: A set of tasks for SBOM (Software Bill Of Materials) management.
+# @tags: SBOM, docker, CI, CLI
+# @authors: FX Soubirou <soubirou@yahoo.fr>
+# @file-raw: https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/sbom.yml
+# @file-ui: https://gitlab.com/op_so/task/task-templates/-/blob/main/Taskfile.d/sbom.yml
+# @home: https://gitlab.com/op_so/task/task-templates
+# @links: [cosign](https://github.com/sigstore/cosign),[syft](https://github.com/anchore/syft)
+# @license: MIT
+# @status: stable
+# @deprecated-tasks:
 
 version: '3'
+
+vars:
 
 tasks:
 
@@ -12,9 +24,9 @@ tasks:
       Usage: task sbom:attach-sbom-attest IMG|I=<image> KEY|K=<private_key_path> DIR|D=<temporary_directory>
 
       Arguments:
-        IMG | I  Image to analyze (required)
-        KEY | K  Cosign private key path (required)
-        DIR | D  Temporary directory to save attestation file (optional, current directory by default)
+        IMG | I: Image to analyze (required)
+        KEY | K: Cosign private key path (required)
+        DIR | D: Temporary directory to save attestation file (optional, current directory by default)
 
       Requirements:
         - cosign
@@ -22,24 +34,23 @@ tasks:
         - COSIGN_PASSWORD env. variable set
         - Registry push permission (docker login ...)
     vars:
-      DIR: '{{default .D .DIR}}'
-      D_DIR: '{{default "." .DIR}}'
-      IMG: '{{default .I .IMG}}'
-      KEY: '{{default .K .KEY}}'
+      DIR: '{{.DIR | default .D | default "."}}'
+      IMG: '{{.IMG | default .I}}'
+      KEY: '{{.KEY | default .K}}'
       ATT_FILENAME:
         sh: echo "{{.IMG}}" | sed -E 's/[\/:.@]+/-/g'
     cmds:
-      - defer: rm -f "{{.D_DIR}}/{{.ATT_FILENAME}}.sbom.json"
-      - syft -o spdx-json "{{.IMG}}" > "{{.D_DIR}}/{{.ATT_FILENAME}}.sbom.json"
-      - cosign attest --tlog-upload=false --key "{{.KEY}}" --predicate "{{.D_DIR}}/{{.ATT_FILENAME}}.sbom.json" --type spdxjson "{{.IMG}}"
+      - defer: rm -f "{{.DIR}}/{{.ATT_FILENAME}}.sbom.json"
+      - syft -o spdx-json "{{.IMG}}" > "{{.DIR}}/{{.ATT_FILENAME}}.sbom.json"
+      - cosign attest --tlog-upload=false --key "{{.KEY}}" --predicate "{{.DIR}}/{{.ATT_FILENAME}}.sbom.json" --type spdxjson "{{.IMG}}"
     preconditions:
       - sh: command -v cosign
         msg: "cosign is not installed"
       - sh: command -v syft
         msg: "syft is not installed"
-      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+      - sh: test -n "{{.IMG}}"
         msg: "IMG|I argument is required"
-      - sh: test -n "{{.KEY}}" || test -n "{{.K}}"
+      - sh: test -n "{{.KEY}}"
         msg: "KEY|K argument is required"
     silent: true
 
@@ -51,13 +62,13 @@ tasks:
       Returns 1 if the subset of files are different, 0 otherwise
 
       Arguments:
-        INPUT1 | I1  Input file 1 (required)
-        INPUT2 | I2  Input file 2 (required)
-        GREP   | G   Grep regex to select subset to compare (optional)
+        INPUT1 | I1: Input file 1 (required)
+        INPUT2 | I2: Input file 2 (required)
+        GREP   | G:  Grep regex to select subset to compare (optional)
     vars:
-      INPUT1: '{{default .I1 .INPUT1}}'
-      INPUT2: '{{default .I2 .INPUT2}}'
-      GREP: '{{default .G .GREP}}'
+      INPUT1: '{{.INPUT1 | default .I1}}'
+      INPUT2: '{{.INPUT2 | default .I2}}'
+      GREP: '{{.GREP | default .G}}'
     cmds:
       - |
         if [ -z "{{.GREP}}" ]; then
@@ -80,15 +91,15 @@ tasks:
         diff <(echo "$subset_filter1") <(echo "$subset_filter2") >/dev/null 2>&1 && DIFF=0 || DIFF=1
         echo $DIFF
     preconditions:
-      - sh: test -n "{{.INPUT1}}" || test -n "{{.I1}}"
+      - sh: test -n "{{.INPUT1}}"
         msg: "INPUT1|I1 argument is required"
-      - sh: test -n "{{.INPUT2}}" || test -n "{{.I2}}"
+      - sh: test -n "{{.INPUT2}}"
         msg: "INPUT2|I2 argument is required"
-      - sh: test -n "{{.INPUT1}}" || test -n "{{.I1}}"
+      - sh: test -n "{{.INPUT1}}"
         msg: "INPUT1|I1 argument is required"
-      - sh: ! (test -f "{{.INPUT1}}" || test -f "{{.I1}}")
+      - sh: test -f "{{.INPUT1}}"
         msg: "File {{.INPUT1}} not found"
-      - sh: ! (test -f "{{.INPUT2}}" || test -f "{{.I2}}")
+      - sh: test -f "{{.INPUT2}}"
         msg: "File {{.INPUT2}} not found"
     silent: true
 
@@ -99,27 +110,26 @@ tasks:
       Usage: task sbom:get-docker-sbom IMG|I=<image> [FORMAT|F=<output_format>]
 
       Arguments:
-        IMG    | I  Image to analyze (required)
-        FORMAT | F  Output format syft-json, spdx-json, spdx-tag-value, cyclonedx-json, cyclonedx-xml, github, table, template (optional, by default table)
+        IMG    | I: Image to analyze (required)
+        FORMAT | F: Output format syft-json, spdx-json, spdx-tag-value, cyclonedx-json, cyclonedx-xml, github, table, template (optional, by default table)
 
       Requirements:
         - docker
         - syft
     vars:
-      FORMAT: '{{default .F .FORMAT}}'
-      D_FORMAT: '{{default "table" .FORMAT}}'
-      IMG: '{{default .I .IMG}}'
+      FORMAT: '{{.FORMAT | default .F | default "table"}}'
+      IMG: '{{.IMG | default .I}}'
       TMP_FILE: '{{.IMG}}.tmp.tar'
     cmds:
       - defer: rm -f "{{.TMP_FILE}}"
       - docker save "{{.IMG}}" > "{{.TMP_FILE}}"
-      - syft "{{.TMP_FILE}}" -o "{{.D_FORMAT}}"
+      - syft "{{.TMP_FILE}}" -o "{{.FORMAT}}"
     preconditions:
       - sh: command -v docker
         msg: "docker is not installed"
       - sh: command -v syft
         msg: "syft is not installed"
-      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+      - sh: test -n "{{.IMG}}"
         msg: "IMG|I argument is required"
     silent: true
 
@@ -130,19 +140,19 @@ tasks:
       Usage: task sbom:get-sbom-attest IMG|I=<image> KEY|K=<public_key_path> OUTPUT|O=<sbom_file_path> [FORMAT|F=<output_format>]
 
       Arguments:
-        IMG    | I  Image to analyze (required)
-        KEY    | K  Cosign public key path (required)
-        OUTPUT | O  Output SBOM file path (required)
-        FORMAT | F  Output format syft-json, spdx-json, spdx-tag-value, cyclonedx-json, cyclonedx-xml, github, table, template (optional, by default same as attestation)
+        IMG    | I: Image to analyze (required)
+        KEY    | K: Cosign public key path (required)
+        OUTPUT | O: Output SBOM file path (required)
+        FORMAT | F: Output format syft-json, spdx-json, spdx-tag-value, cyclonedx-json, cyclonedx-xml, github, table, template (optional, by default same as attestation)
 
       Requirements:
         - cosign
         - syft
     vars:
-      FORMAT: '{{default .F .FORMAT}}'
-      IMG: '{{default .I .IMG}}'
-      KEY: '{{default .K .KEY}}'
-      OUTPUT: '{{default .O .OUTPUT}}'
+      FORMAT: '{{.FORMAT | default .F}}'
+      IMG: '{{.IMG | default .I}}'
+      KEY: '{{.KEY | default .K}}'
+      OUTPUT: '{{.OUTPUT | default .O}}'
     cmds:
       - defer: rm -f "{{.OUTPUT}}.tmp"
       - cosign verify-attestation --insecure-ignore-tlog=true --key "{{.KEY}}" --type spdxjson "{{.IMG}}"  | jq '.payload | @base64d | fromjson | .predicate' > "{{.OUTPUT}}.tmp"
@@ -157,11 +167,11 @@ tasks:
         msg: "cosign is not installed"
       - sh: command -v syft
         msg: "syft is not installed"
-      - sh: test -n "{{.IMG}}" || test -n "{{.I}}"
+      - sh: test -n "{{.IMG}}"
         msg: "IMG|I argument is required"
-      - sh: test -n "{{.KEY}}" || test -n "{{.K}}"
+      - sh: test -n "{{.KEY}}"
         msg: "KEY|K argument is required"
-      - sh: test -n "{{.OUTPUT}}" || test -n "{{.O}}"
+      - sh: test -n "{{.OUTPUT}}"
         msg: "OUTPUT|O argument is required"
     silent: true
 
@@ -172,13 +182,13 @@ tasks:
       Usage: task sbom:get-sbom-subset INPUT|I=<sbom_file_path> OUTPUT|O=<subset_file_path> [GREP|G=<subset_to_extract>]
 
       Arguments:
-        INPUT  | I  SBOM file in syft table format (required)
-        OUTPUT | O  Output SBOM file path (required)
-        GREP   | G  Grep regex to select subset (optional, if not set returns all)
+        INPUT  | I: SBOM file in syft table format (required)
+        OUTPUT | O: Output SBOM file path (required)
+        GREP   | G: Grep regex to select subset (optional, if not set returns all)
     vars:
-      GREP: '{{default .G .GREP}}'
-      INPUT: '{{default .I .INPUT}}'
-      OUTPUT: '{{default .O .OUTPUT}}'
+      GREP: '{{.GREP | default .G}}'
+      INPUT: '{{.INPUT | default .I}}'
+      OUTPUT: '{{.OUTPUT | default .O}}'
     cmds:
       - |
         if [ -z "{{.GREP}}" ]; then
@@ -187,11 +197,11 @@ tasks:
           cat "{{.INPUT}}" | grep -E "{{.GREP}}" > "{{.OUTPUT}}"
         fi
     preconditions:
-      - sh: test -n "{{.INPUT}}" || test -n "{{.I}}"
+      - sh: test -n "{{.INPUT}}"
         msg: "INPUT|I argument is required"
-      - sh: test -n "{{.OUTPUT}}" || test -n "{{.O}}"
+      - sh: test -n "{{.OUTPUT}}"
         msg: "OUTPUT|O argument is required"
-      - sh: ! (test -f "{{.INPUT}}" || test -f "{{.I}}")
+      - sh: test -f "{{.INPUT}}"
         msg: "File {{.INPUT}} not found"
     silent: true
 
@@ -206,14 +216,12 @@ tasks:
         README  | R  README file path (optional, by default README.md)
         PATTERN | P  Pattern to replace with the SBOM table (optional, by default --SBOM-TABLE--)
     vars:
-      PATTERN: '{{default .P .PATTERN}}'
-      D_PATTERN: '{{default "--SBOM-TABLE--" .PATTERN}}'
-      README: '{{default .R .README}}'
-      D_README: '{{default "README.md" .README}}'
-      SBOM: '{{default .S .SBOM}}'
+      PATTERN: '{{.PATTERN | default .P | default "--SBOM-TABLE--"}}'
+      README: '{{.README | default .R | default "README.md"}}'
+      SBOM: '{{.SBOM | default .S}}'
       HEAD: "| Name | Version | Type |\\n|------|------|------|"
     cmds:
-      - defer: rm -f "{{.D_README}}.bu"
+      - defer: rm -f "{{.README}}.bu"
       - |
         table="{{.HEAD}}"
         while read -r line; do
@@ -222,10 +230,10 @@ tasks:
           type=$(echo $line | awk '{ print $3 }')
           table="$table\\n| $name | $version  | $type |"
         done < {{.SBOM}}
-        sed -i'.bu' "s=^{{.D_PATTERN}}.*=$table=g" "{{.D_README}}"
+        sed -i'.bu' "s=^{{.PATTERN}}.*=$table=g" "{{.README}}"
     preconditions:
-      - sh: test -n "{{.SBOM}}" || test -n "{{.S}}"
+      - sh: test -n "{{.SBOM}}"
         msg: "SBOM|S argument is required"
-      - sh: ! (test -f "{{.SBOM}}" || test -f "{{.S}}")
+      - sh: test -f "{{.SBOM}}"
         msg: "File {{.SBOM}} not found"
     silent: true

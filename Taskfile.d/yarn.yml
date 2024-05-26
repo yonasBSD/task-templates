@@ -1,13 +1,33 @@
 ---
 # https://taskfile.dev
+# @description: A set of tasks to manage npm project with yarn and Docker.
+# @tags: yarn, docker, CI, CLI
+# @authors: FX Soubirou <soubirou@yahoo.fr>
+# @file-raw: https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/yarn.yml
+# @file-ui: https://gitlab.com/op_so/task/task-templates/-/blob/main/Taskfile.d/yarn.yml
+# @home: https://gitlab.com/op_so/task/task-templates
+# @links: [yarn](https://yarnpkg.com/)
+# @license: MIT
+# @status: beta
+# @deprecated-tasks:
 
 version: '3'
 
 vars:
-  IMAGE_NODE: node:lts-bookworm
-  SRC_MOUNT_POINT: /data
+  IMAGE_NODE: node:lts-bookworm  # Default node image
+  SRC_MOUNT_POINT: /data  # Mount point of the Docker image
 
 tasks:
+
+  clean:
+    desc: "Clean directories. (*)"
+    summary: |
+      [YARN] Clean directories by removing node_modules and .node_cache directories
+      Usage: task yarn:clean
+    cmds:
+      - rm -rf .node_cache
+      - rm -rf node_modules
+    silent: true
 
   install:
     desc: "Install nodejs modules with yarn. Arguments: [PULL|P=n|N] (*)"
@@ -16,7 +36,7 @@ tasks:
       Usage: task yarn:install [PULL|P=<n|N>]
 
       Arguments:
-       PULL | P  Pull docker image (optional, by default yes)
+       PULL | P: Pull docker image (optional, by default yes)
 
       Nota: On error "/bin/sh: 1: cz: Permission denied  - error Command failed with exit code 126."
       Run yarn install
@@ -24,7 +44,7 @@ tasks:
       Requirements:
         - docker
     vars:
-      PULL: '{{default .P .PULL}}'
+      PULL: '{{.PULL | default .P}}'
     cmds:
       - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_NODE}}"; fi
       - docker run -t --rm -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" "{{.IMAGE_NODE}}" yarn --cache-folder "{{.SRC_MOUNT_POINT}}/.node_cache" install
@@ -45,7 +65,7 @@ tasks:
       Requirements:
         - docker
     vars:
-      PULL: '{{default .P .PULL}}'
+      PULL: '{{.PULL | default .P}}'
     cmds:
       - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_NODE}}"; fi
       - docker run -t --rm -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" "{{.IMAGE_NODE}}" yarn --cache-folder "{{.SRC_MOUNT_POINT}}/.node_cache" outdated || true
@@ -66,18 +86,11 @@ tasks:
       Requirements:
         - docker
     vars:
-      PULL: '{{default .P .PULL}}'
+      PULL: '{{.PULL | default .P}}'
     cmds:
       - if [ "{{.PULL}}" != "n" ] && [ "{{.PULL}}" != "N" ]; then docker pull "{{.IMAGE_NODE}}"; fi
       - docker run -t --rm -v $(pwd):"{{.SRC_MOUNT_POINT}}" -w "{{.SRC_MOUNT_POINT}}" "{{.IMAGE_NODE}}" yarn --cache-folder "{{.SRC_MOUNT_POINT}}/.node_cache" upgrade
     preconditions:
       - sh: command -v docker
         msg: "docker is not installed"
-    silent: true
-
-  clean:
-    desc: "Remove node_modules and .node_cache directories"
-    cmds:
-      - rm -rf .node_cache
-      - rm -rf node_modules
     silent: true

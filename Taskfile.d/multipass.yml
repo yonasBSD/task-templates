@@ -1,19 +1,29 @@
 ---
 # https://taskfile.dev
+# @description: A set of tasks to manage Multipass VM
+# @tags: multipass, CLI
+# @authors: FX Soubirou <soubirou@yahoo.fr>
+# @file-raw: https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/multipass.yml
+# @file-ui: https://gitlab.com/op_so/task/task-templates/-/blob/main/Taskfile.d/multipass.yml
+# @home: https://gitlab.com/op_so/task/task-templates
+# @links: [Multipass](https://multipass.run/)
+# @license: MIT
+# @status: beta
+# @deprecated-tasks:
 
 version: '3'
 
 vars:
-  DIR_CONFIG: config
-  DIR_HOST: ".host"
-  DIR_SSH: "{{.DIR_HOST}}/ssh"
-  DEFAULT_CONFIG_PATH: "{{.DIR_CONFIG}}/multipass.yml"
-  DEFAULT_NAME: multipass-default
-  DEFAULT_UUSER: ubuntu
-  DEFAULT_CPU: 1
-  DEFAULT_MEM: 1G
-  DEFAULT_DISK: 5G
-  DEFAULT_IMG: lts
+  DIR_CONFIG: config  # Configuration directory relative path
+  DIR_HOST: ".host"  # .host directory relative path
+  DIR_SSH: "{{.DIR_HOST}}/ssh"  # ssh key directory relative path
+  DEFAULT_CONFIG_PATH: "{{.DIR_CONFIG}}/multipass.yml"  # Default configuration file relative path
+  DEFAULT_NAME: multipass-default  # Default Multipass instance name
+  DEFAULT_UUSER: ubuntu  # Instance default username
+  DEFAULT_CPU: 1  # Instance default CPU
+  DEFAULT_MEM: 1G  # Instance default memory size
+  DEFAULT_DISK: 5G  # Instance default disk size
+  DEFAULT_IMG: lts  # Instance default image
   DEFAULT_CONFIG: |
     ---
     instances:
@@ -38,26 +48,25 @@ tasks:
       Usage: task multipass:create-from-config [CONFIG|C={{.DEFAULT_CONFIG_PATH}}]
 
       Arguments:
-       CONFIG | C  Config file path (optional, by default {{.DEFAULT_CONFIG_PATH}})
+       CONFIG | C: Config file path (optional, by default {{.DEFAULT_CONFIG_PATH}})
     vars:
-      CONFIG: '{{default .C .CONFIG}}'
-      D_CONFIG: '{{default .DEFAULT_CONFIG_PATH .CONFIG}}'
+      CONFIG: '{{.CONFIG | default .C | default .DEFAULT_CONFIG_PATH}}'
     cmds:
-      - if [ ! -f "{{.D_CONFIG}}" ]; then echo "{{.DEFAULT_CONFIG}}" > "{{.D_CONFIG}}" && printf "\033[0;32mConfig file \"%s\" is created.\033[0m\n" "{{.D_CONFIG}}"; fi
+      - if [ ! -f "{{.CONFIG}}" ]; then echo "{{.DEFAULT_CONFIG}}" > "{{.CONFIG}}" && printf "\033[0;32mConfig file \"%s\" is created.\033[0m\n" "{{.CONFIG}}"; fi
       - |
-        block_start_list=$(awk '/^  - name: .*$/{ print NR}' "{{.D_CONFIG}}")
+        block_start_list=$(awk '/^  - name: .*$/{ print NR}' "{{.CONFIG}}")
         block_count=$(printf "%s" "$block_start_list" | grep -c "^")
         n=0
         printf '%s\n' "$block_start_list" |
         while IFS= read -r start; do
           n=$((n+1))
           if [ "$n" = "$block_count" ]; then
-            end=$(wc -l < "{{.D_CONFIG}}" | tr -d ' ')
+            end=$(wc -l < "{{.CONFIG}}" | tr -d ' ')
           else
             line_next_block=$(echo "$block_start_list" | head -n $((n+1)) | tail -1)
             end=$((line_next_block-1))
           fi
-          block=$(head -n "$end" "{{.D_CONFIG}}" | tail -$((end-start+1)))
+          block=$(head -n "$end" "{{.CONFIG}}" | tail -$((end-start+1)))
 
           if ! (echo "$block" | grep -q " name: "); then
             printf "\033[0;31m[ERROR] name attribute is not defined for the instance %s!\033[0m\n" "$n"
@@ -108,28 +117,23 @@ tasks:
       Usage: task multipass:create-instance NAME|N=<instance_name> [U_USER|U=ubuntu] [CPU|C=1] [MEM|M=1G] [DISK|D=5G] [IMG|I=jammy]
 
       Arguments:
-       NAME   | N  Name for the instance (required)
-       U_USER | U  Username (optional, by default {{.DEFAULT_USER}})
-       CPU    | C  Number of CPUs to allocate (optional, by default {{.DEFAULT_CPU}})
-       MEM    | M  Amount of memory to allocate (optional, by default {{.DEFAULT_MEM}})
-       DISK   | D  Disk space to allocate (optional, by default {{.DEFAULT_DISK}})
-       IMG    | I  Image to launch (optional, by default {{.DEFAULT_IMG}})
+       NAME   | N: Name for the instance (required)
+       U_USER | U: Username (optional, by default {{.DEFAULT_USER}})
+       CPU    | C: Number of CPUs to allocate (optional, by default {{.DEFAULT_CPU}})
+       MEM    | M: Amount of memory to allocate (optional, by default {{.DEFAULT_MEM}})
+       DISK   | D: Disk space to allocate (optional, by default {{.DEFAULT_DISK}})
+       IMG    | I: Image to launch (optional, by default {{.DEFAULT_IMG}})
     vars:
-      NAME: '{{default .N .NAME}}'
-      U_USER: '{{default .U .U_USER}}'
-      CPU: '{{default .C .CPU}}'
-      MEM: '{{default .M .MEM}}'
-      DISK: '{{default .D .DISK}}'
-      IMG: '{{default .I .IMG}}'
-      D_UUSER: '{{default .DEFAULT_UUSER .U_USER}}'
-      D_CPU: '{{default .DEFAULT_CPU .CPU}}'
-      D_MEM: '{{default .DEFAULT_MEM .MEM}}'
-      D_DISK: '{{default .DEFAULT_DISK .DISK}}'
-      D_IMG: '{{default .DEFAULT_IMG .IMG}}'
+      NAME: '{{.NAME | default .N}}'
+      U_USER: '{{.U_USER | default .U | default .DEFAULT_UUSER}}'
+      CPU: '{{.CPU | default .C | default .DEFAULT_CPU}}'
+      MEM: '{{.MEM | default .M | default .DEFAULT_MEM}}'
+      DISK: '{{.DISK | default .D | default .DEFAULT_DISK}}'
+      IMG: '{{.IMG | default .I | default .DEFAULT_IMG}}'
       DEFAULT_CLOUD_INIT: |
         ---
         users:
-          - name: {{.D_UUSER}}
+          - name: {{.U_USER}}
             sudo: ALL=(ALL) NOPASSWD:ALL
             ssh-authorized-keys:
               - __SSH_KEY__
@@ -152,7 +156,7 @@ tasks:
       - if test -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}-{{.NAME}}.yml"; then cp -f "{{.FILE_REF_CLOUD_INIT_PREFIX}}-{{.NAME}}.yml" "{{.FILE_CLOUD_INIT}}"; else echo "{{.DEFAULT_CLOUD_INIT}}" > "{{.FILE_CLOUD_INIT}}"; fi
       - KEY_PUB=$(cat "{{.KEY_PATH}}.pub") && sed -i.bu "s#__SSH_KEY__#${KEY_PUB}#g" "{{.FILE_CLOUD_INIT}}"
       - rm -f "{{.FILE_CLOUD_INIT}}.bu"
-      - multipass launch "{{.D_IMG}}" --name "{{.NAME}}" --cpus "{{.D_CPU}}" --memory "{{.D_MEM}}" --disk "{{.D_DISK}}" --cloud-init "{{.FILE_CLOUD_INIT}}" --timeout "{{.MULTIPASS_TIMEOUT}}"
+      - multipass launch "{{.IMG}}" --name "{{.NAME}}" --cpus "{{.CPU}}" --memory "{{.MEM}}" --disk "{{.DISK}}" --cloud-init "{{.FILE_CLOUD_INIT}}" --timeout "{{.MULTIPASS_TIMEOUT}}"
       - rm "{{.FILE_CLOUD_INIT}}"
       - multipass stop "{{.NAME}}"
       - sleep 5 && multipass start "{{.NAME}}"
@@ -161,7 +165,7 @@ tasks:
     preconditions:
       - sh: command -v multipass
         msg: "multipass is not installed"
-      - sh: test -n "{{.NAME}}" || test -n "{{.N}}"
+      - sh: test -n "{{.NAME}}"
         msg: "NAME|N argument is required"
     silent: true
 
@@ -172,16 +176,15 @@ tasks:
       Usage: task multipass:start [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}]
 
       Arguments:
-        NAME   | N  Name for the instance (optional)
-        CONFIG | C  Config file path (optional, by default {{.DEFAULT_CONFIG_PATH}})
+        NAME   | N: Name for the instance (optional)
+        CONFIG | C: Config file path (optional, by default {{.DEFAULT_CONFIG_PATH}})
     vars:
-      CONFIG: '{{default .C .CONFIG}}'
-      D_CONFIG: '{{default .DEFAULT_CONFIG_PATH .CONFIG}}'
+      CONFIG: '{{.CONFIG | default .C | default .DEFAULT_CONFIG_PATH}}'
       NAME: '{{default .N .NAME}}'
     cmds:
-      - if [ ! -f "{{.D_CONFIG}}" ]; then printf "\033[0;31m[ERROR] Config file \"%s\" is not found!\033[0m\n" "{{.D_CONFIG}}" && exit 1; fi
+      - if [ ! -f "{{.CONFIG}}" ]; then printf "\033[0;31m[ERROR] Config file \"%s\" is not found!\033[0m\n" "{{.CONFIG}}" && exit 1; fi
       - |
-        instances=$(cat "{{.D_CONFIG}}" | grep " name: " | awk -F ":" '{print $2}' | tr -d ' ')
+        instances=$(cat "{{.CONFIG}}" | grep " name: " | awk -F ":" '{print $2}' | tr -d ' ')
         if [ -z "{{.NAME}}" ]; then
           printf '%s\n' "$instances" |
           while IFS= read -r instance; do
@@ -191,7 +194,7 @@ tasks:
           if echo "${instances}" | grep -q "^{{.NAME}}$" 2>/dev/null; then
             multipass start "{{.NAME}}"
           else
-            printf "\033[0;31m[ERROR] Instance name \"%s\" is not found in the config file \"%s\"!\033[0m\n" "{{.NAME}}" "{{.D_CONFIG}}" && exit 1
+            printf "\033[0;31m[ERROR] Instance name \"%s\" is not found in the config file \"%s\"!\033[0m\n" "{{.NAME}}" "{{.CONFIG}}" && exit 1
           fi
         fi
     preconditions:
@@ -206,16 +209,15 @@ tasks:
       Usage: task multipass:stop [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}]
 
       Arguments:
-        NAME   | N  Name for the instance (optional)
-        CONFIG | C  Config file path (optional, by default {{.DEFAULT_CONFIG_PATH}})
+        NAME   | N:  Name for the instance (optional)
+        CONFIG | C:  Config file path (optional, by default {{.DEFAULT_CONFIG_PATH}})
     vars:
-      CONFIG: '{{default .C .CONFIG}}'
-      D_CONFIG: '{{default .DEFAULT_CONFIG_PATH .CONFIG}}'
       NAME: '{{default .N .NAME}}'
+      CONFIG: '{{.CONFIG | default .C | default .DEFAULT_CONFIG_PATH}}'
     cmds:
-      - if [ ! -f "{{.D_CONFIG}}" ]; then printf "\033[0;31m[ERROR] Config file \"%s\" is not found!\033[0m\n" "{{.D_CONFIG}}" && exit 1; fi
+      - if [ ! -f "{{.CONFIG}}" ]; then printf "\033[0;31m[ERROR] Config file \"%s\" is not found!\033[0m\n" "{{.CONFIG}}" && exit 1; fi
       - |
-        instances=$(cat "{{.D_CONFIG}}" | grep " name: " | awk -F ":" '{print $2}' | tr -d ' ')
+        instances=$(cat "{{.CONFIG}}" | grep " name: " | awk -F ":" '{print $2}' | tr -d ' ')
         if [ -z "{{.NAME}}" ]; then
           printf '%s\n' "$instances" |
           while IFS= read -r instance; do
@@ -225,7 +227,7 @@ tasks:
           if echo "${instances}" | grep -q "^{{.NAME}}$" 2>/dev/null; then
             multipass stop "{{.NAME}}"
           else
-            printf "\033[0;31m[ERROR] Instance name \"%s\" is not found in the config file \"%s\"!\033[0m\n" "{{.NAME}}" "{{.D_CONFIG}}" && exit 1
+            printf "\033[0;31m[ERROR] Instance name \"%s\" is not found in the config file \"%s\"!\033[0m\n" "{{.NAME}}" "{{.CONFIG}}" && exit 1
           fi
         fi
     preconditions:
@@ -240,22 +242,21 @@ tasks:
       Usage: task multipass:ssh NAME|N=<hostname> [U_USER|U=<username>]
 
       Arguments:
-       NAME   | N  Name of the instance (required)
-       U_USER | U  Username (optional, by default {{.DEFAULT_UUSER}})
+       NAME   | N: Name of the instance (required)
+       U_USER | U: Username (optional, by default {{.DEFAULT_UUSER}})
     vars:
-      NAME: '{{default .N .NAME}}'
+      NAME: '{{.NAME | default .N}}'
       IP:
         sh: multipass list | grep "^{{.NAME}} " | awk '{print $3}'
       KEY_PATH: "{{.DIR_SSH}}/k-{{.NAME}}-1.pem"
-      U_USER: '{{default .U .U_USER}}'
-      D_UUSER: '{{default .DEFAULT_UUSER .U_USER}}'
+      U_USER: '{{.U_USER | default .U | default .DEFAULT_UUSER}}'
       SSH_ARGS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
     cmds:
-      - ssh -i '{{.KEY_PATH}}' {{.SSH_ARGS}} {{.D_UUSER}}@{{.IP}}
+      - ssh -i '{{.KEY_PATH}}' {{.SSH_ARGS}} {{.U_USER}}@{{.IP}}
     preconditions:
       - sh: command -v multipass
         msg: "multipass is not installed"
-      - sh: test -n "{{.NAME}}" || test -n "{{.N}}"
+      - sh: test -n "{{.NAME}}"
         msg: "NAME|N argument is required"
       - sh: test -f "{{.KEY_PATH}}"
         msg: "Key file {{.KEY_PATH}} not found"
@@ -269,18 +270,17 @@ tasks:
       Usage: task multipass:stop [NAME|N=instance_name] [CONFIG|C={{.DEFAULT_CONFIG_PATH}}] [FORCE|F=y|Y]
 
       Arguments:
-        NAME   | N  Name for the instance (optional)
-        CONFIG | C  Config file path (optional, by default {{.DEFAULT_CONFIG_PATH}})
-        FORCE  | F  Delete instances without confirmation (optional, by default no)
+        NAME   | N: Name for the instance (optional)
+        CONFIG | C: Config file path (optional, by default {{.DEFAULT_CONFIG_PATH}})
+        FORCE  | F: Delete instances without confirmation (optional, by default no)
     vars:
-      CONFIG: '{{default .C .CONFIG}}'
-      D_CONFIG: '{{default .DEFAULT_CONFIG_PATH .CONFIG}}'
-      NAME: '{{default .N .NAME}}'
-      FORCE: '{{default .F .FORCE}}'
+      NAME: '{{.NAME | default .N}}'
+      CONFIG: '{{.CONFIG | default .C | default .DEFAULT_CONFIG_PATH}}'
+      FORCE: '{{.FORCE | default .F}}'
     cmds:
-      - if [ ! -f "{{.D_CONFIG}}" ]; then printf "\033[0;31m[ERROR] Config file \"%s\" is not found!\033[0m\n" "{{.D_CONFIG}}" && exit 1; fi
+      - if [ ! -f "{{.CONFIG}}" ]; then printf "\033[0;31m[ERROR] Config file \"%s\" is not found!\033[0m\n" "{{.CONFIG}}" && exit 1; fi
       - |
-        instances=$(cat "{{.D_CONFIG}}" | grep " name: " | awk -F ":" '{print $2}' | tr -d ' ')
+        instances=$(cat "{{.CONFIG}}" | grep " name: " | awk -F ":" '{print $2}' | tr -d ' ')
         if [ -z "{{.NAME}}" ]; then
           if [ "{{.FORCE}}" == "y" ] || [ "{{.FORCE}}" == "Y" ]; then
             printf '%s\n' "$instances" |
@@ -310,7 +310,7 @@ tasks:
               fi
             fi
           else
-            printf "\033[0;31m[ERROR] Instance name \"%s\" is not found in the config file \"%s\"!\033[0m\n" "{{.NAME}}" "{{.D_CONFIG}}" && exit 1
+            printf "\033[0;31m[ERROR] Instance name \"%s\" is not found in the config file \"%s\"!\033[0m\n" "{{.NAME}}" "{{.CONFIG}}" && exit 1
           fi
         fi
       - multipass purge
@@ -328,16 +328,15 @@ tasks:
       Usage: task multipass:mount HOST|H=<hostname> [SOURCE|S=<path>]
 
       Arguments:
-       HOST   | H  Hostname (required)
-       SOURCE | S  Path of the local directory to mount (optional, by default current directory)
+       HOST   | H: Hostname (required)
+       SOURCE | S: Path of the local directory to mount (optional, by default current directory)
     vars:
-      HOST: '{{default .H .HOST}}'
-      SOURCE: '{{default .S .SOURCE}}'
-      D_SOURCE: '{{default "." .SOURCE}}'
+      HOST: '{{.HOST | default .H}}'
+      SOURCE: '{{.SOURCE | default .S | default "."}}'
     cmds:
       - |
-        full_path=$(readlink -f "{{.D_SOURCE}}")
-        if [ -z "${full_path}" ]; then echo "Error: directory \"{{.D_SOURCE}}\" not found" && exit 1; fi
+        full_path=$(readlink -f "{{.SOURCE}}")
+        if [ -z "${full_path}" ]; then echo "Error: directory \"{{.SOURCE}}\" not found" && exit 1; fi
         mounts=$(task multipass:get-mounts HOST="{{.HOST}}")
         if echo "${mounts}" | grep -q "${full_path}" 2>/dev/null; then
           echo "${full_path} is already mounted."
@@ -348,7 +347,7 @@ tasks:
     preconditions:
       - sh: command -v multipass
         msg: "multipass is not installed"
-      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
+      - sh: test -n "{{.HOST}}"
         msg: "HOST|H argument is required"
     silent: true
 
@@ -359,21 +358,20 @@ tasks:
       Usage: task multipass:umount HOST|H=<hostname> [SOURCE|S=<path>]
 
       Arguments:
-       HOST   | H  Hostname (required)
-       SOURCE | S  Path of the local directory to umount (optional, by default current directory)
+       HOST   | H: Hostname (required)
+       SOURCE | S: Path of the local directory to umount (optional, by default current directory)
     vars:
-      HOST: '{{default .H .HOST}}'
-      SOURCE: '{{default .S .SOURCE}}'
-      D_SOURCE: '{{default "." .SOURCE}}'
+      HOST: '{{.HOST | default .H}}'
+      SOURCE: '{{.SOURCE | default .S | default "."}}'
     cmds:
       - |
-        full_path=$(readlink -f "{{.D_SOURCE}}")
+        full_path=$(readlink -f "{{.SOURCE}}")
         multipass umount "{{.HOST}}:${full_path}"
         echo "${full_path} is now unmounted."
     preconditions:
       - sh: command -v multipass
         msg: "multipass is not installed"
-      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
+      - sh: test -n "{{.HOST}}"
         msg: "HOST|H argument is required"
     silent: true
 
@@ -384,9 +382,9 @@ tasks:
       Usage: task multipass:mount-all HOST|H=<hostname>
 
       Arguments:
-       HOST | H  Hostname (optional, by default mount declared directories for all declared hosts)
+       HOST | H: Hostname (optional, by default mount declared directories for all declared hosts)
     vars:
-      HOST: '{{default .H .HOST}}'
+      HOST: '{{.HOST | default .H}}'
       REGEX_HOST: "{.*\"name\": \"{{.HOST}}\".*}"
       LINE_HOST: '{{ mustRegexFind .REGEX_HOST .MULTIPASS_CONFIG }}'
       MOUNTS: "{{ (.LINE_HOST | mustFromJson).mounts }}"
@@ -398,7 +396,7 @@ tasks:
     preconditions:
       - sh: command -v multipass
         msg: "multipass is not installed"
-      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
+      - sh: test -n "{{.HOST}}"
         msg: "HOST|H argument is required"
     silent: true
 
@@ -409,9 +407,9 @@ tasks:
       Usage: task multipass:umount-all HOST|H=<hostname>
 
       Arguments:
-       HOST | H  Hostname (required)
+       HOST | H: Hostname (required)
     vars:
-      HOST: '{{default .H .HOST}}'
+      HOST: '{{.HOST | default .H}}'
       MOUNTS:
         sh: task multipass:get-mounts HOST="{{.HOST}}"
     cmds:
@@ -422,7 +420,7 @@ tasks:
     preconditions:
       - sh: command -v multipass
         msg: "multipass is not installed"
-      - sh: test -n "{{.HOST}}" || test -n "{{.H}}"
+      - sh: test -n "{{.HOST}}"
         msg: "HOST|H argument is required"
     silent: true
 

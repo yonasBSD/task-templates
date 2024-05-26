@@ -1,7 +1,7 @@
 ---
 # https://taskfile.dev
 # @description: A set of Go tasks.
-# @tags: Go, docker, CLI
+# @tags: go, docker, CLI
 # @authors: FX Soubirou <soubirou@yahoo.fr>
 # @file-raw: https://gitlab.com/op_so/task/task-templates/-/raw/main/Taskfile.d/go.yml
 # @file-ui: https://gitlab.com/op_so/task/task-templates/-/blob/main/Taskfile.d/go.yml
@@ -20,7 +20,7 @@ vars:
 tasks:
 
   format-check:
-    desc: "Check code with gofmt and go vet. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    desc: "Check code with gofmt and go vet. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [GO] Check code with gofmt and go vet.
       If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
@@ -48,7 +48,7 @@ tasks:
     silent: true
 
   mod-tidy:
-    desc: "Go mod tidy. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    desc: "Go mod tidy. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [GO] Go mod tidy.
       If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
@@ -88,7 +88,7 @@ tasks:
     silent: true
 
   mod-outdated:
-    desc: "Check outdated Go modules. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    desc: "Check outdated Go modules. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [GO] Check outdated Go modules.
       If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
@@ -116,7 +116,7 @@ tasks:
     silent: true
 
   test-unit:
-    desc: "Run Go unit tests. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    desc: "Run Go unit tests. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [GO] Run Go unit tests.
       If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
@@ -136,7 +136,7 @@ tasks:
     silent: true
 
   test-unit-verbose:
-    desc: "Run Go unit tests with details. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    desc: "Run Go unit tests with details. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [GO] Run Go unit tests with details.
       If Go command is in the path and IMG/I argument is not set, the local Go command is executed,
@@ -156,7 +156,7 @@ tasks:
     silent: true
 
   vulncheck:
-    desc: "Find and fix vulnerable dependencies with vulncheck. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>](*)"
+    desc: "Find and fix vulnerable dependencies with vulncheck. Arguments: [IMG|I=golang:latest] [PULL|P=<n|N>] (*)"
     summary: |
       [GO] Find and fix vulnerable dependencies with vulncheck.
       If Go command is in the path and IMG/I argument is not set, the local Go command is executed,

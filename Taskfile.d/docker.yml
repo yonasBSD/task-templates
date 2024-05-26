@@ -185,11 +185,11 @@ tasks:
         msg: "IMG|I argument is required"
     silent: true
 
-  get-digest-layerN:
+  get-digest-layer-n:
     desc: "Get the digest of the layer N of an image: IMG|I=index.docker.io/jfxs/alpine-task:3.19.0-001 NUM|N=0 (*)"
     summary: |
       [DOCKER] Get the digest of the layer N of an image.
-      Usage: task docker:get-digest-layerN IMG|I=<image>
+      Usage: task docker:get-digest-layer-n IMG|I=<image>
 
       Arguments:
         IMG | I:  Image to analyze (required)
